@@ -2,6 +2,7 @@ from typing import Unpack
 
 from .types import (
     CategoryData,
+    ChoiceOptionArgs,
     ChoiceOptionData,
     CoreOptionData,
     GameData,
@@ -10,8 +11,10 @@ from .types import (
     LocationArgs,
     LocationData,
     MetaData,
+    RangeOptionArgs,
     RangeOptionData,
     RegionData,
+    ToggleOptionArgs,
     ToggleOptionData,
     UserOptionData,
 )
@@ -47,27 +50,36 @@ class WorldSpec:
         return name, self.__set_unique("Regions", self.regions, name, args)
 
     def define_toggle_option(
-        self, name: str, **args: Unpack[ToggleOptionData]
+        self, name: str, **args: Unpack[ToggleOptionArgs]
     ) -> tuple[str, ToggleOptionData]:
-        self.__set_unique("Toggle Options", self.user_options, name, args)
-        return name, args
+        data = ToggleOptionData(**args, type="Toggle")
+        self.__set_unique("Toggle Options", self.user_options, name, data)
+        return name, data
 
     def define_range_option(
-        self, name: str, **args: Unpack[RangeOptionData]
+        self, name: str, **args: Unpack[RangeOptionArgs]
     ) -> tuple[str, RangeOptionData]:
-        self.__set_unique("Range Options", self.user_options, name, args)
-        return name, args
+        data = RangeOptionData(**args, type="Range")
+        self.__set_unique("Range Options", self.user_options, name, data)
+        return name, data
 
     def define_choice_option(
-        self, name: str, **args: Unpack[ChoiceOptionData]
+        self, name: str, **args: Unpack[ChoiceOptionArgs]
     ) -> tuple[str, ChoiceOptionData]:
-        self.__set_unique("Choice Options", self.user_options, name, args)
-        return name, args
+        data = ChoiceOptionData(**args, type="Choice")
+        self.__set_unique("Choice Options", self.user_options, name, data)
+        return name, data
+
+    def define_core_option(
+        self, name: str, **data: Unpack[CoreOptionData]
+    ) -> tuple[str, CoreOptionData]:
+        self.__set_unique("Core Options", self.core_options, name, data)
+        return name, data
 
     @staticmethod
     def __set_unique[T](dict_name: str, dict: dict[str, T], key: str, value: T) -> T:
         if key in dict:
-            raise Exception(f"{key} is already defined in {dict_name}")
+            raise Exception(f'"{key}" is already defined in {dict_name}')
 
         dict[key] = value
         return value

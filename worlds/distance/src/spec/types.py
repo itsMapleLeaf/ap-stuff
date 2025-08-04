@@ -113,25 +113,34 @@ class BaseOptionData(TypedDict):
     visibility: NotRequired[str | list[str] | int]
 
 
-class ToggleOptionData(BaseOptionData):
-    type: Literal["Toggle"]
+class ToggleOptionArgs(BaseOptionData):
     default: bool
 
 
-class ChoiceOptionData(BaseOptionData):
-    type: Literal["Choice"]
+class ToggleOptionData(ToggleOptionArgs):
+    type: Literal["Toggle"]
+
+
+class ChoiceOptionArgs(BaseOptionData):
     values: dict[str, int]
     aliases: NotRequired[dict[str, int | str]]
     default: NotRequired[int]
     allow_custom_value: NotRequired[bool]
 
 
-class RangeOptionData(BaseOptionData):
-    type: Literal["Range"]
+class ChoiceOptionData(ChoiceOptionArgs):
+    type: Literal["Choice"]
+
+
+class RangeOptionArgs(BaseOptionData):
     range_start: NotRequired[int]
     range_end: NotRequired[int]
     default: NotRequired[int]
     values: NotRequired[dict[str, int]]
+
+
+class RangeOptionData(RangeOptionArgs):
+    type: Literal["Range"]
 
 
 class CoreOptionData(BaseOptionData):
@@ -141,8 +150,3 @@ class CoreOptionData(BaseOptionData):
 
 
 type UserOptionData = ToggleOptionData | ChoiceOptionData | RangeOptionData
-
-
-class OptionTableData(TypedDict):
-    core: NotRequired[dict[str, CoreOptionData]]
-    user: NotRequired[dict[str, UserOptionData]]
