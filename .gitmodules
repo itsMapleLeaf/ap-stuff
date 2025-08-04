@@ -1,3 +1,6 @@
 [submodule "manual-template"]
 	path = template
 	url = https://github.com/itsMapleLeaf/manual-template
+[submodule "archipelago"]
+	path = archipelago
+	url = https://github.com/ArchipelagoMW/Archipelago
