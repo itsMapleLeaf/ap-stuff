@@ -15,9 +15,12 @@ class StartingItemData(TypedDict):
 
 
 class GameData(TypedDict):
-    game: str
-    creator: str
-    filler_item_name: str
+    # some game properties are actually required, but to keep things simple,
+    # we'll treat the data/game.json file as the source of truth,
+    # then these properties can serve as overrides
+    game: NotRequired[str]
+    creator: NotRequired[str]
+    filler_item_name: NotRequired[str]
     starting_items: NotRequired[list[StartingItemData]]
     death_link: NotRequired[bool]
     starting_index: NotRequired[int]
