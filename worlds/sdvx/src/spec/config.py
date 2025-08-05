@@ -8,9 +8,9 @@ class SongBracket:
 
 
 song_brackets = [
-    SongBracket(level=17, count=10),
-    SongBracket(level=18, count=30),
-    SongBracket(level=19, count=15),
+    SongBracket(level=17, count=20),
+    SongBracket(level=18, count=45),
+    SongBracket(level=19, count=30),
     SongBracket(level=20, count=5),
 ]
 
