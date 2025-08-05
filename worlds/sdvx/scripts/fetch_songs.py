@@ -1,5 +1,4 @@
 import asyncio
-from dataclasses import dataclass
 import dataclasses
 import hashlib
 import json
@@ -7,15 +6,7 @@ import os
 from pathlib import Path
 import aiohttp
 from bs4 import BeautifulSoup, Tag
-
-
-@dataclass
-class Song:
-    id: str
-    title: str
-    artist: str
-    groups: list[str]
-    charts: dict[str, int]
+from ..src.spec.songs import Song
 
 
 async def fetch_all_songs(page_count: int):

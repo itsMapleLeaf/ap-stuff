@@ -30,7 +30,6 @@ import logging
 ########################################################################################
 
 
-
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
@@ -38,7 +37,48 @@ def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int)
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    pass
+    from ..spec import songs
+    from ..spec.songs import Song
+    from ..spec.config import song_brackets
+    from .state import disabled_categories_by_player_id
+
+    songs_by_level: dict[int, list[Song]] = {}
+
+    for song in songs:
+        for _, level in song.charts.items():
+            songs_by_level[level] = songs_by_level.get(level, [])
+            songs_by_level[level].append(song)
+
+    # if we go with lower levels first,
+    # it's possible we pick, for example, all of the level 20 songs in the game
+    # via their lower diffs, then once we get up to higher diffs,
+    # we have no more level 20s to pick from :(
+    # so we want to start picking via the higher song levels first instead of the lower ones
+    song_brackets_sorted = sorted(
+        song_brackets,
+        key=lambda bracket: bracket.level,
+        reverse=True,
+    )
+
+    chosen_song_ids = set[str]()
+
+    for bracket in song_brackets_sorted:
+        # ensure we pick from songs that haven't already been picked
+        available_songs_for_bracket = [
+            song
+            for song in songs_by_level[bracket.level]
+            if song.id not in chosen_song_ids
+        ]
+
+        chosen_song_ids.update(
+            song.id
+            for song in world.random.sample(available_songs_for_bracket, bracket.count)
+        )
+
+    disabled_categories_by_player_id[player] = {
+        song.id_category_name for song in songs if song.id not in chosen_song_ids
+    }
+
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
