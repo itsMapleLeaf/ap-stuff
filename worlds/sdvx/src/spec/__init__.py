@@ -1,8 +1,6 @@
-import json
-from pathlib import Path
 from .world import WorldSpec
 from .songs import Song
-from .config import song_goals, song_brackets
+from .config import song_goals
 
 
 def __load_songs() -> list[Song]:
@@ -66,6 +64,7 @@ def __define_world_spec(songs: list[Song]) -> WorldSpec:
                 category=["Song Completion", song.id_category_name],
                 progression=True,
                 value={"volforce": song_goal.volforce},
+                local=True,
             )["name"]
 
             world_spec.define_location(
