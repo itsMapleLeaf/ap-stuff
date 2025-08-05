@@ -22,9 +22,8 @@ class SongGoal:
 
 
 song_goals = [
-    SongGoal("AA Rank", 1),
-    SongGoal("AA+ Rank", 3),
-    SongGoal("AAA Rank", 6),
-    SongGoal("AAA+ Rank", 10),
-    SongGoal("S Rank", 15),
+    SongGoal("A Rank", 1),
+    SongGoal("AA Rank", 5),
+    SongGoal("AAA Rank", 10),
+    SongGoal("S Rank", 20),
 ]
