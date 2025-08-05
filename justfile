@@ -1,10 +1,7 @@
 export PYTHONPATH := justfile_directory() / "archipelago"
 
-build-all: (build "distance") (build "sdvx")
-
-[working-directory('worlds')]
-build WORLD:
-    uv run -m {{ WORLD }}.scripts.build
+build *worlds:
+    uv run -m scripts.build {{ worlds }}
 
 update-all: (update "distance") (update "sdvx")
 

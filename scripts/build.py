@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+import sys
 from tempfile import TemporaryDirectory
 
 from ._manual_worlds import ManualWorldInfo, list_project_manual_worlds
@@ -7,7 +8,7 @@ from .inspect import inspect_manual_world
 from ._paths import user_archipelago_worlds_dir
 
 
-def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> None:
+def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> Path:
     output_dir = Path(output_dir)
 
     world_data = inspect_manual_world(world)
@@ -30,14 +31,29 @@ def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> None:
             verbose=True,
         )
 
-    final_destination_fox_only_no_items = shutil.move(
-        src=apworld_zip,
-        dst=output_dir / f"{apworld_base_name}.apworld",
+    return Path(
+        shutil.move(
+            src=apworld_zip,
+            dst=output_dir / f"{apworld_base_name}.apworld",
+        )
     )
 
-    print(f"Built at {final_destination_fox_only_no_items}")
+
+def __main():
+    available_worlds = [*list_project_manual_worlds()]
+
+    world_args = set(sys.argv[1:])
+    worlds_to_build = [
+        world for world in available_worlds if world.name in world_args
+    ] or available_worlds
+
+    for world in worlds_to_build:
+        print(f"Building {world.name}...")
+        final_destination_fox_only_no_items = make_apworld(
+            world, user_archipelago_worlds_dir
+        )
+        print(f"Built at {final_destination_fox_only_no_items}")
 
 
 if __name__ == "__main__":
-    for world in list_project_manual_worlds():
-        make_apworld(world, user_archipelago_worlds_dir)
+    __main()
