@@ -2,15 +2,15 @@ from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
 
+from ._manual_worlds import ManualWorldInfo, list_project_manual_worlds
 from .inspect import inspect_manual_world
+from ._paths import user_archipelago_worlds_dir
 
 
-def make_apworld(world_dir: str | Path, output_dir: str | Path) -> None:
-    world_dir = Path(world_dir)
+def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> None:
     output_dir = Path(output_dir)
-    src_dir = Path(world_dir) / "src"
 
-    world_data = inspect_manual_world(world_dir)
+    world_data = inspect_manual_world(world)
 
     with TemporaryDirectory() as temp_archive_root:
         apworld_base_name = (
@@ -18,7 +18,7 @@ def make_apworld(world_dir: str | Path, output_dir: str | Path) -> None:
         )
 
         shutil.copytree(
-            src=src_dir,
+            src=world.src_dir,
             dst=Path(temp_archive_root) / apworld_base_name,
         )
 
@@ -39,6 +39,5 @@ def make_apworld(world_dir: str | Path, output_dir: str | Path) -> None:
 
 
 if __name__ == "__main__":
-    make_apworld(
-        Path(__file__).parent.parent, "C:/ProgramData/Archipelago/custom_worlds"
-    )
+    for world in list_project_manual_worlds():
+        make_apworld(world, user_archipelago_worlds_dir)

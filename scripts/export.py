@@ -1,25 +1,21 @@
 import os
-from pathlib import Path
 import shutil
 import yaml
 
+from ._manual_worlds import list_project_manual_worlds
 from .build import make_apworld
+from ._paths import players_dir, project_dir
 
+dist_dir = project_dir / "dist"
 
 combined_player_config_file_name = "Maple.yaml"
-
-project_dir = Path(__file__).parent.parent
-worlds_dir = project_dir / "worlds"
-dist_dir = project_dir / "dist"
-players_dir = project_dir / "players"
 
 
 shutil.rmtree(dist_dir)
 os.makedirs(dist_dir)
 
-for world_name in os.listdir(worlds_dir):
-    world_dir = worlds_dir / world_name
-    make_apworld(world_dir=world_dir, output_dir=dist_dir)
+for world in list_project_manual_worlds():
+    make_apworld(world, output_dir=dist_dir)
 
 
 player_configs = []
