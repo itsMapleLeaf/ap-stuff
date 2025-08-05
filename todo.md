@@ -1,6 +1,6 @@
 # tooling
 
-- [ ] export apworld
+- [x] export apworld
 - [ ] export config
 - [ ] export stitched config from world selection
 
