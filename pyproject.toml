@@ -14,5 +14,4 @@ dev = [
 ]
 
 [tool.pyright]
-include = ["./template/src/spec"]
 extraPaths = ["archipelago"]
