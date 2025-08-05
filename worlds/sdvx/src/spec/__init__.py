@@ -1,8 +1,6 @@
 from .world import WorldSpec
 
 
-spec = WorldSpec(
-    game="YourGameName",
-    creator="YourName",
-    filler_item_name="Useless Filler Item",
-)
+spec = WorldSpec()
+spec.define_item("Test Item")
+spec.define_location("Test Location")
