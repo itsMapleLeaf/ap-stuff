@@ -24,6 +24,9 @@ for world_name in os.listdir(worlds_dir):
 
 player_configs = []
 for player_config_file_name in os.listdir(players_dir):
+    if not player_config_file_name.endswith(".yaml"):
+        continue
+
     with open(
         players_dir / player_config_file_name, encoding="utf8"
     ) as player_config_file:
