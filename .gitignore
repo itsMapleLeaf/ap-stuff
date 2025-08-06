@@ -1,4 +1,8 @@
 __pycache__
 /dist/
-/players/*
-!/players/.gitkeep
+
+/games/*
+!/games/.gitkeep
+!/games/local
+/games/local/*
+!/games/local/.gitkeep

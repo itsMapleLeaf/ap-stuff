@@ -6,14 +6,22 @@
 
 ## play workflow
 
+goals:
+
+- be able to build all worlds, then generate and host in one command
+- be able to define multiple sets of configs and switch between them
+
+tasks:
+
 - [x] build apworlds into custom_worlds
-- [ ] create stitched config in players
-- [ ] generate
-- [ ] host
+- [x] generate using local players folder into a local dist folder
+- [x] add local games folder for storing configs with which to generate multis
+- [x] host
 
 # games
 
-- [ ] sdvx v3
+- [x] distance
+- [x] sdvx v3
 
 ## ideas
 

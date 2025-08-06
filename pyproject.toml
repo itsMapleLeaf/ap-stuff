@@ -12,6 +12,7 @@ dev = [
     "html5lib>=1.1",
     "pip>=25.2",
     "pyyaml>=6.0.2",
+    "show-in-file-manager>=1.1.5",
 ]
 
 [tool.pyright]
