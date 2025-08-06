@@ -16,7 +16,7 @@ build *worlds:
 play game="local": (generate game) serve
 
 # generate a multiworld with a given game
-generate game: build
+generate game="local": build
     rm -rf "{{ generate_output_dir }}"
     mkdir -p "{{ generate_output_dir }}"
 
