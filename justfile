@@ -1,3 +1,5 @@
+worlds_dirname := "manual_worlds"
+
 games_dir := justfile_directory() / "games"
 dist_dir := justfile_directory() / "dist"
 generate_output_dir := dist_dir / "generate"
@@ -40,14 +42,13 @@ update-all: (update "distance") (update "sdvx")
 # update a given manual world with the latest template code
 update world:
     git stash
-    git subtree pull --prefix worlds/{{ world }} template main
+    git subtree pull --prefix {{ worlds_dirname }}/{{ world }} template main
     git stash pop
 
 # create a new manual world
 create world:
-    git subtree add --prefix worlds/{{ world }} template main
+    git subtree add --prefix {{ worlds_dirname }}/{{ world }} template main
 
 # update songs for the sound voltex manual
-[working-directory('worlds')]
 fetch-sdvx-songs:
-    uv run -m sdvx.scripts.fetch_songs
+    uv run -m {{ worlds_dirname }}.sdvx.scripts.fetch_songs

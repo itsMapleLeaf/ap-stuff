@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 project_dir = Path(__file__).parent.parent
-worlds_dir = project_dir / "worlds"
+worlds_dir = project_dir / "manual_worlds"
 
 # TODO: figure out based on system and/or make configurable
 user_archipelago_dir = Path("C:/ProgramData/Archipelago")
