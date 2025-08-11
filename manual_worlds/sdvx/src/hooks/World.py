@@ -4,18 +4,16 @@ from BaseClasses import MultiWorld, CollectionState, Item
 
 # Object classes from Manual -- extending AP core -- representing items and locations that are used in generation
 from ..Items import ManualItem
-from ..Locations import ManualLocation
 
 # Raw JSON data from the Manual apworld, respectively:
 #          data/game.json, data/items.json, data/locations.json, data/regions.json
 #
-from ..Data import game_table, item_table, location_table, region_table
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
-from ..Helpers import is_option_enabled, get_option_value, format_state_prog_items_key, ProgItemsCat
 
 # calling logging.info("message") anywhere below in this file will output the message to both console and log file
-import logging
+
+from ..spec import SongSpec
 
 ########################################################################################
 ## Order of method calls when the world generates:
@@ -33,18 +31,21 @@ import logging
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
-    return False
+    from ..spec import score_item
+
+    return score_item["name"]
+
+excluded_songs_by_player = dict[int, list[SongSpec]]()
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    from ..spec import songs
-    from ..spec.songs import Song
+    from ..spec import song_specs
     from ..spec.config import song_brackets
     from .state import disabled_categories_by_player_id
 
-    songs_by_level: dict[int, list[Song]] = {}
+    songs_by_level: dict[int, list[SongSpec]] = {}
 
-    for song in songs:
+    for song in song_specs:
         for _, level in song.charts.items():
             songs_by_level[level] = songs_by_level.get(level, [])
             songs_by_level[level].append(song)
@@ -60,30 +61,34 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         reverse=True,
     )
 
-    chosen_song_ids = set[str]()
+    chosen_songs: list[SongSpec] = []
 
     for bracket in song_brackets_sorted:
         # ensure we pick from songs that haven't already been picked
         available_songs_for_bracket = [
-            song
-            for song in songs_by_level[bracket.level]
-            if song.id not in chosen_song_ids
+            song for song in songs_by_level[bracket.level] if song not in chosen_songs
         ]
 
-        chosen_song_ids.update(
-            song.id
-            for song in world.random.sample(available_songs_for_bracket, bracket.count)
+        chosen_songs.extend(
+            world.random.sample(available_songs_for_bracket, bracket.count)
         )
 
     disabled_categories_by_player_id[player] = {
-        song.id_category_name for song in songs if song.id not in chosen_song_ids
+        song.id_category_name for song in song_specs if song not in chosen_songs
     }
+    excluded_songs_by_player[player] = [
+        song for song in song_specs if song not in chosen_songs
+    ]
 
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     # Use this hook to remove locations from the world
-    locationNamesToRemove: list[str] = [] # List of location names
+    locationNamesToRemove: list[str] = [
+        location["name"]
+        for song in excluded_songs_by_player[player]
+        for location in song.locations
+    ]
 
     # Add your code here to calculate which locations to remove
 
@@ -111,16 +116,20 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
-    itemNamesToRemove: list[str] = [] # List of item names
+    item_names_to_remove: list[str] = [
+        item["name"] for song in excluded_songs_by_player[player] for item in song.items
+    ]
 
     # Add your code here to calculate which items to remove.
     #
     # Because multiple copies of an item can exist, you need to add an item name
     # to the list multiple times if you want to remove multiple copies of it.
 
-    for itemName in itemNamesToRemove:
-        item = next(i for i in item_pool if i.name == itemName)
-        item_pool.remove(item)
+    for item_name in item_names_to_remove:
+        for item_in_pool in item_pool:
+            if item_name == item_in_pool.name:
+                item_pool.remove(item_in_pool)
+                break
 
     return item_pool
 
