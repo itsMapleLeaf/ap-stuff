@@ -341,7 +341,7 @@ class PotionomicsWorldSpec(WorldSpec):
         )["name"]
 
         starting_items.append(
-            {"item_categories": ["Characters"], "random": 1},
+            {"item_categories": ["Characters"], "random": 3},
         )
 
         for character_name in self.characters:
@@ -377,7 +377,7 @@ class PotionomicsWorldSpec(WorldSpec):
             )
 
         starting_items.append(
-            {"item_categories": ["Adventure Locations"], "random": 1},
+            {"item_categories": ["Adventure Locations"], "random": 3},
         )
 
         for (
