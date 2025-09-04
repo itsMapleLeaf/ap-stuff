@@ -1,57 +1,25 @@
 from dataclasses import dataclass
-from typing import ClassVar, cast
 
 from .world import WorldSpec
-from ..Helpers import load_data_file
 
 
-class PotionomicsWorldSpec(WorldSpec):
-    @dataclass
-    class IngredientSpec:
-        name: str
-        a: int
-        b: int
-        c: int
-        d: int
-        e: int
-        total_magimin: int
-        price_quinn: str
-        value: float
-        taste: str | None
-        touch: str | None
-        smell: str | None
-        sight: str | None
-        sound: str | None
-        price_mod: str
-        type: str
-        rarity: str
-        location: str
-
-    ingredients: ClassVar[dict[str, IngredientSpec]] = {}
-    for ingredient_data in cast(
-        list[dict], load_data_file("potionomics_ingredients.json")
-    ):
-        ingredients[str(ingredient_data["name"])] = IngredientSpec(**ingredient_data)
-
-    ingredient_types: ClassVar = {
-        # TODO: use data that doesn't have null values for these
-        ingredient.type
-        for ingredient in ingredients.values()
-        if ingredient.type != None
-    }
-
-    ingredient_rarities: ClassVar = {
-        # TODO: use data that doesn't have null values for these
-        ingredient.rarity
-        for ingredient in ingredients.values()
-        if ingredient.rarity != None
-    }
+def __define_world_spec():
+    spec = WorldSpec(
+        starting_items=[
+            {"items": ["License Level+"], "random": 1},
+            {"item_categories": ["Level 1 Recipes"], "random": 3},
+            # {"items": ["Wooden Cauldron"], "random": 1},
+            # {"items": ["Magimin Limit +10"], "random": 1},
+            {"item_categories": ["Cards"], "random": 5},
+            # {"items": starting_adventure_locations},
+        ]
+    )
 
     @dataclass
     class PotionSpec:
         level: int
 
-    potions: ClassVar = {
+    potions = {
         "Health Potion": PotionSpec(level=1),
         "Mana Potion": PotionSpec(level=1),
         "Stamina Potion": PotionSpec(level=2),
@@ -80,7 +48,7 @@ class PotionomicsWorldSpec(WorldSpec):
         magimin_requirements: tuple[int, int, int, int, int, int]
         """The amount of magimins required for each star rating in this tier, from 0 to 5"""
 
-    potion_tiers: ClassVar = {
+    potion_tiers = {
         "Minor": PotionTierSpec(
             chapter=1, magimin_requirements=(0, 10, 20, 30, 40, 50)
         ),
@@ -109,7 +77,7 @@ class PotionomicsWorldSpec(WorldSpec):
     class CharacterSpec:
         name: str
         chapter: int
-        cards: dict[str, "PotionomicsWorldSpec.CardSpec"]
+        cards: dict[str, CardSpec]
 
         @property
         def item_name(self) -> str:
@@ -118,7 +86,7 @@ class PotionomicsWorldSpec(WorldSpec):
     starting_relationship_rank = 2
     max_relationship_rank = 10
 
-    characters: ClassVar = {
+    characters = {
         character.name: character
         for character in [
             CharacterSpec(
@@ -279,7 +247,7 @@ class PotionomicsWorldSpec(WorldSpec):
     class AdventureLocationSpec:
         chapter: int
 
-    adventure_locations: ClassVar = {
+    adventure_locations = {
         "Enchanted Forest": AdventureLocationSpec(chapter=1),
         "Bone Wastes": AdventureLocationSpec(chapter=1),
         "Mushroom Mire": AdventureLocationSpec(chapter=1),
@@ -299,7 +267,7 @@ class PotionomicsWorldSpec(WorldSpec):
     class CauldronSpec:
         max_magimins: int
 
-    cauldrons: ClassVar[dict[str, CauldronSpec]] = {
+    cauldrons: dict[str, CauldronSpec] = {
         "Wooden Cauldron": CauldronSpec(max_magimins=75),
         "Clay Cauldron": CauldronSpec(max_magimins=115),
         "Mudpack Cauldron": CauldronSpec(max_magimins=225),
@@ -320,7 +288,7 @@ class PotionomicsWorldSpec(WorldSpec):
     class ShelfSpec:
         chapter: int
 
-    shelves: ClassVar = {
+    shelves = {
         "Mushroom Mire Shelf": ShelfSpec(chapter=1),
         "Bone Wastes Shelf": ShelfSpec(chapter=1),
         "Storm Plains Shelf": ShelfSpec(chapter=1),
@@ -339,13 +307,13 @@ class PotionomicsWorldSpec(WorldSpec):
     class ShopUpgradeSpec:
         upgrade_count: int = 0
 
-    shop_upgrades: ClassVar = {
+    shop_upgrades = {
         "Shop Front": ShopUpgradeSpec(upgrade_count=3),
         "Brewing Area": ShopUpgradeSpec(upgrade_count=3),
         "Basement": ShopUpgradeSpec(upgrade_count=3),
     }
 
-    showcases: ClassVar = {
+    showcases = {
         "Mushroom Mire Showcase",
         "Bone Wastes Showcase",
         "Storm Plains Showcase",
@@ -360,7 +328,7 @@ class PotionomicsWorldSpec(WorldSpec):
         "Magical Wasteland Showcase",
     }
 
-    barrels: ClassVar = {
+    barrels = {
         "Mushroom Barrel",
         "Cactus Barrel",
         "Thunder Log Barrel",
@@ -375,7 +343,7 @@ class PotionomicsWorldSpec(WorldSpec):
         "Empyrean Bud Barrel",
     }
 
-    fuels: ClassVar = {
+    fuels = {
         "Hay",
         "Oak Wood",
         "Mushroom",
@@ -392,192 +360,167 @@ class PotionomicsWorldSpec(WorldSpec):
         "Empyrean Bud",
     }
 
-    def __init__(self):
-        # ingredient_types_category = "Ingredient Types"
-        # ingredient_rarities_category = "Ingredient Rarities"
-        adventure_locations_category = "Adventure Locations"
+    potion_completion = spec.define_item(
+        "Potion Completion",
+        category="Completion",
+        progression=True,
+        count=len(potions),
+    )
 
-        starting_adventure_locations = [
-            f"Map to {location}"
-            for location, spec in self.adventure_locations.items()
-            if spec.chapter == 1
-        ]
+    romance_completion_item = spec.define_item(
+        "Find the Love of your Life",
+        category="Completion",
+        progression=True,
+    )
 
-        super().__init__(
-            starting_items=[
-                {"items": ["License Level+"], "random": 1},
-                {"item_categories": ["Level 1 Recipes"], "random": 3},
-                # {"items": ["Wooden Cauldron"], "random": 1},
-                # {"items": ["Magimin Limit +10"], "random": 1},
-                {"item_categories": ["Cards"], "random": 5},
-                # {"items": starting_adventure_locations},
-            ]
-        )
+    spec.define_location(
+        "Find the Love of your Life",
+        category="Completion",
+        place_item=[romance_completion_item["name"]],
+    )
 
-        potion_completion = self.define_item(
-            "Potion Completion",
-            category="Completion",
-            progression=True,
-            count=len(self.potions),
-        )
+    spec.define_location(
+        "Potion Master",
+        requires=(
+            f"|{potion_completion['name']}:50%|"
+            f" and |{romance_completion_item['name']}:all|"
+        ),
+        category="Completion",
+        victory=True,
+    )
 
-        romance_completion_item = self.define_item(
-            "Find the Love of your Life",
-            category="Completion",
-            progression=True,
-        )
+    # region licenses
+    license_level_item = spec.define_item(
+        "License Level+",
+        category="Licenses",
+        progression=True,
+        count=5,
+    )
 
-        self.define_location(
-            "Find the Love of your Life",
-            category="Completion",
-            place_item=[romance_completion_item["name"]],
-        )
-
-        self.define_location(
-            "Potion Master",
-            requires=(
-                f"|{potion_completion['name']}:50%|"
-                f" and |{romance_completion_item['name']}:all|"
-            ),
-            category="Completion",
-            victory=True,
-        )
-
-        # region licenses
-        license_level_item = self.define_item(
-            "License Level+",
+    for license_level in (2, 3, 4, 5):
+        spec.define_location(
+            f"Obtain Level {license_level} License",
             category="Licenses",
+            requires=f"|{license_level_item['name']}:{license_level - 1}|",
+            place_item=[license_level_item["name"]],
+        )
+    # endregion licenses
+
+    # region magimin limit
+    # magimin_limit_item = spec.define_item(
+    #     "Magimin Limit +10",
+    #     category="Magimin Limit",
+    #     count=200 // 10,
+    #     progression=True,
+    # )
+    # endregion magimin limit
+
+    # region potions
+    for potion_name, potion_spec in potions.items():
+        potion_recipe_item = spec.define_item(
+            f"{potion_name} Recipe",
+            category=["Potion Recipes", f"Level {potion_spec.level} Recipes"],
             progression=True,
-            count=5,
         )
 
-        for license_level in (2, 3, 4, 5):
-            self.define_location(
-                f"Obtain Level {license_level} License",
-                category="Licenses",
-                requires=f"|{license_level_item['name']}:{license_level - 1}|",
-                place_item=[license_level_item["name"]],
-            )
-        # endregion licenses
+        spec.define_location(
+            f"Brew {potion_name}",
+            category=f"Potions - {potion_name}",
+            requires=(
+                f"|{potion_recipe_item['name']}|"
+                f" and |{license_level_item['name']}:{potion_spec.level}|"
+            ),
+            place_item=[potion_completion["name"]],
+        )
 
-        # region magimin limit
-        # magimin_limit_item = self.define_item(
-        #     "Magimin Limit +10",
-        #     category="Magimin Limit",
-        #     count=200 // 10,
-        #     progression=True,
-        # )
-        # endregion magimin limit
-
-        # region potions
-        for potion_name, potion_spec in self.potions.items():
-            potion_recipe_item = self.define_item(
-                f"{potion_name} Recipe",
-                category=["Potion Recipes", f"Level {potion_spec.level} Recipes"],
-                progression=True,
-            )
-
-            self.define_location(
-                f"Brew {potion_name}",
+        for potion_tier, potion_tier_spec in [*potion_tiers.items()][1:]:
+            spec.define_location(
+                f"Brew {potion_tier} {potion_name} or higher",
                 category=f"Potions - {potion_name}",
                 requires=(
                     f"|{potion_recipe_item['name']}|"
                     f" and |{license_level_item['name']}:{potion_spec.level}|"
+                    f" and |{license_level_item['name']}:{potion_tier_spec.chapter}|"
+                    # f" and |@Can Brew {potion_tier}|"
+                    # f" and |{magimin_limit_item['name']}:{potion_tier_spec.magimin_requirements[0] // 10 // 10}|"
                 ),
-                place_item=[potion_completion["name"]],
             )
+    # endregion potions
 
-            for potion_tier, potion_tier_spec in [*self.potion_tiers.items()][1:]:
-                self.define_location(
-                    f"Brew {potion_tier} {potion_name} or higher",
-                    category=f"Potions - {potion_name}",
-                    requires=(
-                        f"|{potion_recipe_item['name']}|"
-                        f" and |{license_level_item['name']}:{potion_spec.level}|"
-                        f" and |{license_level_item['name']}:{potion_tier_spec.chapter}|"
-                        # f" and |@Can Brew {potion_tier}|"
-                        # f" and |{magimin_limit_item['name']}:{potion_tier_spec.magimin_requirements[0] // 10 // 10}|"
-                    ),
-                )
-        # endregion potions
+    # region ingredients
+    # for ingredient_type in ingredient_types:
+    #     spec.define_item(
+    #         f"{ingredient_type} Ingredients",
+    #         category=ingredient_types_category,
+    #         progression=True,
+    #     )
 
-        # region ingredients
-        # for ingredient_type in self.ingredient_types:
-        #     self.define_item(
-        #         f"{ingredient_type} Ingredients",
-        #         category=ingredient_types_category,
-        #         progression=True,
+    # for ingredient_rarity in ingredient_rarities:
+    #     spec.define_item(
+    #         f"{ingredient_rarity} Ingredients",
+    #         category=ingredient_rarities_category,
+    #         progression=True,
+    #     )
+    # endregion ingredients
+
+    # region adventure
+    for adventure_location, adventure_location_spec in adventure_locations.items():
+        # adventure_location_item = spec.define_item(
+        #     f"Map to {adventure_location}",
+        #     category=adventure_locations_category,
+        #     progression=True,
+        # )
+
+        spec.define_location(
+            f"Adventure in {adventure_location}",
+            category="Adventure Locations",
+            requires=(
+                # f"|{adventure_location_item['name']}|"
+                f"|{license_level_item['name']}:{adventure_location_spec.chapter}|"
+            ),
+            prehint=True,
+        )
+    # endregion adventure
+
+    # region characters/cards
+    for character_name, character_spec in characters.items():
+        spec.define_item(
+            f"Cards ({character_name})",
+            category=["Cards"],
+            useful=True,
+            count=len(character_spec.cards),
+        )
+
+        # for character_rank in range(10):
+        #     spec.define_location(
+        #         (
+        #             f"Meet {character_name}"
+        #             if character_rank_index == 0
+        #             else f"{character_name} - Reach Rank {character_rank_index + 1}"
+        #         ),
+        #         category=[f"Characters - {character_name}"],
+        #         requires=f"|{license_level_item['name']}:{character_spec.chapter}|",
         #     )
+    # endregion characters/cards
 
-        # for ingredient_rarity in self.ingredient_rarities:
-        #     self.define_item(
-        #         f"{ingredient_rarity} Ingredients",
-        #         category=ingredient_rarities_category,
-        #         progression=True,
-        #     )
-        # endregion ingredients
-
-        # region adventure
-        for (
-            adventure_location,
-            adventure_location_spec,
-        ) in self.adventure_locations.items():
-            # adventure_location_item = self.define_item(
-            #     f"Map to {adventure_location}",
-            #     category=adventure_locations_category,
-            #     progression=True,
-            # )
-
-            self.define_location(
-                f"Adventure in {adventure_location}",
-                category=adventure_locations_category,
-                requires=(
-                    # f"|{adventure_location_item['name']}|"
-                    f"|{license_level_item['name']}:{adventure_location_spec.chapter}|"
-                ),
-                prehint=True,
-            )
-        # endregion adventure
-
-        # region characters/cards
-        for character_name, character_spec in self.characters.items():
-            self.define_item(
-                f"Cards ({character_name})",
-                category=["Cards"],
-                useful=True,
-                count=len(character_spec.cards),
-            )
-
-            # for character_rank in range(10):
-            #     self.define_location(
-            #         (
-            #             f"Meet {character_name}"
-            #             if character_rank_index == 0
-            #             else f"{character_name} - Reach Rank {character_rank_index + 1}"
-            #         ),
-            #         category=[f"Characters - {character_name}"],
-            #         requires=f"|{license_level_item['name']}:{character_spec.chapter}|",
-            #     )
-        # endregion characters/cards
-
-        # region cauldrons
-        # for cauldron_name, cauldron_spec in self.cauldrons.items():
-        #     self.define_item(
-        #         cauldron_name,
-        #         category=[
-        #             "Cauldrons",
-        #             *(
-        #                 f"Can Brew {tier}"
-        #                 for tier, tier_spec in self.potion_tiers.items()
-        #                 if (
-        #                     cauldron_spec.max_magimins
-        #                     > tier_spec.magimin_requirements[0]
-        #                 )
-        #             ),
-        #         ],
-        #         progression=True,
-        #     )
-        # endregion cauldrons
+    # region cauldrons
+    # for cauldron_name, cauldron_spec in cauldrons.items():
+    #     spec.define_item(
+    #         cauldron_name,
+    #         category=[
+    #             "Cauldrons",
+    #             *(
+    #                 f"Can Brew {tier}"
+    #                 for tier, tier_spec in potion_tiers.items()
+    #                 if (
+    #                     cauldron_spec.max_magimins
+    #                     > tier_spec.magimin_requirements[0]
+    #                 )
+    #             ),
+    #         ],
+    #         progression=True,
+    #     )
+    # endregion cauldrons
 
 
-spec = PotionomicsWorldSpec()
+spec = __define_world_spec()
