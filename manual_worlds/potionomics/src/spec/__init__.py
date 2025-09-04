@@ -27,38 +27,56 @@ class PotionomicsWorldSpec(WorldSpec):
         rarity: str
         location: str
 
-    ingredients = {}
+    ingredients: ClassVar[dict[str, IngredientSpec]] = {}
     for ingredient_data in cast(
         list[dict], load_data_file("potionomics_ingredients.json")
     ):
         ingredients[str(ingredient_data["name"])] = IngredientSpec(**ingredient_data)
 
+    ingredient_types: ClassVar = {
+        # TODO: use data that doesn't have null values for these
+        ingredient.type
+        for ingredient in ingredients.values()
+        if ingredient.type != None
+    }
+
+    ingredient_rarities: ClassVar = {
+        # TODO: use data that doesn't have null values for these
+        ingredient.rarity
+        for ingredient in ingredients.values()
+        if ingredient.rarity != None
+    }
+
+    @dataclass
+    class PotionSpec:
+        level: int
+
     potions: ClassVar = {
-        "Health Potion",
-        "Mana Potion",
-        "Stamina Potion",
-        "Speed Potion",
-        "Tolerance Potion",
-        "Fire Tonic",
-        "Ice Tonic",
-        "Thunder Tonic",
-        "Shadow Tonic",
-        "Radiation Tonic",
-        "Sight Enhancer",
-        "Alertness Enhancer",
-        "Insight Enhancer",
-        "Dowsing Enhancer",
-        "Seeking Enhancer",
-        "Poison Cure",
-        "Drowsiness Cure",
-        "Petrification Cure",
-        "Silence Cure",
-        "Curse Cure",
+        "Health Potion": PotionSpec(level=1),
+        "Mana Potion": PotionSpec(level=1),
+        "Stamina Potion": PotionSpec(level=2),
+        "Speed Potion": PotionSpec(level=2),
+        "Tolerance Potion": PotionSpec(level=4),
+        "Fire Tonic": PotionSpec(level=1),
+        "Ice Tonic": PotionSpec(level=2),
+        "Thunder Tonic": PotionSpec(level=2),
+        "Shadow Tonic": PotionSpec(level=2),
+        "Radiation Tonic": PotionSpec(level=4),
+        "Sight Enhancer": PotionSpec(level=1),
+        "Alertness Enhancer": PotionSpec(level=2),
+        "Insight Enhancer": PotionSpec(level=3),
+        "Dowsing Enhancer": PotionSpec(level=3),
+        "Seeking Enhancer": PotionSpec(level=4),
+        "Poison Cure": PotionSpec(level=1),
+        "Drowsiness Cure": PotionSpec(level=2),
+        "Petrification Cure": PotionSpec(level=3),
+        "Silence Cure": PotionSpec(level=3),
+        "Curse Cure": PotionSpec(level=4),
     }
 
     @dataclass
     class PotionTierSpec:
-        magimins: tuple[int, int, int, int, int, int]
+        magimin_requirements: tuple[int, int, int, int, int, int]
         """The amount of magimins required for each star rating in this tier, from 0 to 5"""
 
     potion_tiers: ClassVar = {
@@ -266,25 +284,23 @@ class PotionomicsWorldSpec(WorldSpec):
 
     @dataclass
     class CauldronSpec:
-        chapter: int
-
-        @property
-        def required_progressive_item_count(self) -> int:
-            return (self.chapter - 1) * 3
+        max_magimins: int
 
     cauldrons: ClassVar[dict[str, CauldronSpec]] = {
-        "Mudpack Cauldron": CauldronSpec(chapter=1),
-        "Glass Cauldron": CauldronSpec(chapter=1),
-        "Storm Cauldron": CauldronSpec(chapter=1),
-        "Ocean Cauldron": CauldronSpec(chapter=2),
-        "Shadow Cauldron": CauldronSpec(chapter=2),
-        "Crystal Cauldron": CauldronSpec(chapter=2),
-        "Steel Cauldron": CauldronSpec(chapter=3),
-        "Celestial Cauldron": CauldronSpec(chapter=3),
-        "Arctic Cauldron": CauldronSpec(chapter=3),
-        "Crater Cauldron": CauldronSpec(chapter=4),
-        "Dragon Cauldron": CauldronSpec(chapter=4),
-        "Magical Wasteland Cauldron": CauldronSpec(chapter=5),
+        "Wooden Cauldron": CauldronSpec(max_magimins=75),
+        "Clay Cauldron": CauldronSpec(max_magimins=115),
+        "Mudpack Cauldron": CauldronSpec(max_magimins=225),
+        "Glass Cauldron": CauldronSpec(max_magimins=200),
+        "Storm Cauldron": CauldronSpec(max_magimins=375),
+        "Ocean Cauldron": CauldronSpec(max_magimins=320),
+        "Shadow Cauldron": CauldronSpec(max_magimins=345),
+        "Crystal Cauldron": CauldronSpec(max_magimins=575),
+        "Steel Cauldron": CauldronSpec(max_magimins=540),
+        "Celestial Cauldron": CauldronSpec(max_magimins=505),
+        "Arctic Cauldron": CauldronSpec(max_magimins=975),
+        "Crater Cauldron": CauldronSpec(max_magimins=940),
+        "Dragon Cauldron": CauldronSpec(max_magimins=860),
+        "Magical Wasteland Cauldron": CauldronSpec(max_magimins=2000),
     }
 
     @dataclass
@@ -364,191 +380,189 @@ class PotionomicsWorldSpec(WorldSpec):
     }
 
     def __init__(self):
-        progressive_items_category = "Progression"
-        progressive_characters_category = "Characters"
+        # ingredient_types_category = "Ingredient Types"
+        # ingredient_rarities_category = "Ingredient Rarities"
+        adventure_locations_category = "Adventure Locations"
+
+        starting_adventure_locations = [
+            f"Map to {location}"
+            for location, spec in self.adventure_locations.items()
+            if spec.chapter == 1
+        ]
 
         super().__init__(
             starting_items=[
-                # you need mint to get the necessary ingredients to progress early game
-                {"items": [self.characters["Mint"].item_name], "random": 1},
-                # some other random jumpstart progression
-                {"item_categories": [progressive_items_category], "random": 3},
-                {"item_categories": [progressive_characters_category], "random": 3},
+                {"items": ["License Level+"], "random": 1},
+                {"item_categories": ["Level 1 Recipes"], "random": 3},
+                # {"items": ["Wooden Cauldron"], "random": 1},
+                # {"items": ["Magimin Limit +10"], "random": 1},
+                {"item_categories": ["Cards"], "random": 5},
+                {"items": starting_adventure_locations},
             ]
         )
 
-        contest_count = 5
-
-        contest_reward_item_name = self.define_item(
-            "Contest Reward",
-            category="Contest Rewards",
+        potion_completion = self.define_item(
+            "Potion Completion",
+            category="Completion",
             progression=True,
-            count=contest_count,
-        )["name"]
+            count=len(self.potions),
+        )
+
+        romance_completion_item = self.define_item(
+            "Find the Love of your Life",
+            category="Completion",
+            progression=True,
+        )
 
         self.define_location(
-            "Save the Shop",
-            category="Victory!",
-            requires=f"|{contest_reward_item_name}:all|",
+            "Find the Love of your Life",
+            category="Completion",
+            place_item=[romance_completion_item["name"]],
+        )
+
+        self.define_location(
+            "Potion Master",
+            requires=(
+                f"|{potion_completion['name']}:50%|"
+                f" and |{romance_completion_item['name']}:all|"
+            ),
+            category="Completion",
             victory=True,
         )
 
-        for contest_index in range(contest_count):
-            self.define_location(
-                f"Win Contest {contest_index + 1}",
-                category="Contests",
-                requires=f"|{contest_reward_item_name}:{contest_index}|",
-                place_item=[contest_reward_item_name],
-            )
-
-        for potion in self.potions:
-            potion_type = potion.split(" ")[-1]
-
-            self.define_location(
-                f"Brew {potion}",
-                category=f"Brewing - {potion_type}s",
-            )
-
-            # for potion_tier in self.potion_tiers:
-            #     self.define_location(
-            #         f"Brew {potion_tier} {potion} or higher",
-            #         category=f"Potions - {potion}",
-            #     )
-
-        for character_spec in self.characters.values():
-            self.define_item(
-                character_spec.item_name,
-                category=[progressive_characters_category],
-                progression=True,
-                count=10,
-            )
-
-            self.define_location(
-                f"{character_spec.name} - Reach Rank 7",
-                category=f"Characters - {character_spec.name}",
-                requires=f"|{character_spec.item_name}:1| and |{contest_reward_item_name}:{character_spec.chapter - 1}|",
-            )
-
-            self.define_location(
-                f"{character_spec.name} - Reach Rank 10",
-                category=f"Characters - {character_spec.name}",
-                requires=f"|{character_spec.item_name}:1| and |{contest_reward_item_name}:{character_spec.chapter - 1}|",
-            )
-
-            # for relationship_rank in range(
-            #     self.starting_relationship_rank, self.max_relationship_rank
-            # ):
-            #     self.define_location(
-            #         f"{character_name} - Reach Rank {relationship_rank}",
-            #         category=f"Characters - {character_name}",
-            #         requires=f"|{progressive_characters_item_name}:{character_index + 1}|",
-            #     )
-
-        progressive_adventure_locations_item_name = self.define_item(
-            "Progressive Adventure Locations",
-            category=progressive_items_category,
-            count=max(
-                location.chapter for location in self.adventure_locations.values()
-            ),
+        # region licenses
+        license_level_item = self.define_item(
+            "License Level+",
+            category="Licenses",
             progression=True,
-        )["name"]
+            count=4,
+        )
 
-        for (
-            adventure_location_name,
-            adventure_location,
-        ) in self.adventure_locations.items():
-            adventurer_character_requirement = " or ".join(
-                f"|{self.characters[name].item_name}|"
-                for name in ["Mint", "Xidriel", "Corsac"]
+        for license_level in (2, 3, 4):
+            self.define_location(
+                f"Obtain Level {license_level} License",
+                category="Licenses",
+                requires=f"|{license_level_item['name']}:{license_level - 1}|",
+                place_item=[license_level_item["name"]],
+            )
+        # endregion licenses
+
+        # region magimin limit
+        # magimin_limit_item = self.define_item(
+        #     "Magimin Limit +10",
+        #     category="Magimin Limit",
+        #     count=200 // 10,
+        #     progression=True,
+        # )
+        # endregion magimin limit
+
+        # region potions
+        for potion_name, potion_spec in self.potions.items():
+            potion_recipe_item = self.define_item(
+                f"{potion_name} Recipe",
+                category=["Potion Recipes", f"Level {potion_spec.level} Recipes"],
+                progression=True,
             )
 
             self.define_location(
-                f"Adventure in {adventure_location_name}",
-                category=f"Adventure - Chapter {adventure_location.chapter}",
+                f"Brew {potion_name}",
+                category=f"Potions - {potion_name}",
                 requires=(
-                    " and ".join(
-                        [
-                            f"({adventurer_character_requirement})",
-                            f"|{progressive_adventure_locations_item_name}:{adventure_location.chapter}|",
-                            f"|{contest_reward_item_name}:{adventure_location.chapter - 1}|",
-                        ]
-                    )
+                    f"|{potion_recipe_item['name']}|"
+                    f" and |{license_level_item['name']}:{potion_spec.level}|"
+                ),
+                place_item=[potion_completion["name"]],
+            )
+
+            for potion_tier, potion_tier_spec in [*self.potion_tiers.items()][1:]:
+                self.define_location(
+                    f"Brew {potion_tier} {potion_name} or higher",
+                    category=f"Potions - {potion_name}",
+                    requires=(
+                        f"|{potion_recipe_item['name']}|"
+                        f" and |{license_level_item['name']}:{potion_spec.level}|"
+                        # f" and |@Can Brew {potion_tier}|"
+                        # f" and |{magimin_limit_item['name']}:{potion_tier_spec.magimin_requirements[0] // 10 // 10}|"
+                    ),
+                )
+        # endregion potions
+
+        # region ingredients
+        # for ingredient_type in self.ingredient_types:
+        #     self.define_item(
+        #         f"{ingredient_type} Ingredients",
+        #         category=ingredient_types_category,
+        #         progression=True,
+        #     )
+
+        # for ingredient_rarity in self.ingredient_rarities:
+        #     self.define_item(
+        #         f"{ingredient_rarity} Ingredients",
+        #         category=ingredient_rarities_category,
+        #         progression=True,
+        #     )
+        # endregion ingredients
+
+        # region adventure
+        for (
+            adventure_location,
+            adventure_location_spec,
+        ) in self.adventure_locations.items():
+            adventure_location_item = self.define_item(
+                f"Map to {adventure_location}",
+                category=adventure_locations_category,
+                progression=True,
+            )
+
+            self.define_location(
+                f"Adventure in {adventure_location}",
+                category=adventure_locations_category,
+                requires=(
+                    f"|{adventure_location_item['name']}|"
+                    f" and |{license_level_item['name']}:{adventure_location_spec.chapter - 1}|"
                 ),
             )
+        # endregion adventure
 
-        progressive_cauldron_item_name = self.define_item(
-            "Progressive Cauldrons",
-            category=progressive_items_category,
-            progression=True,
-            count=len(self.cauldrons),
-        )["name"]
+        # region characters/cards
+        for character_name, character_spec in self.characters.items():
+            self.define_item(
+                f"Cards ({character_name})",
+                category=["Cards"],
+                useful=True,
+                count=len(character_spec.cards),
+            )
 
-        for cauldron_name, cauldron_spec in self.cauldrons.items():
-            for cauldron_upgrade_index in range(3):
-                self.define_location(
-                    f"Buy {cauldron_name}{"+" * cauldron_upgrade_index}",
-                    category=[f"Cauldrons - Chapter {cauldron_spec.chapter}"],
-                    requires=(
-                        " and ".join(
-                            [
-                                f"|{self.characters['Muktuk'].item_name}|",
-                                f"|{progressive_cauldron_item_name}:{cauldron_spec.required_progressive_item_count}|",
-                                f"|{contest_reward_item_name}:{cauldron_spec.chapter - 1}|",
-                            ]
-                        )
-                    ),
-                )
+            # for character_rank in range(10):
+            #     self.define_location(
+            #         (
+            #             f"Meet {character_name}"
+            #             if character_rank_index == 0
+            #             else f"{character_name} - Reach Rank {character_rank_index + 1}"
+            #         ),
+            #         category=[f"Characters - {character_name}"],
+            #         requires=f"|{license_level_item['name']}:{character_spec.chapter}|",
+            #     )
+        # endregion characters/cards
 
-        for shelf_name, shelf_spec in self.shelves.items():
-            for shelf_upgrade_index in range(3):
-                self.define_location(
-                    f"Buy {shelf_name}{"+" * shelf_upgrade_index}",
-                    category=f"Shelves - {shelf_name}",
-                    requires=" and ".join(
-                        [
-                            f"|{self.characters['Muktuk'].item_name}|",
-                            f"|{contest_reward_item_name}:{shelf_spec.chapter - 1}|",
-                        ]
-                    ),
-                )
-
-        for shop_upgrade_name, shop_upgrade_spec in self.shop_upgrades.items():
-            # progressive_shop_upgrade_item_name = self.define_item(
-            #     f"Progressive {shop_upgrade_name}",
-            #     category=progressive_items_category,
-            #     progression=True,
-            #     count=shop_upgrade_spec.upgrade_count,
-            # )["name"]
-
-            for shop_upgrade_index in range(shop_upgrade_spec.upgrade_count):
-                self.define_location(
-                    f"Buy {shop_upgrade_name} Level {shop_upgrade_index + 2}",
-                    category=f"Shop Upgrades - {shop_upgrade_name}",
-                    requires=" and ".join(
-                        [
-                            f"|{self.characters['Saffron'].item_name}|",
-                            # f"|{progressive_shop_upgrade_item_name}:{shop_upgrade_index + 1}|",
-                        ]
-                    ),
-                )
-
-        # for showcase in self.showcases:
-        #     self.define_location(
-        #         f"Buy {showcase}",
-        #         category="Showcases",
+        # region cauldrons
+        # for cauldron_name, cauldron_spec in self.cauldrons.items():
+        #     self.define_item(
+        #         cauldron_name,
+        #         category=[
+        #             "Cauldrons",
+        #             *(
+        #                 f"Can Brew {tier}"
+        #                 for tier, tier_spec in self.potion_tiers.items()
+        #                 if (
+        #                     cauldron_spec.max_magimins
+        #                     > tier_spec.magimin_requirements[0]
+        #                 )
+        #             ),
+        #         ],
+        #         progression=True,
         #     )
-
-        # for barrel in self.barrels:
-        #     self.define_location(
-        #         f"Buy {barrel}",
-        #         category="Barrels",
-        #     )
-
-        # for slime_pot_index in range(5):
-        #     self.define_location(
-        #         f"Buy Slime Pot {slime_pot_index + 1}",
-        #         category="Slime Pots",
-        #     )
+        # endregion cauldrons
 
 
 spec = PotionomicsWorldSpec()
