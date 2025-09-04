@@ -1,59 +1,37 @@
 from dataclasses import dataclass
 from typing import ClassVar, cast
 
-from .types import StartingItemData
 from .world import WorldSpec
 from ..Helpers import load_data_file
 
 
-@dataclass
-class IngredientSpec:
-    name: str
-    a: int
-    b: int
-    c: int
-    d: int
-    e: int
-    total_magimin: int
-    price_quinn: str
-    value: float
-    taste: str | None
-    touch: str | None
-    smell: str | None
-    sight: str | None
-    sound: str | None
-    price_mod: str
-    type: str
-    rarity: str
-    location: str
-
-
-@dataclass
-class AdventureLocationSpec:
-    chapter: int
-
-
-@dataclass
-class CardSpec:
-    character: str
-    rank: int
-
-
-@dataclass
-class CauldronSpec:
-    upgrade_count: int = 0
-
-
-@dataclass
-class ShopUpgradeSpec:
-    upgrade_count: int = 0
-
-
 class PotionomicsWorldSpec(WorldSpec):
-    ingredients: ClassVar = {
-        item["name"]: IngredientSpec(**item)
-        for item in cast(list[dict], load_data_file("potionomics_ingredients.json"))
-    }
+    @dataclass
+    class IngredientSpec:
+        name: str
+        a: int
+        b: int
+        c: int
+        d: int
+        e: int
+        total_magimin: int
+        price_quinn: str
+        value: float
+        taste: str | None
+        touch: str | None
+        smell: str | None
+        sight: str | None
+        sound: str | None
+        price_mod: str
+        type: str
+        rarity: str
+        location: str
+
+    ingredients = {}
+    for ingredient_data in cast(
+        list[dict], load_data_file("potionomics_ingredients.json")
+    ):
+        ingredients[str(ingredient_data["name"])] = IngredientSpec(**ingredient_data)
 
     potions: ClassVar = {
         "Health Potion",
@@ -78,29 +56,197 @@ class PotionomicsWorldSpec(WorldSpec):
         "Curse Cure",
     }
 
-    potion_qualities: ClassVar = [
-        "Minor",
-        "Common",
-        "Greater",
-        "Grand",
-        "Superior",
-        "Masterwork",
-    ]
+    @dataclass
+    class PotionTierSpec:
+        magimins: tuple[int, int, int, int, int, int]
+        """The amount of magimins required for each star rating in this tier, from 0 to 5"""
+
+    potion_tiers: ClassVar = {
+        "Minor": PotionTierSpec((0, 10, 20, 30, 40, 50)),
+        "Common": PotionTierSpec((60, 75, 90, 105, 115, 130)),
+        "Greater": PotionTierSpec((150, 170, 195, 215, 235, 260)),
+        "Grand": PotionTierSpec((290, 315, 345, 370, 400, 430)),
+        "Superior": PotionTierSpec((470, 505, 545, 580, 620, 660)),
+        "Masterwork": PotionTierSpec((720, 800, 875, 960, 1040, 1121)),
+    }
+
+    @dataclass
+    class CardSpec:
+        rank: int
+
+    @dataclass
+    class CharacterSpec:
+        name: str
+        chapter: int
+        cards: dict[str, "PotionomicsWorldSpec.CardSpec"]
+
+        @property
+        def item_name(self) -> str:
+            return f"{self.name} (Progressive Character)"
 
     starting_relationship_rank = 2
     max_relationship_rank = 10
+
     characters: ClassVar = {
-        "Quinn",
-        "Mint",
-        "Baptiste",
-        "Muktuk",
-        "Saffron",
-        "Roxanne",
-        "Xidriel",
-        "Salt & Pepper",
-        "Corsac",
-        "Luna",
+        character.name: character
+        for character in [
+            CharacterSpec(
+                "Quinn",
+                chapter=1,
+                cards={
+                    "Hustle": CardSpec(rank=1),
+                    "Take It or Leave It": CardSpec(rank=2),
+                    "Shock Factor": CardSpec(rank=3),
+                    "Plant the Seed": CardSpec(rank=4),
+                    "Press the Attack": CardSpec(rank=5),
+                    "Pressure": CardSpec(rank=6),
+                    "Fuel the Fire": CardSpec(rank=7),
+                    "Compound Interest": CardSpec(rank=8),
+                },
+            ),
+            CharacterSpec(
+                "Mint",
+                chapter=1,
+                cards={
+                    "Sympathy": CardSpec(rank=1),
+                    "Keep Your Guard Up": CardSpec(rank=2),
+                    "Muscle Memory": CardSpec(rank=3),
+                    "Blitz": CardSpec(rank=5),
+                    "Eye on the Prize": CardSpec(rank=6),
+                    "Fortitude": CardSpec(rank=7),
+                    "Unfazed": CardSpec(rank=9),
+                    "Keep It Simple": CardSpec(rank=1),
+                },
+            ),
+            CharacterSpec(
+                "Baptiste",
+                chapter=1,
+                cards={
+                    "Captivate": CardSpec(rank=1),
+                    "Build Rapport": CardSpec(rank=2),
+                    "Subvert": CardSpec(rank=3),
+                    "Compromise": CardSpec(rank=5),
+                    "Common Ground": CardSpec(rank=6),
+                    "Strategic Withdrawal": CardSpec(rank=7),
+                    "Emotional Intelligence": CardSpec(rank=9),
+                    "Silver Tongue": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Muktuk",
+                chapter=1,
+                cards={
+                    "Pump Up": CardSpec(rank=1),
+                    "Enthusiasm": CardSpec(rank=2),
+                    "Craftsmanship": CardSpec(rank=3),
+                    "Reinforce": CardSpec(rank=4),
+                    "Bravado": CardSpec(rank=5),
+                    "Zeal": CardSpec(rank=7),
+                    "Artistry": CardSpec(rank=9),
+                    "Conviction": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Saffron",
+                chapter=1,
+                cards={
+                    "Meditate": CardSpec(rank=1),
+                    "Guided Thought": CardSpec(rank=2),
+                    "Casual Conversation": CardSpec(rank=3),
+                    "Deep Connection": CardSpec(rank=5),
+                    "Mindfulness": CardSpec(rank=6),
+                    "Regulated Breathing": CardSpec(rank=7),
+                    "Serenity of the Mind": CardSpec(rank=9),
+                    "Tranquility": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Roxanne",
+                chapter=2,
+                cards={
+                    "Sleight of Hand": CardSpec(rank=1),
+                    "Flattery": CardSpec(rank=2),
+                    "Disarm": CardSpec(rank=3),
+                    "Pander": CardSpec(rank=5),
+                    "Emotional Mindfield": CardSpec(rank=6),
+                    "Chapstick": CardSpec(rank=7),
+                    "Magnetism": CardSpec(rank=9),
+                    "Mass Misdirection": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Xidriel",
+                chapter=2,
+                cards={
+                    "Jingle": CardSpec(rank=1),
+                    "Opening Act": CardSpec(rank=2),
+                    "Chorus": CardSpec(rank=3),
+                    "Improv": CardSpec(rank=5),
+                    "Rhythm": CardSpec(rank=6),
+                    "Throat Spray": CardSpec(rank=7),
+                    "Catchy Tune": CardSpec(rank=9),
+                    "Encore": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Salt & Pepper",
+                chapter=2,
+                cards={
+                    "Strike or Strike Later": CardSpec(rank=1),
+                    "Good Cop, Bad Cop": CardSpec(rank=2),
+                    "Salt or Pepper": CardSpec(rank=3),
+                    "Avast Ye!": CardSpec(rank=5),
+                    "Give No Quarter": CardSpec(rank=6),
+                    "Batten Down the Hatches": CardSpec(rank=7),
+                    "Mental Purrrley": CardSpec(rank=9),
+                    "Carpe Diem": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Corsac",
+                chapter=3,
+                cards={
+                    "Ferocity of the Squirrel": CardSpec(rank=1),
+                    "Adapt": CardSpec(rank=2),
+                    "Be Prepared": CardSpec(rank=3),
+                    "Happy Place": CardSpec(rank=5),
+                    "Serenity of the Mollus": CardSpec(rank=6),
+                    "Pivot": CardSpec(rank=7),
+                    "Mind of the Slime": CardSpec(rank=9),
+                    "Lessons from Nature": CardSpec(rank=10),
+                },
+            ),
+            CharacterSpec(
+                "Luna",
+                chapter=3,
+                cards={
+                    "Elevator Pitch": CardSpec(rank=1),
+                    "Lean into It": CardSpec(rank=2),
+                    "Wing It": CardSpec(rank=3),
+                    "Rehearsed Line": CardSpec(rank=5),
+                    "Caffeine Rush": CardSpec(rank=6),
+                    "Dig Deep": CardSpec(rank=7),
+                    "Subliminal Suggestion": CardSpec(rank=9),
+                    "Final Push": CardSpec(rank=10),
+                },
+            ),
+        ]
     }
+
+    banned_cards = {
+        "Regulated Breathing",
+        "Serenity of the Mind",
+        "Chorus",
+        # "Rattle 'Em Off",
+    }
+    for character in characters.values():
+        for banned_card_name in banned_cards:
+            if banned_card_name in character.cards:
+                character.cards.pop(banned_card_name)
+
+    @dataclass
+    class AdventureLocationSpec:
+        chapter: int
 
     adventure_locations: ClassVar = {
         "Enchanted Forest": AdventureLocationSpec(chapter=1),
@@ -118,150 +264,56 @@ class PotionomicsWorldSpec(WorldSpec):
         "Magical Wasteland": AdventureLocationSpec(chapter=5),
     }
 
-    cards: ClassVar = {
-        # Sylvia
-        "Set 'Em Up": CardSpec(character="Sylvia", rank=1),
-        "Reel 'Em In": CardSpec(character="Sylvia", rank=2),
-        "Close It Out": CardSpec(character="Sylvia", rank=3),
-        "Brace Yourself": CardSpec(character="Sylvia", rank=4),
-        "Think, Sylvia, Think": CardSpec(character="Sylvia", rank=5),
-        # Owl
-        "Scheme": CardSpec(character="Owl", rank=1),
-        "Two is Better Than One": CardSpec(character="Owl", rank=2),
-        "Barrage": CardSpec(character="Owl", rank=3),
-        "Mulligan": CardSpec(character="Owl", rank=4),
-        "Rattle 'Em Off": CardSpec(character="Owl", rank=5),
-        # Quinn
-        "Hustle": CardSpec(character="Quinn", rank=1),
-        "Take It or Leave It": CardSpec(character="Quinn", rank=2),
-        "Shock Factor": CardSpec(character="Quinn", rank=3),
-        "Plant the Seed": CardSpec(character="Quinn", rank=4),
-        "Press the Attack": CardSpec(character="Quinn", rank=5),
-        "Pressure": CardSpec(character="Quinn", rank=6),
-        "Fuel the Fire": CardSpec(character="Quinn", rank=7),
-        "Compound Interest": CardSpec(character="Quinn", rank=8),
-        # Mint
-        "Sympathy": CardSpec(character="Mint", rank=1),
-        "Keep Your Guard Up": CardSpec(character="Mint", rank=2),
-        "Muscle Memory": CardSpec(character="Mint", rank=3),
-        "Blitz": CardSpec(character="Mint", rank=5),
-        "Eye on the Prize": CardSpec(character="Mint", rank=6),
-        "Fortitude": CardSpec(character="Mint", rank=7),
-        "Unfazed": CardSpec(character="Mint", rank=9),
-        "Keep It Simple": CardSpec(character="Mint", rank=1),
-        # Baptiste
-        "Captivate": CardSpec(character="Baptiste", rank=1),
-        "Build Rapport": CardSpec(character="Baptiste", rank=2),
-        "Subvert": CardSpec(character="Baptiste", rank=3),
-        "Compromise": CardSpec(character="Baptiste", rank=5),
-        "Common Ground": CardSpec(character="Baptiste", rank=6),
-        "Strategic Withdrawal": CardSpec(character="Baptiste", rank=7),
-        "Emotional Intelligence": CardSpec(character="Baptiste", rank=9),
-        "Silver Tongue": CardSpec(character="Baptiste", rank=10),
-        # Muk'Tuk
-        "Pump Up": CardSpec(character="Muk'Tuk", rank=1),
-        "Enthusiasm": CardSpec(character="Muk'Tuk", rank=2),
-        "Craftsmanship": CardSpec(character="Muk'Tuk", rank=3),
-        "Reinforce": CardSpec(character="Muk'Tuk", rank=4),
-        "Bravado": CardSpec(character="Muk'Tuk", rank=5),
-        "Zeal": CardSpec(character="Muk'Tuk", rank=7),
-        "Artistry": CardSpec(character="Muk'Tuk", rank=9),
-        "Conviction": CardSpec(character="Muk'Tuk", rank=10),
-        # Saffron
-        "Meditate": CardSpec(character="Saffron", rank=1),
-        "Guided Thought": CardSpec(character="Saffron", rank=2),
-        "Casual Conversation": CardSpec(character="Saffron", rank=3),
-        "Deep Connection": CardSpec(character="Saffron", rank=5),
-        "Mindfulness": CardSpec(character="Saffron", rank=6),
-        "Regulated Breathing": CardSpec(character="Saffron", rank=7),
-        "Serenity of Mind": CardSpec(character="Saffron", rank=9),
-        "Tranquility": CardSpec(character="Saffron", rank=10),
-        # Roxanne
-        "Sleight of Hand": CardSpec(character="Roxanne", rank=1),
-        "Flattery": CardSpec(character="Roxanne", rank=2),
-        "Disarm": CardSpec(character="Roxanne", rank=3),
-        "Pander": CardSpec(character="Roxanne", rank=5),
-        "Emotional Mindfield": CardSpec(character="Roxanne", rank=6),
-        "Chapstick": CardSpec(character="Roxanne", rank=7),
-        "Magnetism": CardSpec(character="Roxanne", rank=9),
-        "Mass Misdirection": CardSpec(character="Roxanne", rank=10),
-        # Xidriel
-        "Jingle": CardSpec(character="Xidriel", rank=1),
-        "Opening Act": CardSpec(character="Xidriel", rank=2),
-        "Chorus": CardSpec(character="Xidriel", rank=3),
-        "Improv": CardSpec(character="Xidriel", rank=5),
-        "Rhythm": CardSpec(character="Xidriel", rank=6),
-        "Throat Spray": CardSpec(character="Xidriel", rank=7),
-        "Catchy Tune": CardSpec(character="Xidriel", rank=9),
-        "Encore": CardSpec(character="Xidriel", rank=10),
-        # Salt & Pepper
-        "Strike or Strike Later": CardSpec(character="Salt & Pepper", rank=1),
-        "Good Cop, Bad Cop": CardSpec(character="Salt & Pepper", rank=2),
-        "Salt or Pepper": CardSpec(character="Salt & Pepper", rank=3),
-        "Avast Ye!": CardSpec(character="Salt & Pepper", rank=5),
-        "Give No Quarter": CardSpec(character="Salt & Pepper", rank=6),
-        "Batten Down the Hatches": CardSpec(character="Salt & Pepper", rank=7),
-        "Mental Purrrley": CardSpec(character="Salt & Pepper", rank=9),
-        "Carpe Diem": CardSpec(character="Salt & Pepper", rank=10),
-        # Corsac
-        "Ferocity of the Squirrel": CardSpec(character="Corsac", rank=1),
-        "Adapt": CardSpec(character="Corsac", rank=2),
-        "Be Prepared": CardSpec(character="Corsac", rank=3),
-        "Happy Place": CardSpec(character="Corsac", rank=5),
-        "Serenity of the Mollus": CardSpec(character="Corsac", rank=6),
-        "Pivot": CardSpec(character="Corsac", rank=7),
-        "Mind of the Slime": CardSpec(character="Corsac", rank=9),
-        "Lessons from Nature": CardSpec(character="Corsac", rank=10),
-        # Luna
-        "Elevator Pitch": CardSpec(character="Luna", rank=1),
-        "Lean into It": CardSpec(character="Luna", rank=2),
-        "Wing It": CardSpec(character="Luna", rank=3),
-        "Rehearsed Line": CardSpec(character="Luna", rank=5),
-        "Caffeine Rush": CardSpec(character="Luna", rank=6),
-        "Dig Deep": CardSpec(character="Luna", rank=7),
-        "Subliminal Suggestion": CardSpec(character="Luna", rank=9),
-        "Final Push": CardSpec(character="Luna", rank=10),
+    @dataclass
+    class CauldronSpec:
+        chapter: int
+
+        @property
+        def required_progressive_item_count(self) -> int:
+            return (self.chapter - 1) * 3
+
+    cauldrons: ClassVar[dict[str, CauldronSpec]] = {
+        "Mudpack Cauldron": CauldronSpec(chapter=1),
+        "Glass Cauldron": CauldronSpec(chapter=1),
+        "Storm Cauldron": CauldronSpec(chapter=1),
+        "Ocean Cauldron": CauldronSpec(chapter=2),
+        "Shadow Cauldron": CauldronSpec(chapter=2),
+        "Crystal Cauldron": CauldronSpec(chapter=2),
+        "Steel Cauldron": CauldronSpec(chapter=3),
+        "Celestial Cauldron": CauldronSpec(chapter=3),
+        "Arctic Cauldron": CauldronSpec(chapter=3),
+        "Crater Cauldron": CauldronSpec(chapter=4),
+        "Dragon Cauldron": CauldronSpec(chapter=4),
+        "Magical Wasteland Cauldron": CauldronSpec(chapter=5),
     }
 
-    banned_cards = [
-        "Regulated Breathing",
-        "Serenity of Mind",
-        "Chorus",
-        "Rattle 'Em Off",
-    ]
-    for banned_card_name in banned_cards:
-        cards.pop(banned_card_name)
-
-    cauldrons: ClassVar = {
-        "Wooden Cauldron": CauldronSpec(),
-        "Clay Cauldron": CauldronSpec(),
-        "Mudpack Cauldron": CauldronSpec(upgrade_count=2),
-        "Glass Cauldron": CauldronSpec(upgrade_count=2),
-        "Storm Cauldron": CauldronSpec(upgrade_count=2),
-        "Ocean Cauldron": CauldronSpec(upgrade_count=2),
-        "Shadow Cauldron": CauldronSpec(upgrade_count=2),
-        "Crystal Cauldron": CauldronSpec(upgrade_count=2),
-        "Steel Cauldron": CauldronSpec(upgrade_count=2),
-        "Celestial Cauldron": CauldronSpec(upgrade_count=2),
-        "Arctic Cauldron": CauldronSpec(upgrade_count=2),
-        "Crater Cauldron": CauldronSpec(upgrade_count=2),
-        "Dragon Cauldron": CauldronSpec(upgrade_count=2),
-        "Magical Wasteland Cauldron": CauldronSpec(upgrade_count=2),
-    }
+    @dataclass
+    class ShelfSpec:
+        chapter: int
 
     shelves: ClassVar = {
-        "Mushroom Mire Shelf",
-        "Bone Wastes Shelf",
-        "Storm Plains Shelf",
-        "Ocean Coasts Shelf",
-        "Shadow Steppe Shelf",
-        "Sulfuric Falls Shelf",
-        "Crystalline Forest Shelf",
-        "Ice Craggs Shelf",
-        "Crater Shelf",
-        "Dragon Oasis Shelf",
-        "Arctic Shelf",
-        "Magical Wasteland Shelf",
+        "Mushroom Mire Shelf": ShelfSpec(chapter=1),
+        "Bone Wastes Shelf": ShelfSpec(chapter=1),
+        "Storm Plains Shelf": ShelfSpec(chapter=1),
+        "Ocean Coasts Shelf": ShelfSpec(chapter=2),
+        "Shadow Steppe Shelf": ShelfSpec(chapter=2),
+        "Sulfuric Falls Shelf": ShelfSpec(chapter=2),
+        "Crystalline Forest Shelf": ShelfSpec(chapter=3),
+        "Ice Craggs Shelf": ShelfSpec(chapter=3),
+        "Crater Shelf": ShelfSpec(chapter=3),
+        "Dragon Oasis Shelf": ShelfSpec(chapter=4),
+        "Arctic Shelf": ShelfSpec(chapter=4),
+        "Magical Wasteland Shelf": ShelfSpec(chapter=5),
+    }
+
+    @dataclass
+    class ShopUpgradeSpec:
+        upgrade_count: int = 0
+
+    shop_upgrades: ClassVar = {
+        "Shop Front": ShopUpgradeSpec(upgrade_count=3),
+        "Brewing Area": ShopUpgradeSpec(upgrade_count=3),
+        "Basement": ShopUpgradeSpec(upgrade_count=3),
     }
 
     showcases: ClassVar = {
@@ -311,209 +363,192 @@ class PotionomicsWorldSpec(WorldSpec):
         "Empyrean Bud",
     }
 
-    shop_upgrades: ClassVar = {
-        "Shop Front": ShopUpgradeSpec(upgrade_count=3),
-        "Brewing Area": ShopUpgradeSpec(upgrade_count=3),
-        "Basement": ShopUpgradeSpec(upgrade_count=3),
-    }
-
     def __init__(self):
-        super().__init__()
+        progressive_items_category = "Progression"
+        progressive_characters_category = "Characters"
 
-        starting_items: list[StartingItemData] = []
-
-        starting_items.append(
-            {"item_categories": ["Shop Ingredients"], "random": 10},
+        super().__init__(
+            starting_items=[
+                # you need mint to get the necessary ingredients to progress early game
+                {"items": [self.characters["Mint"].item_name], "random": 1},
+                # some other random jumpstart progression
+                {"item_categories": [progressive_items_category], "random": 3},
+                {"item_categories": [progressive_characters_category], "random": 3},
+            ]
         )
 
-        for ingredient_name, ingredient in self.ingredients.items():
-            self.define_item(
-                ingredient_name,
-                category="Shop Ingredients",
-                useful=True,
-            )
+        contest_count = 5
 
-        relationship_completion_item_name = self.define_item(
-            f"Best Friends",
-            category="Best Friends",
+        contest_reward_item_name = self.define_item(
+            "Contest Reward",
+            category="Contest Rewards",
             progression=True,
-            count=len(self.characters),
+            count=contest_count,
         )["name"]
 
-        starting_items.append(
-            {"item_categories": ["Characters"], "random": 3},
+        self.define_location(
+            "Save the Shop",
+            category="Victory!",
+            requires=f"|{contest_reward_item_name}:all|",
+            victory=True,
         )
 
-        for character_name in self.characters:
+        for contest_index in range(contest_count):
+            self.define_location(
+                f"Win Contest {contest_index + 1}",
+                category="Contests",
+                requires=f"|{contest_reward_item_name}:{contest_index}|",
+                place_item=[contest_reward_item_name],
+            )
+
+        for potion in self.potions:
+            potion_type = potion.split(" ")[-1]
+
+            self.define_location(
+                f"Brew {potion}",
+                category=f"Brewing - {potion_type}s",
+            )
+
+            # for potion_tier in self.potion_tiers:
+            #     self.define_location(
+            #         f"Brew {potion_tier} {potion} or higher",
+            #         category=f"Potions - {potion}",
+            #     )
+
+        for character_spec in self.characters.values():
             self.define_item(
-                character_name,
-                category="Characters",
+                character_spec.item_name,
+                category=[progressive_characters_category],
                 progression=True,
+                count=10,
             )
 
-            for relationship_rank in range(
-                self.starting_relationship_rank, self.max_relationship_rank + 1
-            ):
-                relationship_rank_location = self.define_location(
-                    f"{character_name} - Rank {relationship_rank}",
-                    category=f"{character_name}",
-                    requires=f"|{character_name}|",
-                )
-
-                if relationship_rank == 7:
-                    relationship_rank_location["place_item"] = [
-                        relationship_completion_item_name
-                    ]
-
-        starting_items.append(
-            {"item_categories": ["Cards"], "random": 15},
-        )
-
-        for card_name, card in self.cards.items():
-            self.define_item(
-                card_name,
-                category="Cards",
-                useful=True,
+            self.define_location(
+                f"{character_spec.name} - Reach Rank 7",
+                category=f"Characters - {character_spec.name}",
+                requires=f"|{character_spec.item_name}:1| and |{contest_reward_item_name}:{character_spec.chapter - 1}|",
             )
 
-        starting_items.append(
-            {"item_categories": ["Adventure Locations"], "random": 3},
-        )
+            self.define_location(
+                f"{character_spec.name} - Reach Rank 10",
+                category=f"Characters - {character_spec.name}",
+                requires=f"|{character_spec.item_name}:1| and |{contest_reward_item_name}:{character_spec.chapter - 1}|",
+            )
+
+            # for relationship_rank in range(
+            #     self.starting_relationship_rank, self.max_relationship_rank
+            # ):
+            #     self.define_location(
+            #         f"{character_name} - Reach Rank {relationship_rank}",
+            #         category=f"Characters - {character_name}",
+            #         requires=f"|{progressive_characters_item_name}:{character_index + 1}|",
+            #     )
+
+        progressive_adventure_locations_item_name = self.define_item(
+            "Progressive Adventure Locations",
+            category=progressive_items_category,
+            count=max(
+                location.chapter for location in self.adventure_locations.values()
+            ),
+            progression=True,
+        )["name"]
 
         for (
             adventure_location_name,
             adventure_location,
         ) in self.adventure_locations.items():
-            self.define_item(
-                adventure_location_name,
-                category="Adventure Locations",
-                useful=True,
+            adventurer_character_requirement = " or ".join(
+                f"|{self.characters[name].item_name}|"
+                for name in ["Mint", "Xidriel", "Corsac"]
             )
 
-        starting_items.append(
-            {"item_categories": ["Cauldrons"], "random": 3},
-        )
-
-        for cauldron_name, cauldron in self.cauldrons.items():
-            if cauldron.upgrade_count == 0:
-                self.define_item(
-                    cauldron_name,
-                    category="Cauldrons",
-                    useful=True,
-                )
-            else:
-                self.define_item(
-                    f"Progressive {cauldron_name}",
-                    category="Cauldrons",
-                    useful=True,
-                    count=cauldron.upgrade_count,
-                )
-
-                for cauldron_upgrade_index in range(cauldron.upgrade_count + 1):
-                    self.define_location(
-                        cauldron_name + ("+" * cauldron_upgrade_index),
-                        category="Cauldrons",
+            self.define_location(
+                f"Adventure in {adventure_location_name}",
+                category=f"Adventure - Chapter {adventure_location.chapter}",
+                requires=(
+                    " and ".join(
+                        [
+                            f"({adventurer_character_requirement})",
+                            f"|{progressive_adventure_locations_item_name}:{adventure_location.chapter}|",
+                            f"|{contest_reward_item_name}:{adventure_location.chapter - 1}|",
+                        ]
                     )
-
-        starting_items.append(
-            {"item_categories": ["Fuel"], "random": 3},
-        )
-
-        for fuel_name in self.fuels:
-            self.define_item(
-                fuel_name,
-                category="Fuel",
-                useful=True,
+                ),
             )
 
-        for shop_upgrade_name, shop_upgrade in self.shop_upgrades.items():
-            self.define_item(
-                f"Progressive {shop_upgrade_name}",
-                category="Shop Upgrades",
-                useful=True,
-                count=shop_upgrade.upgrade_count,
-            )
-
-            for shop_upgrade_index in range(shop_upgrade.upgrade_count):
-                self.define_location(
-                    f"Level {shop_upgrade_index + 2} {shop_upgrade_name}",
-                    category="Shop Upgrades",
-                )
-
-        checkpoint_count = 5
-        potions_per_checkpoint = 3
-        checkpoint_completion_item_name = "Checkpoint Completion"
-
-        starting_items.extend(
-            {
-                "item_categories": [f"Checkpoint {checkpoint_number} Requirements"],
-                "random": potions_per_checkpoint,
-            }
-            for checkpoint_number in range(1, checkpoint_count + 1)
-        )
-
-        for potion_name in self.potions:
-            for potion_quality in self.potion_qualities:
-                self.define_location(
-                    f"{potion_quality} {potion_name}",
-                    category="Potions",
-                )
-
-                for checkpoint_number in range(1, checkpoint_count + 1):
-                    self.define_item(
-                        f"Checkpoint {checkpoint_number} Requirement - {potion_quality} {potion_name}",
-                        category=[f"Checkpoint {checkpoint_number} Requirements"],
-                        local=True,
-                        filler=True,
-                    )
-
-        self.define_item(
-            checkpoint_completion_item_name,
-            category="Checkpoint Completion",
-            count=checkpoint_count * potions_per_checkpoint,
+        progressive_cauldron_item_name = self.define_item(
+            "Progressive Cauldrons",
+            category=progressive_items_category,
             progression=True,
-        )
+            count=len(self.cauldrons),
+        )["name"]
 
-        for checkpoint_number in range(1, checkpoint_count + 1):
-            for checkpoint_potion_number in range(1, potions_per_checkpoint + 1):
+        for cauldron_name, cauldron_spec in self.cauldrons.items():
+            for cauldron_upgrade_index in range(3):
                 self.define_location(
-                    f"Checkpoint {checkpoint_number} - Potion {checkpoint_potion_number}",
-                    category="Checkpoints",
-                    requires=f"|{checkpoint_completion_item_name}:{(checkpoint_number - 1) * potions_per_checkpoint}|",
+                    f"Buy {cauldron_name}{"+" * cauldron_upgrade_index}",
+                    category=[f"Cauldrons - Chapter {cauldron_spec.chapter}"],
+                    requires=(
+                        " and ".join(
+                            [
+                                f"|{self.characters['Muktuk'].item_name}|",
+                                f"|{progressive_cauldron_item_name}:{cauldron_spec.required_progressive_item_count}|",
+                                f"|{contest_reward_item_name}:{cauldron_spec.chapter - 1}|",
+                            ]
+                        )
+                    ),
                 )
 
-            for guild_investment_number in range(1, 3 + 1):
+        for shelf_name, shelf_spec in self.shelves.items():
+            for shelf_upgrade_index in range(3):
                 self.define_location(
-                    f"Checkpoint {checkpoint_number} - Guild Investment {guild_investment_number}",
-                    category="Guild Investments (Baptiste)",
+                    f"Buy {shelf_name}{"+" * shelf_upgrade_index}",
+                    category=f"Shelves - {shelf_name}",
+                    requires=" and ".join(
+                        [
+                            f"|{self.characters['Muktuk'].item_name}|",
+                            f"|{contest_reward_item_name}:{shelf_spec.chapter - 1}|",
+                        ]
+                    ),
                 )
 
-            for enchantment_number in range(1, 3 + 1):
+        for shop_upgrade_name, shop_upgrade_spec in self.shop_upgrades.items():
+            # progressive_shop_upgrade_item_name = self.define_item(
+            #     f"Progressive {shop_upgrade_name}",
+            #     category=progressive_items_category,
+            #     progression=True,
+            #     count=shop_upgrade_spec.upgrade_count,
+            # )["name"]
+
+            for shop_upgrade_index in range(shop_upgrade_spec.upgrade_count):
                 self.define_location(
-                    f"Checkpoint {checkpoint_number} - Enchantment {enchantment_number}",
-                    category="Enchantments (Roxanne)",
+                    f"Buy {shop_upgrade_name} Level {shop_upgrade_index + 2}",
+                    category=f"Shop Upgrades - {shop_upgrade_name}",
+                    requires=" and ".join(
+                        [
+                            f"|{self.characters['Saffron'].item_name}|",
+                            # f"|{progressive_shop_upgrade_item_name}:{shop_upgrade_index + 1}|",
+                        ]
+                    ),
                 )
 
-            for chest_number in range(1, 3 + 1):
-                self.define_location(
-                    f"Checkpoint {checkpoint_number} - Chest {chest_number}",
-                    category="Chests (Salt & Pepper)",
-                )
+        # for showcase in self.showcases:
+        #     self.define_location(
+        #         f"Buy {showcase}",
+        #         category="Showcases",
+        #     )
 
-            for campaign_number in range(1, 3 + 1):
-                self.define_location(
-                    f"Checkpoint {checkpoint_number} - Campaign  {campaign_number}",
-                    category="Campaigns (Luna)",
-                )
+        # for barrel in self.barrels:
+        #     self.define_location(
+        #         f"Buy {barrel}",
+        #         category="Barrels",
+        #     )
 
-        self.define_location(
-            "Victory",
-            category="Victory",
-            requires=f"|{checkpoint_completion_item_name}:all| and |{relationship_completion_item_name}:30%|",
-            victory=True,
-        )
-
-        self.game["starting_items"] = starting_items
+        # for slime_pot_index in range(5):
+        #     self.define_location(
+        #         f"Buy Slime Pot {slime_pot_index + 1}",
+        #         category="Slime Pots",
+        #     )
 
 
 spec = PotionomicsWorldSpec()
