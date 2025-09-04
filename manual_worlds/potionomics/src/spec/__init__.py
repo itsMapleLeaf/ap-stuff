@@ -76,16 +76,29 @@ class PotionomicsWorldSpec(WorldSpec):
 
     @dataclass
     class PotionTierSpec:
+        chapter: int
         magimin_requirements: tuple[int, int, int, int, int, int]
         """The amount of magimins required for each star rating in this tier, from 0 to 5"""
 
     potion_tiers: ClassVar = {
-        "Minor": PotionTierSpec((0, 10, 20, 30, 40, 50)),
-        "Common": PotionTierSpec((60, 75, 90, 105, 115, 130)),
-        "Greater": PotionTierSpec((150, 170, 195, 215, 235, 260)),
-        "Grand": PotionTierSpec((290, 315, 345, 370, 400, 430)),
-        "Superior": PotionTierSpec((470, 505, 545, 580, 620, 660)),
-        "Masterwork": PotionTierSpec((720, 800, 875, 960, 1040, 1121)),
+        "Minor": PotionTierSpec(
+            chapter=1, magimin_requirements=(0, 10, 20, 30, 40, 50)
+        ),
+        "Common": PotionTierSpec(
+            chapter=1, magimin_requirements=(60, 75, 90, 105, 115, 130)
+        ),
+        "Greater": PotionTierSpec(
+            chapter=2, magimin_requirements=(150, 170, 195, 215, 235, 260)
+        ),
+        "Grand": PotionTierSpec(
+            chapter=3, magimin_requirements=(290, 315, 345, 370, 400, 430)
+        ),
+        "Superior": PotionTierSpec(
+            chapter=4, magimin_requirements=(470, 505, 545, 580, 620, 660)
+        ),
+        "Masterwork": PotionTierSpec(
+            chapter=5, magimin_requirements=(720, 800, 875, 960, 1040, 1121)
+        ),
     }
 
     @dataclass
@@ -435,10 +448,10 @@ class PotionomicsWorldSpec(WorldSpec):
             "License Level+",
             category="Licenses",
             progression=True,
-            count=4,
+            count=5,
         )
 
-        for license_level in (2, 3, 4):
+        for license_level in (2, 3, 4, 5):
             self.define_location(
                 f"Obtain Level {license_level} License",
                 category="Licenses",
@@ -481,6 +494,7 @@ class PotionomicsWorldSpec(WorldSpec):
                     requires=(
                         f"|{potion_recipe_item['name']}|"
                         f" and |{license_level_item['name']}:{potion_spec.level}|"
+                        f" and |{license_level_item['name']}:{potion_tier_spec.chapter}|"
                         # f" and |@Can Brew {potion_tier}|"
                         # f" and |{magimin_limit_item['name']}:{potion_tier_spec.magimin_requirements[0] // 10 // 10}|"
                     ),
