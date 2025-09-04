@@ -410,7 +410,7 @@ class PotionomicsWorldSpec(WorldSpec):
                 # {"items": ["Wooden Cauldron"], "random": 1},
                 # {"items": ["Magimin Limit +10"], "random": 1},
                 {"item_categories": ["Cards"], "random": 5},
-                {"items": starting_adventure_locations},
+                # {"items": starting_adventure_locations},
             ]
         )
 
@@ -522,19 +522,20 @@ class PotionomicsWorldSpec(WorldSpec):
             adventure_location,
             adventure_location_spec,
         ) in self.adventure_locations.items():
-            adventure_location_item = self.define_item(
-                f"Map to {adventure_location}",
-                category=adventure_locations_category,
-                progression=True,
-            )
+            # adventure_location_item = self.define_item(
+            #     f"Map to {adventure_location}",
+            #     category=adventure_locations_category,
+            #     progression=True,
+            # )
 
             self.define_location(
                 f"Adventure in {adventure_location}",
                 category=adventure_locations_category,
                 requires=(
-                    f"|{adventure_location_item['name']}|"
-                    f" and |{license_level_item['name']}:{adventure_location_spec.chapter - 1}|"
+                    # f"|{adventure_location_item['name']}|"
+                    f"|{license_level_item['name']}:{adventure_location_spec.chapter}|"
                 ),
+                prehint=True,
             )
         # endregion adventure
 
