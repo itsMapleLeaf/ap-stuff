@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from .world import WorldSpec
 
 
-def __define_world_spec():
+def __define_world_spec() -> WorldSpec:
     spec = WorldSpec(
         starting_items=[
             {"items": ["License Level+"], "random": 1},
@@ -521,6 +521,8 @@ def __define_world_spec():
     #         progression=True,
     #     )
     # endregion cauldrons
+
+    return spec
 
 
 spec = __define_world_spec()
