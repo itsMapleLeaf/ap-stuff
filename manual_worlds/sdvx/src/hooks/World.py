@@ -1,19 +1,28 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
+from typing import cast
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
 
 # Object classes from Manual -- extending AP core -- representing items and locations that are used in generation
 from ..Items import ManualItem
+from ..spec import (
+    SongSpec,
+    song_specs,
+    inclusion_brackets,
+    rank_locations,
+    filler_score_item,
+)
 
 # Raw JSON data from the Manual apworld, respectively:
 #          data/game.json, data/items.json, data/locations.json, data/regions.json
 #
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
+from ..Helpers import get_option_value, is_option_enabled
 
 # calling logging.info("message") anywhere below in this file will output the message to both console and log file
 
-from ..spec import SongSpec
+excluded_songs_by_player = dict[int, list[SongSpec]]()
 
 ########################################################################################
 ## Order of method calls when the world generates:
@@ -31,16 +40,11 @@ from ..spec import SongSpec
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
-    from ..spec import score_item
+    return filler_score_item["name"]
 
-    return score_item["name"]
-
-excluded_songs_by_player = dict[int, list[SongSpec]]()
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    from ..spec import song_specs
-    from ..spec.config import song_brackets
     from .state import disabled_categories_by_player_id
 
     songs_by_level: dict[int, list[SongSpec]] = {}
@@ -56,8 +60,8 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     # we have no more level 20s to pick from :(
     # so we want to start picking via the higher song levels first instead of the lower ones
     song_brackets_sorted = sorted(
-        song_brackets,
-        key=lambda bracket: bracket.level,
+        inclusion_brackets,
+        key=lambda bracket: bracket.max_level,
         reverse=True,
     )
 
@@ -66,11 +70,19 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     for bracket in song_brackets_sorted:
         # ensure we pick from songs that haven't already been picked
         available_songs_for_bracket = [
-            song for song in songs_by_level[bracket.level] if song not in chosen_songs
+            song
+            for level in range(bracket.min_level, bracket.max_level + 1)
+            for song in songs_by_level[level]
+            if song not in chosen_songs
         ]
 
+        bracket_song_count = cast(
+            int,
+            get_option_value(multiworld, player, bracket.option_name),
+        )
+
         chosen_songs.extend(
-            world.random.sample(available_songs_for_bracket, bracket.count)
+            world.random.sample(available_songs_for_bracket, bracket_song_count)
         )
 
     disabled_categories_by_player_id[player] = {
@@ -107,6 +119,18 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
+    included_song_count = sum(
+        cast(int, get_option_value(multiworld, player, bracket.option_name))
+        for bracket in inclusion_brackets
+    )
+
+    rank_location_count = sum(
+        is_option_enabled(multiworld, player, location.option_name)
+        for location in rank_locations
+    )
+
+    item_config["CHAIN"] = included_song_count * rank_location_count
+
     return item_config
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
