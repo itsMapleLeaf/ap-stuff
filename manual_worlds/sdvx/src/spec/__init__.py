@@ -76,7 +76,7 @@ songs_item_category = "Songs"
 
 world_spec = WorldSpec(
     starting_items=[
-        {"item_categories": [songs_item_category], "random": 3},
+        {"item_categories": [songs_item_category], "random": 5},
     ],
 )
 
@@ -100,25 +100,29 @@ world_spec.define_category(
     hidden=True,
 )
 
-filler_score_item = world_spec.define_item(
-    "Score +1.0000 (you tried)",
-    category=["Score Helpers", goal_reward_category_name],
-    filler=True,
-)
 
-world_spec.define_item(
-    "Score +5.0000",
-    category=["Score Helpers", goal_reward_category_name],
-    useful=True,
-    count=20,
-)
+@dataclass
+class ScoreHelperSpec:
+    amount: int
+    percentage: int
+    name_suffix: str = ""
 
-world_spec.define_item(
-    "Score +10.0000",
-    category=["Score Helpers", goal_reward_category_name],
-    useful=True,
-    count=5,
+    def __post_init__(self) -> None:
+        self.item = world_spec.define_item(
+            f"Score +{self.amount}.0000{self.name_suffix}",
+            category=["Score Helpers", goal_reward_category_name],
+            filler=True,
+        )
+
+
+filler_score_helper = ScoreHelperSpec(
+    amount=1, percentage=10, name_suffix=" (you tried)"
 )
+score_helpers = [
+    filler_score_helper,
+    ScoreHelperSpec(amount=5, percentage=5),
+    ScoreHelperSpec(amount=10, percentage=2),
+]
 
 world_spec.define_item(
     "CHAIN",
@@ -167,21 +171,23 @@ rank_locations = [
 
 
 song_specs: list[SongSpec] = []
+song_specs_by_item_name: dict[str, SongSpec] = {}
 
 
 for song in all_songs:
-    song_spec = SongSpec(**dataclasses.asdict(song))
-    song_specs.append(song_spec)
-
-    world_spec.define_category(
-        song_spec.id_category_name,
-        hidden=True,
-    )
-
     song_item_name = (
         song.title
         if not song.title in duplicate_song_titles
         else f"{song.title} (by {song.artist})"
+    )
+
+    song_spec = SongSpec(**dataclasses.asdict(song))
+    song_specs.append(song_spec)
+    song_specs_by_item_name[song_item_name] = song_spec
+
+    world_spec.define_category(
+        song_spec.id_category_name,
+        hidden=True,
     )
 
     song_location_category_name = f"Songs - {song_item_name}"

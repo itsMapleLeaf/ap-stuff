@@ -1,4 +1,5 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
+from math import floor
 from typing import cast
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
@@ -8,9 +9,11 @@ from ..Items import ManualItem
 from ..spec import (
     SongSpec,
     song_specs,
+    song_specs_by_item_name,
     inclusion_brackets,
     rank_locations,
-    filler_score_item,
+    score_helpers,
+    filler_score_helper,
 )
 
 # Raw JSON data from the Manual apworld, respectively:
@@ -40,7 +43,7 @@ excluded_songs_by_player = dict[int, list[SongSpec]]()
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
-    return filler_score_item["name"]
+    return filler_score_helper.item["name"]
 
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
@@ -66,6 +69,24 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     )
 
     chosen_songs: list[SongSpec] = []
+
+    force_included_songs = cast(
+        list[str], get_option_value(multiworld, player, "force_include_songs")
+    )
+    unknown_song_names = []
+    for force_included_song_name in force_included_songs:
+        force_included_song_spec = song_specs_by_item_name.get(
+            force_included_song_name, None
+        )
+        if force_included_song_spec == None:
+            unknown_song_names.append(force_included_song_name)
+        else:
+            chosen_songs.append(force_included_song_spec)
+
+    if len(unknown_song_names) > 0:
+        raise Exception(
+            f'Unknown songs found in `force_include_songs`: "{unknown_song_names}"'
+        )
 
     for bracket in song_brackets_sorted:
         # ensure we pick from songs that haven't already been picked
@@ -129,7 +150,15 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
         for location in rank_locations
     )
 
-    item_config["CHAIN"] = included_song_count * rank_location_count
+    total_slot_count = included_song_count * rank_location_count
+    total_score_helper_count = 0
+
+    for score_helper in score_helpers:
+        score_helper_count = floor(total_slot_count * (score_helper.percentage / 100))
+        total_score_helper_count += score_helper_count
+        item_config[score_helper.item["name"]] = score_helper_count
+
+    item_config["CHAIN"] = total_slot_count - total_score_helper_count
 
     return item_config
 

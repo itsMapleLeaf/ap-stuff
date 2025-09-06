@@ -1,5 +1,5 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
+from Options import Option, FreeText, NumericOption, OptionList, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
 from typing import Type, Any
@@ -32,8 +32,20 @@ from typing import Type, Any
 #     range_end = 50
 #     default = 50
 
+class ForceIncludeSongs(OptionList):
+    """Guarantees the song(s) specifed by title will be generated in the multiworld.
+
+    Search songs here: https://www.myshkin.io/sdvx/songlist
+
+    If your song shares a title with another song (such as "Prayer"), you need to add (by Artist Name) at the end.
+    Example: "Prayer (by ぺのれり)"
+    """
+    display_name = "Force Include Songs"
+    verify_item_name = True
+
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict[str, Type[Option[Any]]]) -> dict[str, Type[Option[Any]]]:
+    options["force_include_songs"] = ForceIncludeSongs
     return options
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
