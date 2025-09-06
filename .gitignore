@@ -3,6 +3,5 @@ __pycache__
 
 /games/*
 !/games/.gitkeep
-!/games/local
-/games/local/*
-!/games/local/.gitkeep
+/players/*
+!/players/.gitkeep

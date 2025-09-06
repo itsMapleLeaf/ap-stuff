@@ -2,7 +2,9 @@ worlds_dirname := "manual_worlds"
 
 games_dir := justfile_directory() / "games"
 dist_dir := justfile_directory() / "dist"
-generate_output_dir := dist_dir / "generate"
+generate_dir := dist_dir / "generate"
+generate_players_dir := dist_dir / "generate/players"
+generate_output_dir := dist_dir / "generate/output"
 
 user_archipelago_dir := 'C:/ProgramData/Archipelago'
 archipelago_generate := user_archipelago_dir / "ArchipelagoGenerate.exe"
@@ -15,15 +17,18 @@ build *worlds:
     uv run -m scripts.build {{ worlds }}
 
 # generate and serve a multiworld for a given game
-play game="local": (generate game) serve
+play game: (generate game) serve
 
 # generate a multiworld with a given game
-generate game="local": build
-    rm -rf "{{ generate_output_dir }}"
+generate game: build
+    rm -rf "{{ generate_dir }}"
+    mkdir -p "{{ generate_players_dir }}"
     mkdir -p "{{ generate_output_dir }}"
 
+    uv run -m scripts.create_generate_players_dir "{{ game }}"
+
     {{ archipelago_generate }} \
-        --player_files_path "{{ games_dir / game }}" \
+        --player_files_path "{{ generate_players_dir }}" \
         --outputpath "{{ generate_output_dir }}"
 
     cd "{{ generate_output_dir }}"; unzip AP_*.zip
