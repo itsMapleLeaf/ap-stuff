@@ -1,6 +1,6 @@
 {
     "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
-    "game": "SoundVoltex",
+    "game": "SoundVoltex_dev",
     "creator": "MapleLeaf",
     "filler_item_name": "I love Camellia (feat. Nanahira)"
 }
