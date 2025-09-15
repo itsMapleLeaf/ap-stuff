@@ -1,75 +1,11 @@
 [
 	{
-		"name": "Conflict (by siromaru & Cranky)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_GrooveCoaster_claiomh": ["GC Conflict"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"],
-			"Muse Dash": ["conflict"]
-		}
-	},
-	{
-		"name": "FREEDOM DiVE (by xi)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
-			"Muse Dash": ["FREEDOM DiVE"]
-		}
-	},
-	{
-		"name": "GOODTEK (by EBIMAYO)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["GOODTEK"],
-			"Muse Dash": ["GOODTEK"]
-		}
-	},
-	{
-		"name": "Brain Power (by Noma)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_GrooveCoaster_claiomh": ["GC Brain Power"],
-			"Muse Dash": ["Brain Power"]
-		}
-	},
-	{
-		"name": "Rolling Girl (by wowaka)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ローリンガール"],
-			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Rolling Girl"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"]
-		}
-	},
-	{
-		"name": "Chronomia (by Lime)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["Chronomia"],
-			"Muse Dash": ["Chronomia"]
-		}
-	},
-	{
-		"name": "Miku (by Anamanaguchi)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_FortniteFestival_UnderseaRexieVT": ["Miku"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Miku [9165]"]
-		}
-	},
-	{
-		"name": "Bad Apple!! feat. nomico (by Alstroemeria Records)",
+		"name": "Bad Apple!! feat. nomico",
 		"progression": true,
 		"count": 1,
 		"linklink": {
 			"Manual_SoundVoltex_dev_MapleLeaf": ["Bad Apple!! feat. nomico"],
+			"Manual_GrooveCoaster_claiomh": ["GC Bad Apple"],
 			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": [
 				"Bad Apple!! feat.nomico"
 			],
@@ -78,7 +14,94 @@
 		}
 	},
 	{
-		"name": "MEGALOVANIA (by Toby Fox)",
+		"name": "Brain Power",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Brain Power"],
+			"Muse Dash": ["Brain Power"]
+		}
+	},
+	{
+		"name": "B.B.K.K.B.K.K.",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["B.B.K.K.B.K.K."],
+			"Manual_GrooveCoaster_claiomh": ["GC B.B.K.K.B.K.K."]
+		}
+	},
+	{
+		"name": "Chronomia",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["Chronomia"],
+			"Muse Dash": ["Chronomia"]
+		}
+	},
+	{
+		"name": "Conflict",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Conflict"],
+			"Muse Dash": ["conflict"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"]
+		}
+	},
+	{
+		"name": "ECHO",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Echo"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
+			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"]
+		}
+	},
+	{
+		"name": "FREEDOM DiVE",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
+			"Muse Dash": ["FREEDOM DiVE"]
+		}
+	},
+	{
+		"name": "GANGNAM STYLE",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_FortniteFestival_UnderseaRexieVT": ["Gangnam Style"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Gangnam Style"],
+			"Hatsune Miku Project Diva Mega Mix+": ["GANGNAM STYLE [3399]"]
+		}
+	},
+	{
+		"name": "GOODTEK",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["GOODTEK"],
+			"Muse Dash": ["GOODTEK"]
+		}
+	},
+	{
+		"name": "Knight of Nights",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ナイト・オブ・ナイツ"],
+			"Manual_GrooveCoaster_claiomh": ["GC Night of Knights"],
+			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": ["Knight of Nights"],
+			"Muse Dash": ["Night of Nights"]
+		}
+	},
+	{
+		"name": "MEGALOVANIA",
 		"progression": true,
 		"count": 1,
 		"linklink": {
@@ -88,49 +111,16 @@
 		}
 	},
 	{
-		"name": "Knight of Nights (by beatMARIO (COOL&CREATE))",
+		"name": "Miku",
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_GrooveCoaster_claiomh": ["GC Night of Knights"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ナイト・オブ・ナイツ"],
-			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": ["Knight of Nights"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Knight of Light"],
-			"Muse Dash": ["Night of Nights"]
+			"Manual_FortniteFestival_UnderseaRexieVT": ["Miku"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Miku [9165]"]
 		}
 	},
 	{
-		"name": "Roki (by mikitoP)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_GrooveCoaster_claiomh": ["GC Roki"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"],
-			"Hatsune Miku Project Diva Mega Mix+": ["ROKI"]
-		}
-	},
-	{
-		"name": "Senbonzakura (by KurousaP)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Senbonzakura"]
-		}
-	},
-	{
-		"name": "ECHO (by CIRCRUSH)",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_GrooveCoaster_claiomh": ["GC Echo"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"],
-			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
-			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"]
-		}
-	},
-	{
-		"name": "Never Gonna Give You Up (by Various Artists)",
+		"name": "Never Gonna Give You Up",
 		"progression": true,
 		"count": 1,
 		"linklink": {
@@ -139,13 +129,32 @@
 		}
 	},
 	{
-		"name": "GANGNAM STYLE (by PSY)",
+		"name": "Roki",
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_FortniteFestival_UnderseaRexieVT": ["Gangnam Style"],
-			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Gangnam Style"],
-			"Hatsune Miku Project Diva Mega Mix+": ["GANGNAM STYLE [3399]"]
+			"Manual_GrooveCoaster_claiomh": ["GC Roki"],
+			"Hatsune Miku Project Diva Mega Mix+": ["ROKI"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"]
+		}
+	},
+	{
+		"name": "Rolling Girl",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Rolling Girl"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ローリンガール"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"]
+		}
+	},
+	{
+		"name": "Senbonzakura",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Hatsune Miku Project Diva Mega Mix+": ["Senbonzakura"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"]
 		}
 	}
 ]

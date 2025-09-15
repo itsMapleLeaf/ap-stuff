@@ -3,17 +3,16 @@ from dataclasses import dataclass
 import difflib
 import json
 import re
-import sys
 from typing import ClassVar, TypedDict
 import websockets
 import websockets.asyncio
 import websockets.asyncio.client
 
-from .build import make_apworld
-from ._paths import project_dir, user_archipelago_worlds_dir
+from ._paths import project_dir
 
 
-songlink_world_src = project_dir / "external_worlds/symphony_songlink/src"
+songlink_world_src = project_dir / "manual_worlds/symphony_songlink/src"
+
 
 async def __generate_items():
     class LinkedSong:
@@ -69,7 +68,7 @@ async def __generate_items():
             artist="Anamanaguchi",
         ),
         LinkedSong(
-            title="Bad Apple!! feat. nomico",
+            title=["Bad Apple!! feat. nomico", "Bad Apple!!", "Bad Apple"],
             artist="Alstroemeria Records",
         ),
         LinkedSong(
@@ -211,16 +210,14 @@ async def __generate_items():
 
     return items
 
+
 async def __main() -> None:
-    if 'world-only' not in sys.argv:
-        items = __generate_items()
+    items = __generate_items()
 
-        with open(
-            songlink_world_src / "data/items.json", mode="w", encoding="utf8"
-        ) as items_file:
-            json.dump(items, items_file, indent=4, ensure_ascii=False)
-
-    make_apworld(songlink_world_src, user_archipelago_worlds_dir)
+    with open(
+        songlink_world_src / "data/items.json", mode="w", encoding="utf8"
+    ) as items_file:
+        json.dump(items, items_file, indent=4, ensure_ascii=False)
 
 
 def _resolve_optional_list[T](value: T | list[T]) -> list[T]:

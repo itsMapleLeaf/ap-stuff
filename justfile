@@ -57,3 +57,11 @@ create world:
 # update songs for the sound voltex manual
 fetch-sdvx-songs:
     uv run -m {{ worlds_dirname }}.sdvx.scripts.fetch_songs
+
+# build the items json for the symphony async song link world
+build-song-link-items:
+    uv run -m scripts.song_link_items
+
+# print the data for a world (after hooks)
+inspect world:
+    uv run -m scripts.inspect {{ world }}
