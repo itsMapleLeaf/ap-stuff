@@ -1,5 +1,5 @@
 {
 	"[python]": {
-		"editor.formatOnSaveMode": "modifications"
-	},
+		"editor.formatOnSaveMode": "modificationsIfAvailable"
+	}
 }
