@@ -1,1 +1,151 @@
-[]
+[
+	{
+		"name": "Conflict (by siromaru & Cranky)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Conflict"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"],
+			"Muse Dash": ["conflict"]
+		}
+	},
+	{
+		"name": "FREEDOM DiVE (by xi)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
+			"Muse Dash": ["FREEDOM DiVE"]
+		}
+	},
+	{
+		"name": "GOODTEK (by EBIMAYO)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["GOODTEK"],
+			"Muse Dash": ["GOODTEK"]
+		}
+	},
+	{
+		"name": "Brain Power (by Noma)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Brain Power"],
+			"Muse Dash": ["Brain Power"]
+		}
+	},
+	{
+		"name": "Rolling Girl (by wowaka)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ローリンガール"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Rolling Girl"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"]
+		}
+	},
+	{
+		"name": "Chronomia (by Lime)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["Chronomia"],
+			"Muse Dash": ["Chronomia"]
+		}
+	},
+	{
+		"name": "Miku (by Anamanaguchi)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_FortniteFestival_UnderseaRexieVT": ["Miku"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Miku [9165]"]
+		}
+	},
+	{
+		"name": "Bad Apple!! feat. nomico (by Alstroemeria Records)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["Bad Apple!! feat. nomico"],
+			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": [
+				"Bad Apple!! feat.nomico"
+			],
+			"Hatsune Miku Project Diva Mega Mix+": ["Bad Apple!! feat.nomico [4552]"],
+			"Muse Dash": ["Bad Apple!! feat. Nomico"]
+		}
+	},
+	{
+		"name": "MEGALOVANIA (by Toby Fox)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC megolavania"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["MEGALOVANIA"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["MEGALOVANIA"]
+		}
+	},
+	{
+		"name": "Knight of Nights (by beatMARIO (COOL&CREATE))",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Night of Knights"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ナイト・オブ・ナイツ"],
+			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": ["Knight of Nights"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Knight of Light"],
+			"Muse Dash": ["Night of Nights"]
+		}
+	},
+	{
+		"name": "Roki (by mikitoP)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Roki"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"],
+			"Hatsune Miku Project Diva Mega Mix+": ["ROKI"]
+		}
+	},
+	{
+		"name": "Senbonzakura (by KurousaP)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Senbonzakura"]
+		}
+	},
+	{
+		"name": "ECHO (by CIRCRUSH)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_GrooveCoaster_claiomh": ["GC Echo"],
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
+			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"]
+		}
+	},
+	{
+		"name": "Never Gonna Give You Up (by Various Artists)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_FortniteFestival_UnderseaRexieVT": ["Never Gonna Give You Up"],
+			"Hatsune Miku Project Diva Mega Mix+": ["Never Gonna Give You Up [4528]"]
+		}
+	},
+	{
+		"name": "GANGNAM STYLE (by PSY)",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_FortniteFestival_UnderseaRexieVT": ["Gangnam Style"],
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Gangnam Style"],
+			"Hatsune Miku Project Diva Mega Mix+": ["GANGNAM STYLE [3399]"]
+		}
+	}
+]

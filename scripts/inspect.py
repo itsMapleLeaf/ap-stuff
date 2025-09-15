@@ -1,11 +1,10 @@
 from dataclasses import dataclass
 import importlib.util
+from pathlib import Path
 import random
 import sys
 from typing import Any
 from dataclasses_json import DataClassJsonMixin
-
-from ._manual_worlds import ManualWorldInfo
 
 
 @dataclass
@@ -19,15 +18,15 @@ class WorldData:
     game_table: GameData
 
 
-def inspect_manual_world(world: ManualWorldInfo) -> WorldData:
-    data_module: Any = load_manual_world_module(world, "Data")
+def inspect_manual_world(src_dir: Path) -> WorldData:
+    data_module: Any = load_manual_world_module(src_dir, "Data")
     return WorldData(
         game_table=GameData.from_dict(data_module.game_table),
     )
 
 
-def load_manual_world_module(world: ManualWorldInfo, module_name: str) -> object:
-    module_file_path = world.src_dir / f"{module_name}.py"
+def load_manual_world_module(src_dir: Path, module_name: str) -> object:
+    module_file_path = src_dir / f"{module_name}.py"
 
     # create a random module name to avoid caching,
     # making sure we're always loading a fresh module
@@ -36,7 +35,7 @@ def load_manual_world_module(world: ManualWorldInfo, module_name: str) -> object
     module_spec = importlib.util.spec_from_file_location(
         name=module_key,
         location=module_file_path,
-        submodule_search_locations=[str(world.src_dir)],
+        submodule_search_locations=[str(src_dir)],
     )
 
     if not module_spec or not module_spec.loader:

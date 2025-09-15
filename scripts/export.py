@@ -21,7 +21,7 @@ def __main():
     os.makedirs(output_dir)
 
     for world in list_project_manual_worlds():
-        make_apworld(world, output_dir=output_dir)
+        make_apworld(world.src_dir, output_dir=output_dir)
 
     player_configs = []
     for player_config_file_name in os.listdir(game_dir):

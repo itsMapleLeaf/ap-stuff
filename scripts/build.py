@@ -3,15 +3,15 @@ import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-from ._manual_worlds import ManualWorldInfo, list_project_manual_worlds
+from ._manual_worlds import list_project_manual_worlds
 from .inspect import inspect_manual_world
 from ._paths import user_archipelago_worlds_dir
 
 
-def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> Path:
+def make_apworld(src_dir: Path, output_dir: str | Path) -> Path:
     output_dir = Path(output_dir)
 
-    world_data = inspect_manual_world(world)
+    world_data = inspect_manual_world(src_dir)
 
     with TemporaryDirectory() as temp_archive_root:
         apworld_base_name = (
@@ -19,7 +19,7 @@ def make_apworld(world: ManualWorldInfo, output_dir: str | Path) -> Path:
         )
 
         shutil.copytree(
-            src=world.src_dir,
+            src=src_dir,
             dst=Path(temp_archive_root) / apworld_base_name,
         )
 
@@ -50,7 +50,7 @@ def __main():
     for world in worlds_to_build:
         print(f"Building {world.name}...")
         final_destination_fox_only_no_items = make_apworld(
-            world, user_archipelago_worlds_dir
+            world.src_dir, user_archipelago_worlds_dir
         )
         print(f"Built at {final_destination_fox_only_no_items}")
 
