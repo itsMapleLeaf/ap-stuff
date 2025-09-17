@@ -79,7 +79,7 @@ def load_manual_world_module(src_dir: Path, module_name: str) -> object:
 
 
 def __main() -> None:
-    world_arg = sys.argv[1]
+    world_arg = " ".join(sys.argv[1:])
 
     potential_world_src_paths = [
         worlds_dir / world_arg / "src",
