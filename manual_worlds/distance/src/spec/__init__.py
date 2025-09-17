@@ -1,7 +1,12 @@
 from .world import WorldSpec
 
+spec = WorldSpec(
+    starting_items=[
+        {"item_categories": ["Arcade"], "random": 5},
+    ]
+)
 
-arcade_levels = {
+arcade_level_sets = {
     "Ignition": [
         "Chroma",
         "Vector Valley",
@@ -124,9 +129,56 @@ arcade_levels = {
         "Continuum",
         "Escape",
     ],
+    "Challenge": [
+        "Dodge",
+        "44 Second Theory",
+        "Transfer",
+        "Divide",
+        "Thunder Struck",
+        "Electric",
+        "Descent",
+        "Disassembly Line",
+        "Red Heat",
+        "Grinder",
+        "Detached",
+        "Elevation",
+        "Obsidian",
+        "Hexahorrific",
+        "Too Many Dots",
+        "Variant Blue",
+        "Biotec 4",
+    ],
 }
 
-campaign_levels = {
+for arcade_set_name, arcade_level_names in arcade_level_sets.items():
+    (arcade_set_option_name, _) = spec.define_toggle_option(
+        f"enable_arcade_set_{arcade_set_name.lower().replace(' ', '_')}",
+        display_name=f"Enable {arcade_set_name} Levels",
+        description=f"Enable levels from the {arcade_set_name} arcade set",
+        default=True,
+    )
+
+    (arcade_set_category_name, _) = spec.define_category(
+        f"Arcade - {arcade_set_name}",
+        yaml_option=[arcade_set_option_name],
+    )
+
+    # arcade levels are unlocked individually
+    for arcade_level_index, arcade_level_name in enumerate(arcade_level_names):
+        arcade_level_item = spec.define_item(
+            f"{arcade_level_index + 1:02d} {arcade_level_name} ({arcade_set_name})",
+            category=[f"Arcade", arcade_set_category_name],
+            progression=True,
+        )
+
+        spec.define_location(
+            arcade_level_item["name"],
+            category=arcade_set_category_name,
+            requires=f"|{arcade_level_item['name']}|",
+        )
+
+
+campaigns = {
     "Adventure": [
         "Instantiation",
         "Cataclysm",
@@ -165,47 +217,39 @@ campaign_levels = {
     ],
 }
 
-spec = WorldSpec(
-    starting_items=[
-        {"item_categories": ["Arcade"], "random": 7},
-    ]
-)
+for campaign_name, campaign_level_names in campaigns.items():
+    (campaign_option_name, _) = spec.define_toggle_option(
+        f"enable_campaign_{campaign_name.lower().replace(' ', '_')}",
+        display_name=f"Enable {campaign_name} Campaign",
+        description=f"Enable the {campaign_name} campaign",
+        default=True,
+    )
 
-# levels are unlocked individually
-for arcade_set_name, arcade_level_names in arcade_levels.items():
-    for arcade_level_index, arcade_level_name in enumerate(arcade_level_names):
-        arcade_level_item = spec.define_item(
-            f"Arcade - {arcade_set_name} {arcade_level_index + 1:02d} - {arcade_level_name}",
-            category=f"Arcade",
-            progression=True,
-        )
+    (campaign_category_name, _) = spec.define_category(
+        f"Campaign - {campaign_name}",
+        yaml_option=[campaign_option_name],
+    )
 
-        spec.define_location(
-            arcade_level_item["name"],
-            category=f"Arcade - {arcade_set_name}",
-            requires=f"|{arcade_level_item['name']}|",
-        )
-
-for campaign_name, campaign_level_names in campaign_levels.items():
     # campaigns are unlocked on a per-campaign basis instead of per level
     campaign_item = spec.define_item(
-        f"Campaign - {campaign_name}",
+        campaign_category_name,
         category=f"Campaign",
         progression=True,
     )
 
     for campaign_level_index, campaign_level_name in enumerate(campaign_level_names):
         spec.define_location(
-            f"Campaign - {campaign_name} {campaign_level_index + 1:02d} - {campaign_level_name}",
-            category=f"Campaign - {campaign_name}",
+            f"{campaign_level_index + 1:02d} {campaign_level_name} ({campaign_name})",
+            category=campaign_category_name,
             requires=f"|{campaign_item['name']}|",
         )
+
 
 spec.define_item(
     "Decryption",
     category="Decryption",
     progression=True,
-    count=20,
+    count=10,
 )
 
 spec.define_location(
