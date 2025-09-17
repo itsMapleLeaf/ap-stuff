@@ -58,7 +58,8 @@
 			"Manual_GrooveCoaster_claiomh": ["GC Echo"],
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
 			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"]
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"],
+			"Manual_HeavenStudio_Octomari": ["ECHO (lotusdom)"]
 		}
 	},
 	{
@@ -67,7 +68,8 @@
 		"count": 1,
 		"linklink": {
 			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
-			"Muse Dash": ["FREEDOM DiVE"]
+			"Muse Dash": ["FREEDOM DiVE"],
+			"Manual_HeavenStudio_Octomari": ["Freedom Dive"]
 		}
 	},
 	{
