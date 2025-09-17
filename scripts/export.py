@@ -33,7 +33,8 @@ def __main():
         )
 
     included_worlds = {
-        user_archipelago_worlds_dir / f"{config['game']}.apworld"
+        user_archipelago_worlds_dir
+        / f"{str(config['game']).replace('Manual','manual',1)}.apworld"
         for config in player_configs
     }
 
