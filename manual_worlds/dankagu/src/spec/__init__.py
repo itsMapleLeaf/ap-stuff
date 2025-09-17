@@ -82,6 +82,7 @@ def __define_world_spec():
                         spot_node["required_clears"],
                         *(stage.get("requires", 0) for stage in stage_graph.values()),
                     ),
+                    early=area_number == 0,
                 )["name"]
 
                 spot_restoration = spec.define_item(
