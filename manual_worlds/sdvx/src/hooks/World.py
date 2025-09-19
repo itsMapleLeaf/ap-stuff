@@ -57,17 +57,6 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
             songs_by_level[level] = songs_by_level.get(level, [])
             songs_by_level[level].append(song)
 
-    # if we go with lower levels first,
-    # it's possible we pick, for example, all of the level 20 songs in the game
-    # via their lower diffs, then once we get up to higher diffs,
-    # we have no more level 20s to pick from :(
-    # so we want to start picking via the higher song levels first instead of the lower ones
-    song_brackets_sorted = sorted(
-        inclusion_brackets,
-        key=lambda bracket: bracket.max_level,
-        reverse=True,
-    )
-
     chosen_songs: list[SongSpec] = []
 
     force_included_songs = cast(
@@ -87,6 +76,17 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         raise Exception(
             f'Unknown songs found in `force_include_songs`: "{unknown_song_names}"'
         )
+
+    # if we go with lower levels first,
+    # it's possible we pick, for example, all of the level 20 songs in the game
+    # via their lower diffs, then once we get up to higher diffs,
+    # we have no more level 20s to pick from :(
+    # so we want to start picking via the higher song levels first instead of the lower ones
+    song_brackets_sorted = sorted(
+        inclusion_brackets,
+        key=lambda bracket: bracket.max_level,
+        reverse=True,
+    )
 
     for bracket in song_brackets_sorted:
         # ensure we pick from songs that haven't already been picked
@@ -118,9 +118,9 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     # Use this hook to remove locations from the world
     locationNamesToRemove: list[str] = [
-        location["name"]
-        for song in excluded_songs_by_player[player]
-        for location in song.locations
+        # location["name"]
+        # for song in excluded_songs_by_player[player]
+        # for location in song.locations
     ]
 
     # Add your code here to calculate which locations to remove
@@ -170,7 +170,7 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
     item_names_to_remove: list[str] = [
-        item["name"] for song in excluded_songs_by_player[player] for item in song.items
+        # item["name"] for song in excluded_songs_by_player[player] for item in song.items
     ]
 
     # Add your code here to calculate which items to remove.

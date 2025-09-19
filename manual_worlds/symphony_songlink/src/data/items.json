@@ -4,7 +4,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["B.B.K.K.B.K.K."],
+			"Manual_SoundVoltex_MapleLeaf": ["B.B.K.K.B.K.K."],
 			"Manual_GrooveCoaster_claiomh": ["GC B.B.K.K.B.K.K."],
 			"Manual_VibRibbon_Emik": ["B.B.K.K.B.K.K."]
 		}
@@ -14,7 +14,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["Bad Apple!! feat. nomico"],
+			"Manual_SoundVoltex_MapleLeaf": ["Bad Apple!! feat. nomico"],
 			"Manual_GrooveCoaster_claiomh": ["GC Bad Apple"],
 			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": [
 				"Bad Apple!! feat.nomico"
@@ -29,7 +29,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["BLACK or WHITE?"],
+			"Manual_SoundVoltex_MapleLeaf": ["BLACK or WHITE?"],
 			"Manual_VibRibbon_Emik": ["BLACK or WHITE?"]
 		}
 	},
@@ -48,7 +48,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["Chronomia"],
+			"Manual_SoundVoltex_MapleLeaf": ["Chronomia"],
 			"Muse Dash": ["Chronomia"],
 			"Manual_VibRibbon_Emik": ["Chronomia"]
 		}
@@ -60,7 +60,7 @@
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC Conflict"],
 			"Muse Dash": ["conflict"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"],
+			"Manual_SoundVoltex_MapleLeaf": ["conflict"],
 			"Manual_VibRibbon_Emik": ["Conflict"]
 		}
 	},
@@ -72,7 +72,7 @@
 			"Manual_GrooveCoaster_claiomh": ["GC Echo"],
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
 			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"],
+			"Manual_SoundVoltex_MapleLeaf": ["ECHO"],
 			"Manual_HeavenStudio_Octomari": ["ECHO (lotusdom)"],
 			"Manual_VibRibbon_Emik": ["ECHO"]
 		}
@@ -82,7 +82,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
+			"Manual_SoundVoltex_MapleLeaf": ["FREEDOM DiVE"],
 			"Muse Dash": ["FREEDOM DiVE"],
 			"Manual_HeavenStudio_Octomari": ["widget dive (lifinale)"],
 			"Manual_VibRibbon_Emik": ["FREEDOM DiVE"]
@@ -103,7 +103,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["GOODTEK"],
+			"Manual_SoundVoltex_MapleLeaf": ["GOODTEK"],
 			"Muse Dash": ["GOODTEK"],
 			"Manual_VibRibbon_Emik": ["GOODTEK"]
 		}
@@ -113,7 +113,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ナイト・オブ・ナイツ"],
+			"Manual_SoundVoltex_MapleLeaf": ["ナイト・オブ・ナイツ"],
 			"Manual_GrooveCoaster_claiomh": ["GC Night of Knights"],
 			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": ["Knight of Nights"],
 			"Muse Dash": ["Night of Nights"],
@@ -126,7 +126,7 @@
 		"count": 1,
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC megolavania"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["MEGALOVANIA"],
+			"Manual_SoundVoltex_MapleLeaf": ["MEGALOVANIA"],
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["MEGALOVANIA"],
 			"Manual_VibRibbon_Emik": ["Megalovania"]
 		}
@@ -167,7 +167,7 @@
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC Roki"],
 			"Hatsune Miku Project Diva Mega Mix+": ["ROKI"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"],
+			"Manual_SoundVoltex_MapleLeaf": ["ロキ"],
 			"Manual_VibRibbon_Emik": ["Roki / ロキ"]
 		}
 	},
@@ -177,7 +177,7 @@
 		"count": 1,
 		"linklink": {
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Rolling Girl"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ローリンガール"],
+			"Manual_SoundVoltex_MapleLeaf": ["ローリンガール"],
 			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"],
 			"Manual_VibRibbon_Emik": ["Rolling Girl / ローリンガール"]
 		}
@@ -188,7 +188,7 @@
 		"count": 1,
 		"linklink": {
 			"Hatsune Miku Project Diva Mega Mix+": ["Senbonzakura"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"],
+			"Manual_SoundVoltex_MapleLeaf": ["千本桜"],
 			"Manual_VibRibbon_Emik": ["Senbonzakura / 千本桜"]
 		}
 	},
@@ -197,7 +197,7 @@
 		"progression": true,
 		"count": 1,
 		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["Verflucht"],
+			"Manual_SoundVoltex_MapleLeaf": ["Verflucht"],
 			"Manual_VibRibbon_Emik": ["Verflucht"]
 		}
 	}
