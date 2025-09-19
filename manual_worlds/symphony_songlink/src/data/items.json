@@ -1,5 +1,15 @@
 [
 	{
+		"name": "B.B.K.K.B.K.K.",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["B.B.K.K.B.K.K."],
+			"Manual_GrooveCoaster_claiomh": ["GC B.B.K.K.B.K.K."],
+			"Manual_VibRibbon_Emik": ["B.B.K.K.B.K.K."]
+		}
+	},
+	{
 		"name": "Bad Apple!! feat. nomico",
 		"progression": true,
 		"count": 1,
@@ -10,7 +20,17 @@
 				"Bad Apple!! feat.nomico"
 			],
 			"Hatsune Miku Project Diva Mega Mix+": ["Bad Apple!! feat.nomico [4552]"],
-			"Muse Dash": ["Bad Apple!! feat. Nomico"]
+			"Muse Dash": ["Bad Apple!! feat. Nomico"],
+			"Manual_VibRibbon_Emik": ["Bad Apple!! feat. nomico"]
+		}
+	},
+	{
+		"name": "BLACK or WHITE?",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["BLACK or WHITE?"],
+			"Manual_VibRibbon_Emik": ["BLACK or WHITE?"]
 		}
 	},
 	{
@@ -19,16 +39,8 @@
 		"count": 1,
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC Brain Power"],
-			"Muse Dash": ["Brain Power"]
-		}
-	},
-	{
-		"name": "B.B.K.K.B.K.K.",
-		"progression": true,
-		"count": 1,
-		"linklink": {
-			"Manual_SoundVoltex_dev_MapleLeaf": ["B.B.K.K.B.K.K."],
-			"Manual_GrooveCoaster_claiomh": ["GC B.B.K.K.B.K.K."]
+			"Muse Dash": ["Brain Power"],
+			"Manual_VibRibbon_Emik": ["Brain Power"]
 		}
 	},
 	{
@@ -37,7 +49,8 @@
 		"count": 1,
 		"linklink": {
 			"Manual_SoundVoltex_dev_MapleLeaf": ["Chronomia"],
-			"Muse Dash": ["Chronomia"]
+			"Muse Dash": ["Chronomia"],
+			"Manual_VibRibbon_Emik": ["Chronomia"]
 		}
 	},
 	{
@@ -47,7 +60,8 @@
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC Conflict"],
 			"Muse Dash": ["conflict"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"]
+			"Manual_SoundVoltex_dev_MapleLeaf": ["conflict"],
+			"Manual_VibRibbon_Emik": ["Conflict"]
 		}
 	},
 	{
@@ -59,7 +73,8 @@
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["ECHO"],
 			"Hatsune Miku Project Diva Mega Mix+": ["ECHO [950]"],
 			"Manual_SoundVoltex_dev_MapleLeaf": ["ECHO"],
-			"Manual_HeavenStudio_Octomari": ["ECHO (lotusdom)"]
+			"Manual_HeavenStudio_Octomari": ["ECHO (lotusdom)"],
+			"Manual_VibRibbon_Emik": ["ECHO"]
 		}
 	},
 	{
@@ -69,7 +84,8 @@
 		"linklink": {
 			"Manual_SoundVoltex_dev_MapleLeaf": ["FREEDOM DiVE"],
 			"Muse Dash": ["FREEDOM DiVE"],
-			"Manual_HeavenStudio_Octomari": ["widget dive (lifinale)"]
+			"Manual_HeavenStudio_Octomari": ["widget dive (lifinale)"],
+			"Manual_VibRibbon_Emik": ["FREEDOM DiVE"]
 		}
 	},
 	{
@@ -88,7 +104,8 @@
 		"count": 1,
 		"linklink": {
 			"Manual_SoundVoltex_dev_MapleLeaf": ["GOODTEK"],
-			"Muse Dash": ["GOODTEK"]
+			"Muse Dash": ["GOODTEK"],
+			"Manual_VibRibbon_Emik": ["GOODTEK"]
 		}
 	},
 	{
@@ -99,7 +116,8 @@
 			"Manual_SoundVoltex_dev_MapleLeaf": ["ナイト・オブ・ナイツ"],
 			"Manual_GrooveCoaster_claiomh": ["GC Night of Knights"],
 			"Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": ["Knight of Nights"],
-			"Muse Dash": ["Night of Nights"]
+			"Muse Dash": ["Night of Nights"],
+			"Manual_VibRibbon_Emik": ["Knight of Nights"]
 		}
 	},
 	{
@@ -109,7 +127,8 @@
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC megolavania"],
 			"Manual_SoundVoltex_dev_MapleLeaf": ["MEGALOVANIA"],
-			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["MEGALOVANIA"]
+			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["MEGALOVANIA"],
+			"Manual_VibRibbon_Emik": ["Megalovania"]
 		}
 	},
 	{
@@ -118,7 +137,17 @@
 		"count": 1,
 		"linklink": {
 			"Manual_FortniteFestival_UnderseaRexieVT": ["Miku"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Miku [9165]"]
+			"Hatsune Miku Project Diva Mega Mix+": ["Miku [9165]"],
+			"Manual_VibRibbon_Emik": ["Miku"]
+		}
+	},
+	{
+		"name": "Mopemope",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Muse Dash": ["Mopemope"],
+			"Manual_VibRibbon_Emik": ["MopeMope"]
 		}
 	},
 	{
@@ -127,7 +156,8 @@
 		"count": 1,
 		"linklink": {
 			"Manual_FortniteFestival_UnderseaRexieVT": ["Never Gonna Give You Up"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Never Gonna Give You Up [4528]"]
+			"Hatsune Miku Project Diva Mega Mix+": ["Never Gonna Give You Up [4528]"],
+			"Manual_VibRibbon_Emik": ["Never Gonna Give You Up"]
 		}
 	},
 	{
@@ -137,7 +167,8 @@
 		"linklink": {
 			"Manual_GrooveCoaster_claiomh": ["GC Roki"],
 			"Hatsune Miku Project Diva Mega Mix+": ["ROKI"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"]
+			"Manual_SoundVoltex_dev_MapleLeaf": ["ロキ"],
+			"Manual_VibRibbon_Emik": ["Roki / ロキ"]
 		}
 	},
 	{
@@ -147,7 +178,8 @@
 		"linklink": {
 			"Manual_ProjectAfternightSymphonyMix_Scrungip": ["Rolling Girl"],
 			"Manual_SoundVoltex_dev_MapleLeaf": ["ローリンガール"],
-			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"]
+			"Hatsune Miku Project Diva Mega Mix+": ["Rolling Girl"],
+			"Manual_VibRibbon_Emik": ["Rolling Girl / ローリンガール"]
 		}
 	},
 	{
@@ -156,7 +188,17 @@
 		"count": 1,
 		"linklink": {
 			"Hatsune Miku Project Diva Mega Mix+": ["Senbonzakura"],
-			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"]
+			"Manual_SoundVoltex_dev_MapleLeaf": ["千本桜"],
+			"Manual_VibRibbon_Emik": ["Senbonzakura / 千本桜"]
+		}
+	},
+	{
+		"name": "Verflucht",
+		"progression": true,
+		"count": 1,
+		"linklink": {
+			"Manual_SoundVoltex_dev_MapleLeaf": ["Verflucht"],
+			"Manual_VibRibbon_Emik": ["Verflucht"]
 		}
 	}
 ]
