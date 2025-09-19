@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import dataclasses
 import importlib.util
 import json
@@ -29,6 +29,16 @@ class WorldData:
     option_table: Optional[dict]
     region_table: Optional[dict]
     meta_table: Optional[dict]
+    item_count: int = field(init=False)
+    location_count: int = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.item_count = (
+            sum(item.get("count", 1) for item in self.item_table)
+            if self.item_table
+            else 0
+        )
+        self.location_count = len(self.location_table) if self.location_table else 0
 
 
 def inspect_manual_world(src_dir: Path) -> WorldData:
