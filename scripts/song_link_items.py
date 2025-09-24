@@ -1,6 +1,6 @@
 import asyncio
 import json
-from typing import Final, Literal
+from typing import Final
 
 from ._paths import project_dir
 
@@ -29,22 +29,22 @@ LINKED_SONG_NAMES: Final = [
 # The linked songs for each world,
 # where each world maps to a dict of the linked song name to the item name in the world,
 # or `True` if the item name is the same as the linked song name.
-LINKS_BY_WORLD: Final[dict[str, dict[str, str | Literal[True]]]] = {
+LINKS_BY_WORLD: Final[dict[str, dict[str, str]]] = {
     "Manual_SoundVoltex_MapleLeaf": {
-        "B.B.K.K.B.K.K.": True,
-        "Bad Apple!! feat. nomico": True,
-        "BLACK or WHITE?": True,
-        "Chronomia": True,
+        "B.B.K.K.B.K.K.": "B.B.K.K.B.K.K.",
+        "Bad Apple!! feat. nomico": "Bad Apple!! feat. nomico",
+        "BLACK or WHITE?": "BLACK or WHITE?",
+        "Chronomia": "Chronomia",
         "Conflict": "conflict",
-        "ECHO": True,
-        "FREEDOM DiVE": True,
-        "GOODTEK": True,
+        "ECHO": "ECHO",
+        "FREEDOM DiVE": "FREEDOM DiVE",
+        "GOODTEK": "GOODTEK",
         "Knight of Nights": "ナイト・オブ・ナイツ",
-        "MEGALOVANIA": True,
+        "MEGALOVANIA": "MEGALOVANIA",
         "Roki": "ロキ",
         "Rolling Girl": "ローリンガール",
         "Senbonzakura": "千本桜",
-        "Verflucht": True,
+        "Verflucht": "Verflucht",
     },
     "Manual_GrooveCoaster_claiomh": {
         "B.B.K.K.B.K.K.": "GC B.B.K.K.B.K.K.",
@@ -57,28 +57,28 @@ LINKS_BY_WORLD: Final[dict[str, dict[str, str | Literal[True]]]] = {
         "Roki": "GC Roki",
     },
     "Manual_VibRibbon_Emik": {
-        "B.B.K.K.B.K.K.": True,
-        "Bad Apple!! feat. nomico": True,
-        "BLACK or WHITE?": True,
-        "Brain Power": True,
-        "Chronomia": True,
-        "Conflict": True,
-        "ECHO": True,
-        "FREEDOM DiVE": True,
-        "GOODTEK": True,
-        "Knight of Nights": True,
+        "B.B.K.K.B.K.K.": "B.B.K.K.B.K.K.",
+        "Bad Apple!! feat. nomico": "Bad Apple!! feat. nomico",
+        "BLACK or WHITE?": "BLACK or WHITE?",
+        "Brain Power": "Brain Power",
+        "Chronomia": "Chronomia",
+        "Conflict": "Conflict",
+        "ECHO": "ECHO",
+        "FREEDOM DiVE": "FREEDOM DiVE",
+        "GOODTEK": "GOODTEK",
+        "Knight of Nights": "Knight of Nights",
         "MEGALOVANIA": "Megalovania",
-        "Miku": True,
+        "Miku": "Miku",
         "Mopemope": "MopeMope",
-        "Never Gonna Give You Up": True,
+        "Never Gonna Give You Up": "Never Gonna Give You Up",
         "Roki": "Roki / ロキ",
         "Rolling Girl": "Rolling Girl / ローリンガール",
         "Senbonzakura": "Senbonzakura / 千本桜",
-        "Verflucht": True,
+        "Verflucht": "Verflucht",
     },
     "Manual_TouhouDanmakuKaguraPhantasiaLost_MapleLeaf": {
         "Bad Apple!! feat. nomico": "Bad Apple!! feat.nomico",
-        "Knight of Nights": True,
+        "Knight of Nights": "Knight of Nights",
     },
     "Hatsune Miku Project Diva Mega Mix+": {
         "Bad Apple!! feat. nomico": "Bad Apple!! feat.nomico [4552]",
@@ -87,24 +87,24 @@ LINKS_BY_WORLD: Final[dict[str, dict[str, str | Literal[True]]]] = {
         "Miku": "Miku [9165]",
         "Never Gonna Give You Up": "Never Gonna Give You Up [4528]",
         "Roki": "ROKI",
-        "Rolling Girl": True,
-        "Senbonzakura": True,
+        "Rolling Girl": "Rolling Girl",
+        "Senbonzakura": "Senbonzakura",
     },
     "Muse Dash": {
         "Bad Apple!! feat. nomico": "Bad Apple!! feat. Nomico",
-        "Brain Power": True,
-        "Chronomia": True,
+        "Brain Power": "Brain Power",
+        "Chronomia": "Chronomia",
         "Conflict": "conflict",
-        "FREEDOM DiVE": True,
-        "GOODTEK": True,
+        "FREEDOM DiVE": "FREEDOM DiVE",
+        "GOODTEK": "GOODTEK",
         "Knight of Nights": "Night of Nights",
-        "Mopemope": True,
+        "Mopemope": "Mopemope",
     },
     "Manual_ProjectAfternightSymphonyMix_Scrungip": {
-        "ECHO": True,
+        "ECHO": "ECHO",
         "GANGNAM STYLE": "Gangnam Style",
-        "MEGALOVANIA": True,
-        "Rolling Girl": True,
+        "MEGALOVANIA": "MEGALOVANIA",
+        "Rolling Girl": "Rolling Girl",
     },
     "Manual_HeavenStudio_Octomari": {
         "ECHO": "ECHO (lotusdom)",
@@ -112,8 +112,8 @@ LINKS_BY_WORLD: Final[dict[str, dict[str, str | Literal[True]]]] = {
     },
     "Manual_FortniteFestival_UnderseaRexieVT": {
         "GANGNAM STYLE": "Gangnam Style",
-        "Miku": True,
-        "Never Gonna Give You Up": True,
+        "Miku": "Miku",
+        "Never Gonna Give You Up": "Never Gonna Give You Up",
     },
 }
 
