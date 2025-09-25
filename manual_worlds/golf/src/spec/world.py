@@ -31,7 +31,14 @@ class WorldSpec:
         self.core_options: dict[str, CoreOptionData] = {}
         self.meta: MetaData = {}
 
-    def define_item(self, name: str, **args: Unpack[ItemArgs]) -> ItemData:
+    def define_item(
+        self, name: str, starting_count: int | None = None, **args: Unpack[ItemArgs]
+    ) -> ItemData:
+        if starting_count != None:
+            self.game.setdefault("starting_items", []).append(
+                {"items": [name], "random": starting_count},
+            )
+
         return self.__set_unique("Items", self.items, name, {**args, "name": name})
 
     def define_location(self, name: str, **args: Unpack[LocationArgs]) -> LocationData:

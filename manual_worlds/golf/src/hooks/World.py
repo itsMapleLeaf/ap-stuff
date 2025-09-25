@@ -30,7 +30,6 @@ import logging
 ########################################################################################
 
 
-
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
@@ -66,22 +65,21 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    from ..spec import courses, get_course_item_name
+
+    starter_course = multiworld.random.choice(courses)
+
+    for item in item_pool:
+        if item.player == player and item.name == get_course_item_name(starter_course):
+            multiworld.push_precollected(item)
+
     return item_pool
 
+
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
-def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
-    # Use this hook to remove items from the item pool
-    itemNamesToRemove: list[str] = [] # List of item names
-
-    # Add your code here to calculate which items to remove.
-    #
-    # Because multiple copies of an item can exist, you need to add an item name
-    # to the list multiple times if you want to remove multiple copies of it.
-
-    for itemName in itemNamesToRemove:
-        item = next(i for i in item_pool if i.name == itemName)
-        item_pool.remove(item)
-
+def before_create_items_filler(
+    item_pool: list[Item], world: World, multiworld: MultiWorld, player: int
+) -> list:
     return item_pool
 
     # Some other useful hook options:
@@ -91,6 +89,7 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
     # location.place_locked_item(item_to_place)
     # item_pool.remove(item_to_place)
+
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
