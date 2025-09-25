@@ -34,7 +34,7 @@ spec.define_location(
     victory=True,
 )
 
-course_progressive_item_count = 10
+course_progressive_item_count = 12
 
 course_item_category = f"Courses ({course_progressive_item_count} Needed)"
 
@@ -51,6 +51,12 @@ for course in courses:
         count=course_progressive_item_count,
     )
 
+    spec.define_location(
+        f"{course} - Hole in One!",
+        category=f"Courses - {course}",
+        requires=Requires.item(course_item, "all"),
+    )
+
     for hole in range(1, 18 + 1):
         course_hole_location = spec.define_location(
             f"{course} - Hole {hole}",
@@ -59,15 +65,6 @@ for course in courses:
         )
         if hole == 18:
             course_hole_location["place_item"] = [course_completion["name"]]
-
-for i in range(1, 10 + 1):
-    spec.define_location(
-        f"Hole in One! (x{i})",
-        category="Achievements",
-        # don't want for-fun achievements to have important shit
-        dont_place_item=["Max Time +10s"],
-        dont_place_item_category=[course_item_category],
-    )
 
 # region upgrades
 spec.define_item(
