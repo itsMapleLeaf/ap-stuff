@@ -36,6 +36,7 @@ def __main():
         user_archipelago_worlds_dir
         / f"{str(config['game']).replace('Manual','manual',1)}.apworld"
         for config in player_configs
+        if "Manual" in str(config["game"])
     }
 
     for world_path in included_worlds:
