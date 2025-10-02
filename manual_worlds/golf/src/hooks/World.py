@@ -67,10 +67,12 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     from ..spec import courses, get_course_item_name
 
-    starter_course = multiworld.random.choice(courses)
+    starter_course_items = [
+        get_course_item_name(course) for course in multiworld.random.sample(courses, 3)
+    ]
 
     for item in item_pool:
-        if item.player == player and item.name == get_course_item_name(starter_course):
+        if item.player == player and item.name in starter_course_items:
             multiworld.push_precollected(item)
 
     return item_pool

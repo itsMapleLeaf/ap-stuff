@@ -20,23 +20,24 @@ courses = [
     "The Deep",
 ]
 
-course_completion = spec.define_item(
-    "Course Completion",
-    category="Victory",
-    count=len(courses),
+victory_item = spec.define_item(
+    "Lost Ball",
+    category="Lost Balls",
+    count=30,
     progression=True,
 )
 
 spec.define_location(
-    "Win!",
+    "Find all the lost balls",
     category="Victory",
-    requires=Requires.item(course_completion, "50%"),
+    requires=Requires.item(victory_item, "80%"),
     victory=True,
 )
 
-course_progressive_item_count = 12
+course_progressive_item_count = 10
+required_course_item_count = 5
 
-course_item_category = f"Courses ({course_progressive_item_count} Needed)"
+course_item_category = f"Courses ({required_course_item_count} Needed)"
 
 
 def get_course_item_name(course: str) -> str:
@@ -54,17 +55,15 @@ for course in courses:
     spec.define_location(
         f"{course} - Hole in One!",
         category=f"Courses - {course}",
-        requires=Requires.item(course_item, "all"),
+        requires=Requires.item(course_item, required_course_item_count),
     )
 
     for hole in range(1, 18 + 1):
         course_hole_location = spec.define_location(
             f"{course} - Hole {hole}",
             category=f"Courses - {course}",
-            requires=Requires.item(course_item, "all"),
+            requires=Requires.item(course_item, required_course_item_count),
         )
-        if hole == 18:
-            course_hole_location["place_item"] = [course_completion["name"]]
 
 # region upgrades
 spec.define_item(
@@ -101,19 +100,24 @@ spec.define_item("Show Last Power", category="Upgrades", useful=True, count=2)
 # endregion upgrades
 
 # region traps
-spec.define_item("Gravity 0.25", category="Traps (Gravity)", trap=True)
-spec.define_item("Gravity 0.5", category="Traps (Gravity)", trap=True)
-spec.define_item("Gravity 0.75", category="Traps (Gravity)", trap=True)
-spec.define_item("Egg Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Cube Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Cylinder Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Cone Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Icosphere Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Puck Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Star Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Acorn Ball", category="Traps (Ball Shape)", trap=True)
-spec.define_item("Large Ball", category="Traps (Ball Size)", trap=True)
-spec.define_item("Small Ball", category="Traps (Ball Size)", trap=True)
-spec.define_item("Medium Bouncy Ground", category="Traps (Bouncy Ground)", trap=True)
-spec.define_item("High Bouncy Ground", category="Traps (Bouncy Ground)", trap=True)
+spec.define_item("Gravity 0.25", category="Traps", trap=True, count=3)
+spec.define_item("Gravity 0.5", category="Traps", trap=True, count=3)
+spec.define_item("Gravity 0.75", category="Traps", trap=True, count=3)
+
+spec.define_item("Egg Ball", category="Traps", trap=True)
+spec.define_item("Cube Ball", category="Traps", trap=True)
+spec.define_item("Cylinder Ball", category="Traps", trap=True)
+spec.define_item("Cone Ball", category="Traps", trap=True)
+spec.define_item("Icosphere Ball", category="Traps", trap=True)
+spec.define_item("Puck Ball", category="Traps", trap=True)
+spec.define_item("Star Ball", category="Traps", trap=True)
+spec.define_item("Acorn Ball", category="Traps", trap=True)
+spec.define_item("Ornament Ball", category="Traps", trap=True)
+spec.define_item("Chicken Nugget Ball", category="Traps", trap=True)
+
+spec.define_item("Small Ball", category="Traps", trap=True, count=3)
+spec.define_item("Large Ball", category="Traps", trap=True, count=3)
+
+spec.define_item("Medium Bouncy Ground", category="Traps", trap=True)
+spec.define_item("High Bouncy Ground", category="Traps", trap=True)
 # endregion traps
