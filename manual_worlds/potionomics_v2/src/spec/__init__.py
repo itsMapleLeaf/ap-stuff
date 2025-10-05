@@ -49,7 +49,7 @@ for chapter_number in __chapter_numbers():
 
     contest_location = spec.define_location(
         f"Win Contest {chapter_number}",
-        category=["Progression", f"Chapter {chapter_number}"],
+        category=["Contests", f"Chapter {chapter_number}"],
         region=__get_chapter_region_name(chapter_number),
         requires=Requires.all_of(
             Requires.item("Mint"),
@@ -237,7 +237,7 @@ for character_name, character_spec in characters.items():
 
     spec.define_item(
         f"{character_name} - Progressive Cards",
-        category="Characters",
+        category="Cards",
         useful=True,
         count=len(character_spec.cards),
     )
@@ -245,7 +245,7 @@ for character_name, character_spec in characters.items():
     spec.define_location(
         f"Hang Out with {character_name}",
         category=[
-            f"Characters - {character_name}",
+            f"Hang Out",
             f"Chapter {character_spec.chapter}",
         ],
         region=__get_chapter_region_name(character_spec.chapter),
@@ -255,7 +255,7 @@ for character_name, character_spec in characters.items():
     spec.define_location(
         f"Give {character_name} a Gift",
         category=[
-            f"Characters - {character_name}",
+            f"Gift",
             f"Chapter {character_spec.chapter}",
         ],
         region=__get_chapter_region_name(character_spec.chapter),
@@ -264,7 +264,7 @@ for character_name, character_spec in characters.items():
 
     spec.define_location(
         f"Accept {character_name}'s Confession",
-        category=[f"Characters - {character_name}"],
+        category=[f"Confessions"],
         region=__get_chapter_region_name(character_spec.chapter),
         requires=Requires.item(character_item),
         prehint=True,
@@ -316,7 +316,7 @@ for cauldron, cauldron_spec in cauldrons.items():
     spec.define_location(
         f"Buy a {cauldron}",
         category=[
-            f"Cauldrons (Chapter {cauldron_spec.chapter})",
+            f"Cauldrons",
             f"Chapter {cauldron_spec.chapter}",
         ],
         region=__get_chapter_region_name(cauldron_spec.chapter),
