@@ -315,7 +315,10 @@ progressive_cauldrons = spec.define_item(
 for cauldron, cauldron_spec in cauldrons.items():
     spec.define_location(
         f"Buy a {cauldron}",
-        category=f"Cauldrons (Chapter {cauldron_spec.chapter})",
+        category=[
+            f"Cauldrons (Chapter {cauldron_spec.chapter})",
+            f"Chapter {cauldron_spec.chapter}",
+        ],
         region=__get_chapter_region_name(cauldron_spec.chapter),
         requires=Requires.all_of(
             Requires.item("Muktuk"),
