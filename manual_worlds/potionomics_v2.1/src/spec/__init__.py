@@ -1,602 +1,506 @@
-from dataclasses import dataclass
-from typing import Iterable
-
-
-from .requires import Requires
+from typing import Optional
 from .world import WorldSpec
-from .types import RegionData
+from .requires import Requires
 
 
-spec = WorldSpec()
+def __define_world_spec() -> WorldSpec:
+    spec = WorldSpec()
 
-chapter_count = 5
+    day_1 = "Day 1"
+    day_2 = "Day 2"
+    day_3 = "Day 3"
 
-license = spec.define_item(
-    "Progressive License",
-    category="Progression",
-    progression=True,
-    count=chapter_count,
-    starting_count=1,
-)
+    chapter_1 = "Chapter 1"
+    chapter_2 = "Chapter 2"
+    chapter_3 = "Chapter 3"
+    chapter_4 = "Chapter 4"
+    chapter_5 = "Chapter 5"
 
-contest_reward = spec.define_item(
-    "Contest Reward",
-    category="Progression",
-    progression_skip_balancing=True,
-    count=chapter_count,
-)
-
-
-chapter_regions: dict[int, RegionData] = {}
-
-
-def __define_chapter_region(
-    number: int,
-    starting: bool = False,
-    additional_requires: Iterable[str] = (),
-):
-    (_, region) = spec.define_region(
-        f"Chapter {number}",
-        starting=starting,
-        requires=Requires.all_of(
-            Requires.item(license, number),
-            Requires.item(contest_reward, number - 1),
-            *additional_requires,
-        ),
-    )
-
-    if number < chapter_count:
-        region["connects_to"] = [f"Chapter {number + 1}"]
-
-    chapter_regions[number] = region
-
-
-__define_chapter_region(1, starting=True)
-__define_chapter_region(
-    2,
-    additional_requires=[
-        Requires.item("Mint"),
-        Requires.item("Quinn"),
-        Requires.item("Muktuk"),
-    ],
-)
-__define_chapter_region(3)
-__define_chapter_region(4)
-__define_chapter_region(5)
-
-
-def __get_chapter_region_name(chapter_number: int):
-    return f"Chapter {chapter_number}"
-
-
-def __chapter_numbers():
-    return range(1, chapter_count + 1)
-
-
-for chapter_number in __chapter_numbers():
-    chapter_requirement = Requires.item(license, chapter_number)
-
-    (_, chapter_region) = spec.define_region(
-        __get_chapter_region_name(chapter_number),
-        starting=True,
-        requires=Requires.all_of(
-            Requires.item(license, chapter_number),
-            Requires.item(contest_reward, chapter_number - 1),
-        ),
-    )
-
-    if chapter_number < chapter_count:
-        chapter_region["connects_to"] = [__get_chapter_region_name(chapter_number + 1)]
-
-    contest_location = spec.define_location(
-        f"Win Contest {chapter_number}",
-        category=["Progression", f"Chapter {chapter_number}"],
-        region=__get_chapter_region_name(chapter_number),
-        requires=Requires.all_of(
-            Requires.item("Mint"),
-            Requires.item("Quinn"),
-            Requires.item("Muktuk"),
-        ),
-    )
-
-spec.define_location(
-    "Save the Shop",
-    category="Victory",
-    requires=Requires.item(contest_reward, "all"),
-    victory=True,
-)
-
-
-# region characters/cards
-@dataclass
-class CardSpec:
-    rank: int
-
-
-@dataclass
-class CharacterSpec:
-    name: str
-    chapter: int
-    cards: dict[str, CardSpec]
-
-
-characters = {
-    character.name: character
-    for character in [
-        CharacterSpec(
-            "Quinn",
-            chapter=1,
-            cards={
-                "Hustle": CardSpec(rank=1),
-                "Take It or Leave It": CardSpec(rank=2),
-                "Shock Factor": CardSpec(rank=3),
-                "Plant the Seed": CardSpec(rank=4),
-                "Press the Attack": CardSpec(rank=5),
-                "Pressure": CardSpec(rank=6),
-                "Fuel the Fire": CardSpec(rank=7),
-                "Compound Interest": CardSpec(rank=8),
-            },
-        ),
-        CharacterSpec(
-            "Mint",
-            chapter=1,
-            cards={
-                "Sympathy": CardSpec(rank=1),
-                "Keep Your Guard Up": CardSpec(rank=2),
-                "Muscle Memory": CardSpec(rank=3),
-                "Blitz": CardSpec(rank=5),
-                "Eye on the Prize": CardSpec(rank=6),
-                "Fortitude": CardSpec(rank=7),
-                "Unfazed": CardSpec(rank=9),
-                "Keep It Simple": CardSpec(rank=1),
-            },
-        ),
-        CharacterSpec(
-            "Baptiste",
-            chapter=1,
-            cards={
-                "Captivate": CardSpec(rank=1),
-                "Build Rapport": CardSpec(rank=2),
-                "Subvert": CardSpec(rank=3),
-                "Compromise": CardSpec(rank=5),
-                "Common Ground": CardSpec(rank=6),
-                "Strategic Withdrawal": CardSpec(rank=7),
-                "Emotional Intelligence": CardSpec(rank=9),
-                "Silver Tongue": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Muktuk",
-            chapter=1,
-            cards={
-                "Pump Up": CardSpec(rank=1),
-                "Enthusiasm": CardSpec(rank=2),
-                "Craftsmanship": CardSpec(rank=3),
-                "Reinforce": CardSpec(rank=4),
-                "Bravado": CardSpec(rank=5),
-                "Zeal": CardSpec(rank=7),
-                "Artistry": CardSpec(rank=9),
-                "Conviction": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Saffron",
-            chapter=1,
-            cards={
-                "Meditate": CardSpec(rank=1),
-                "Guided Thought": CardSpec(rank=2),
-                "Casual Conversation": CardSpec(rank=3),
-                "Deep Connection": CardSpec(rank=5),
-                "Mindfulness": CardSpec(rank=6),
-                "Regulated Breathing": CardSpec(rank=7),
-                "Serenity of the Mind": CardSpec(rank=9),
-                "Tranquility": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Roxanne",
-            chapter=2,
-            cards={
-                "Sleight of Hand": CardSpec(rank=1),
-                "Flattery": CardSpec(rank=2),
-                "Disarm": CardSpec(rank=3),
-                "Pander": CardSpec(rank=5),
-                "Emotional Mindfield": CardSpec(rank=6),
-                "Chapstick": CardSpec(rank=7),
-                "Magnetism": CardSpec(rank=9),
-                "Mass Misdirection": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Xidriel",
-            chapter=2,
-            cards={
-                "Jingle": CardSpec(rank=1),
-                "Opening Act": CardSpec(rank=2),
-                "Chorus": CardSpec(rank=3),
-                "Improv": CardSpec(rank=5),
-                "Rhythm": CardSpec(rank=6),
-                "Throat Spray": CardSpec(rank=7),
-                "Catchy Tune": CardSpec(rank=9),
-                "Encore": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Salt & Pepper",
-            chapter=2,
-            cards={
-                "Strike or Strike Later": CardSpec(rank=1),
-                "Good Cop, Bad Cop": CardSpec(rank=2),
-                "Salt or Pepper": CardSpec(rank=3),
-                "Avast Ye!": CardSpec(rank=5),
-                "Give No Quarter": CardSpec(rank=6),
-                "Batten Down the Hatches": CardSpec(rank=7),
-                "Mental Purrrley": CardSpec(rank=9),
-                "Carpe Diem": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Corsac",
-            chapter=3,
-            cards={
-                "Ferocity of the Squirrel": CardSpec(rank=1),
-                "Adapt": CardSpec(rank=2),
-                "Be Prepared": CardSpec(rank=3),
-                "Happy Place": CardSpec(rank=5),
-                "Serenity of the Mollus": CardSpec(rank=6),
-                "Pivot": CardSpec(rank=7),
-                "Mind of the Slime": CardSpec(rank=9),
-                "Lessons from Nature": CardSpec(rank=10),
-            },
-        ),
-        CharacterSpec(
-            "Luna",
-            chapter=3,
-            cards={
-                "Elevator Pitch": CardSpec(rank=1),
-                "Lean into It": CardSpec(rank=2),
-                "Wing It": CardSpec(rank=3),
-                "Rehearsed Line": CardSpec(rank=5),
-                "Caffeine Rush": CardSpec(rank=6),
-                "Dig Deep": CardSpec(rank=7),
-                "Subliminal Suggestion": CardSpec(rank=9),
-                "Final Push": CardSpec(rank=10),
-            },
-        ),
-    ]
-}
-
-for character_name, character_spec in characters.items():
-    character_item = spec.define_item(
-        character_name,
-        category="Characters",
+    license_level = spec.define_item(
+        "Progressive License Level",
+        category="Progression",
         progression=True,
+        count=5,
+        starting_count=1,
+    )["name"]
+
+    contest_reward = spec.define_item(
+        "Contest Reward",
+        category="Contest Rewards",
+        progression=True,
+        count=5,
+    )["name"]
+
+    spec.define_location(
+        "Save the Shop!",
+        category="Victory",
+        region=chapter_5,
+        requires=Requires.item(contest_reward, "all"),
+        victory=True,
     )
 
-    if character_name in ["Quinn", "Mint", "Muktuk"]:
-        character_item["early"] = True
+    # region potions
+    potion_recipes_category = "Recipes"
+
+    def define_potion(
+        potion_name: str, region: str, recipe_starting_count: Optional[int] = None
+    ):
+        recipe_item = spec.define_item(
+            f"{potion_name} Recipe",
+            category=potion_recipes_category,
+            progression=True,
+            starting_count=recipe_starting_count,
+        )
+
+        spec.define_location(
+            f"Brew a {potion_name}",
+            category=["Potions", region],
+            region=region,
+            requires=Requires.item(recipe_item),
+        )
+
+        return recipe_item["name"]
+
+    health_potion_recipe = define_potion(
+        "Health Potion", region=day_1, recipe_starting_count=1
+    )
+    mana_potion_recipe = define_potion(
+        "Mana Potion", region=day_1, recipe_starting_count=1
+    )
+    stamina_potion_recipe = define_potion("Stamina Potion", region=chapter_2)
+    speed_potion_recipe = define_potion("Speed Potion", region=chapter_2)
+    tolerance_potion_recipe = define_potion("Tolerance Potion", region=chapter_4)
+
+    fire_tonic_recipe = define_potion("Fire Tonic", region=day_2)
+    ice_tonic_recipe = define_potion("Ice Tonic", region=chapter_2)
+    thunder_tonic_recipe = define_potion("Thunder Tonic", region=chapter_2)
+    shadow_tonic_recipe = define_potion("Shadow Tonic", region=chapter_2)
+    radiation_tonic_recipe = define_potion("Radiation Tonic", region=chapter_4)
+
+    sight_enhancer_recipe = define_potion("Sight Enhancer", region=chapter_1)
+    alertness_enhancer_recipe = define_potion("Alertness Enhancer", region=chapter_2)
+    insight_enhancer_recipe = define_potion("Insight Enhancer", region=chapter_3)
+    dowsing_enhancer_recipe = define_potion("Dowsing Enhancer", region=chapter_3)
+    seeking_enhancer_recipe = define_potion("Seeking Enhancer", region=chapter_4)
+
+    poison_cure_recipe = define_potion("Poison Cure", region=chapter_1)
+    drowsiness_cure_recipe = define_potion("Drowsiness Cure", region=chapter_2)
+    petrification_cure_recipe = define_potion("Petrification Cure", region=chapter_3)
+    silence_cure_recipe = define_potion("Silence Cure", region=chapter_3)
+    curse_cure_recipe = define_potion("Curse Cure", region=chapter_4)
+
+    def define_potion_quality(quality_name: str, region: str):
+        spec.define_location(
+            f"Brew a {quality_name} Potion",
+            category=["Potions", region],
+            region=region,
+            requires=Requires.category(potion_recipes_category),
+        )
+
+    define_potion_quality("Minor", region=day_1)
+    define_potion_quality("Common", region=chapter_1)
+    define_potion_quality("Greater", region=chapter_2)
+    define_potion_quality("Grand", region=chapter_3)
+    define_potion_quality("Superior", region=chapter_4)
+    define_potion_quality("Masterwork", region=chapter_5)
+    # endregion potions
+
+    # region characters
+    def define_character(
+        character_name: str,
+        region: str,
+        starting_count: int | None = None,
+        early: bool = False,
+    ):
+        character_item = spec.define_item(
+            character_name,
+            category=["Characters"],
+            progression=True,
+            starting_count=starting_count,
+            early=early,
+        )
+
+        spec.define_item(
+            f"{character_name} (Progressive Cards)",
+            category=["Cards"],
+            useful=True,
+            count=10,
+        )
+
+        spec.define_location(
+            f"Hang Out with {character_name}",
+            category=[character_name, region],
+            region=region,
+            requires=Requires.item(character_item),
+        )
+
+        spec.define_location(
+            f"Rank Up {character_name}",
+            category=[character_name, region],
+            region=region,
+            requires=Requires.item(character_item),
+        )
+
+        spec.define_location(
+            f"Give a Gift to {character_name}",
+            category=[character_name, region],
+            region=region,
+            requires=Requires.item(character_item),
+        )
+
+        spec.define_location(
+            f"Accept {character_name}'s Confession",
+            category=[character_name, "Confessions"],
+            requires=Requires.item(character_item),
+            # it's effectively impossible to level them up before chapter 4,
+            # but if you _somehow_ do, then that can be a valid logic break
+            region=chapter_4,
+            # this is difficult and basically optional in the base game,
+            # so prehint so we know if it's needed
+            prehint=True,
+        )
+
+        return character_name
+
+    quinn = define_character("Quinn", region=day_1, starting_count=1)
+    mint = define_character("Mint", region=day_1, starting_count=1)
+    muktuk = define_character("Muktuk", region=day_2, early=True)
+    baptiste = define_character("Baptiste", region=day_3, early=True)
+    saffron = define_character("Saffron", region=chapter_1, early=True)
+    roxanne = define_character("Roxanne", region=chapter_2)
+    xid = define_character("Xid", region=chapter_2)
+    luna = define_character("Luna", region=chapter_3)
+    salt_and_pepper = define_character("Salt & Pepper", region=chapter_3)
+    corsac = define_character("Corsac", region=chapter_4)
+    # finn = define_character("Finn", region=chapter_4)
+    # endregion characters
+
+    # region cauldrons
+    # defines which cauldrons you can access
+    # amount you have = each cauldron's respective chapter level
+    # e.g. with 3, you can access chapter 1, 2, and 3 cauldrons
+    progressive_cauldrons = spec.define_item(
+        "Progressive Cauldrons",
+        category=["Progression"],
+        progression=True,
+        count=5,
+        starting_count=1,
+    )["name"]
+
+    def define_cauldron(cauldron_name: str, region: str, level: int):
+        for i in range(3):
+            spec.define_location(
+                i == 0
+                and f"Buy a {cauldron_name} Cauldron"
+                or f"Upgrade to {cauldron_name} Cauldron{"+" * i}",
+                category=["Cauldrons", region],
+                region=region,
+                requires=Requires.all_of(
+                    Requires.item(muktuk), Requires.item(progressive_cauldrons, level)
+                ),
+            )
+
+    define_cauldron("Mudpack", region=day_3, level=1)
+    define_cauldron("Glass", region=day_3, level=1)
+
+    define_cauldron("Storm", region=chapter_2, level=2)
+    define_cauldron("Ocean", region=chapter_2, level=2)
+    define_cauldron("Shadow", region=chapter_2, level=2)
+
+    define_cauldron("Crystal", region=chapter_3, level=3)
+    define_cauldron("Steel", region=chapter_3, level=3)
+    define_cauldron("Celestial", region=chapter_3, level=3)
+
+    define_cauldron("Arctic", region=chapter_4, level=4)
+    define_cauldron("Crater", region=chapter_4, level=4)
+    define_cauldron("Dragon", region=chapter_4, level=4)
+
+    define_cauldron("Magical Wasteland", region=chapter_5, level=5)
+    # endregion cauldrons
+
+    # region adventure
+    def define_adventure_location(
+        location_name: str,
+        region: str,
+        map_starting_count: Optional[int] = None,
+        map_early: bool = False,
+    ):
+        map_item = spec.define_item(
+            f"Map to {location_name}",
+            category=["Adventure"],
+            progression=True,
+            starting_count=map_starting_count,
+            early=map_early,
+        )
+
+        spec.define_location(
+            f"Adventure in {location_name}",
+            category=["Adventure", region],
+            region=region,
+            requires=Requires.all_of(Requires.item(map_item), Requires.item(mint)),
+        )
+
+        return map_item["name"]
+
+    enchanted_forest_map = define_adventure_location(
+        "Enchanted Forest", region=day_2, map_starting_count=1
+    )
+    bone_wastes_map = define_adventure_location(
+        "Bone Wastes", region=chapter_1, map_early=True
+    )
+    mushroom_mire_map = define_adventure_location("Mushroom Mire", region=chapter_1)
+
+    shadow_steppe_map = define_adventure_location("Shadow Steppe", region=chapter_2)
+    ocean_coasts_map = define_adventure_location("Ocean Coasts", region=chapter_2)
+    storm_plains_map = define_adventure_location("Storm Plains", region=chapter_2)
+
+    sulfuric_falls_map = define_adventure_location("Sulfuric Falls", region=chapter_3)
+    crystalline_forest_map = define_adventure_location(
+        "Crystalline Forest", region=chapter_3
+    )
+    ice_craggs_map = define_adventure_location("Ice Craggs", region=chapter_3)
+
+    dragon_oasis_map = define_adventure_location("Dragon Oasis", region=chapter_4)
+    crater_map = define_adventure_location("Crater", region=chapter_4)
+    arctic_map = define_adventure_location("Arctic", region=chapter_4)
+
+    magical_wasteland_map = define_adventure_location(
+        "Magical Wasteland", region=chapter_5
+    )
+    # endregion adventure
+
+    # region shop upgrades
+    def define_shop_upgrade(
+        upgrade_name: str,
+        level: int,
+        region: str,
+    ):
+        spec.define_location(
+            f"Buy Level {level} {upgrade_name}",
+            category=["Shop Upgrades", region],
+            region=region,
+            requires=Requires.item(saffron),
+        )
+
+    define_shop_upgrade("Shop Front", level=2, region=chapter_2)
+    define_shop_upgrade("Shop Front", level=3, region=chapter_3)
+    define_shop_upgrade("Shop Front", level=4, region=chapter_4)
+
+    define_shop_upgrade("Brewing Area", level=2, region=chapter_2)
+    define_shop_upgrade("Brewing Area", level=3, region=chapter_2)
+    define_shop_upgrade("Brewing Area", level=4, region=chapter_3)
+
+    define_shop_upgrade("Basement", level=2, region=chapter_2)
+    define_shop_upgrade("Basement", level=3, region=chapter_3)
+    define_shop_upgrade("Basement", level=4, region=chapter_4)
+    # endregion shop upgrades
+
+    # region shelves
+    def define_shelf(shelf_name: str, region: str):
+        spec.define_location(
+            f"Buy a {shelf_name} Shelf",
+            category=["Shelves", region],
+            region=region,
+            requires=Requires.item(muktuk),
+        )
+
+    define_shelf("Mushroom Mire", chapter_1)
+    define_shelf("Bone Wastes", chapter_1)
+
+    define_shelf("Storm Plains", chapter_2)
+    define_shelf("Ocean Coasts", chapter_2)
+    define_shelf("Shadow Steppe", chapter_2)
+
+    define_shelf("Sulfuric Falls", chapter_3)
+    define_shelf("Crystalline Forest", chapter_3)
+    define_shelf("Ice Craggs", chapter_3)
+
+    define_shelf("Crater", chapter_4)
+    define_shelf("Dragon Oasis", chapter_4)
+    define_shelf("Arctic", chapter_4)
+
+    define_shelf("Magical Wasteland", chapter_5)
+    # endregion shelves
+
+    # region showcases
+    def define_showcase(showcase_name: str, region: str, prehint: bool = False):
+        spec.define_location(
+            f"Buy a {showcase_name} Showcase",
+            category=["Shelves", region],
+            region=region,
+            requires=Requires.item(muktuk),
+            prehint=prehint,
+        )
+
+    define_showcase("Mushroom Mire", chapter_1)
+    define_showcase("Bone Wastes", chapter_1)
+
+    define_showcase("Storm Plains", chapter_2, prehint=True)
+    define_showcase("Ocean Coasts", chapter_2, prehint=True)
+    define_showcase("Shadow Steppe", chapter_2, prehint=True)
+
+    define_showcase("Sulfuric Falls", chapter_3, prehint=True)
+    define_showcase("Crystalline Forest", chapter_3, prehint=True)
+    define_showcase("Ice Craggs", chapter_3, prehint=True)
+
+    define_showcase("Crater", chapter_4, prehint=True)
+    define_showcase("Dragon Oasis", chapter_4, prehint=True)
+    define_showcase("Arctic", chapter_4, prehint=True)
+
+    define_showcase("Magical Wasteland", chapter_5, prehint=True)
+    # endregion showcases
+
+    # region barrels
+    def define_barrel(barrel_name: str, region: str):
+        spec.define_location(
+            f"Buy a {barrel_name} Barrel",
+            category=["Shelves", region],
+            region=region,
+            requires=Requires.item(muktuk),
+            prehint=True,  # barrels can be ignored normally, always prehint
+        )
+
+    # barrels don't show up until chapter 3, so that's the minimum
+    define_barrel("Oak Wood", chapter_3)
+
+    define_barrel("Mushroom", chapter_3)
+    define_barrel("Cactus", chapter_3)
+
+    define_barrel("Thunder Log", chapter_3)
+    define_barrel("Coral", chapter_3)
+    define_barrel("Cocoon", chapter_3)
+
+    define_barrel("Vines", chapter_3)
+    define_barrel("Prismatic Thunder", chapter_3)
+    define_barrel("Frost Kindling", chapter_3)
+
+    define_barrel("Poly Log", chapter_4)
+    define_barrel("Scaly Wood", chapter_4)
+    define_barrel("Yeti", chapter_4)
+
+    define_barrel("Empyrean Bud", chapter_5)
+    # endregion barrels
+
+    # region slots
+    spec.define_item(
+        "Vending Machine Slots",
+        category="Other",
+        useful=True,
+        count=12,
+        starting_count=2,
+    )
 
     spec.define_item(
-        f"{character_name} - Progressive Cards",
-        category="Characters",
+        "Shelf Slots",
+        category="Other",
         useful=True,
-        count=len(character_spec.cards),
+        count=4,
+        starting_count=1,
+        early=1,
     )
 
-    spec.define_location(
-        f"Hang Out with {character_name}",
-        category=[
-            f"Characters - {character_name}",
-            f"Chapter {character_spec.chapter}",
-        ],
-        region=__get_chapter_region_name(character_spec.chapter),
-        requires=Requires.item(character_item),
+    spec.define_item(
+        "Display Case Slots",
+        category="Other",
+        useful=True,
+        count=3,
+    )
+    # endregion slots
+
+    # region chapter regions
+    spec.define_region(
+        day_1,
+        starting=True,
+        connects_to=[day_2],
+        requires=Requires.item(license_level, 1),
+    )
+    spec.define_region(
+        day_2,
+        connects_to=[day_3],
+    )
+    spec.define_region(
+        day_3,
+        connects_to=[chapter_1],
     )
 
-    spec.define_location(
-        f"Give {character_name} a Gift",
-        category=[
-            f"Characters - {character_name}",
-            f"Chapter {character_spec.chapter}",
-        ],
-        region=__get_chapter_region_name(character_spec.chapter),
-        requires=Requires.item(character_item),
-    )
-
-    spec.define_location(
-        f"Accept {character_name}'s Confession",
-        category=[f"Characters - {character_name}"],
-        region=__get_chapter_region_name(character_spec.chapter),
-        requires=Requires.item(character_item),
-        prehint=True,
-    )
-# endregion characters/cards
-
-
-# region cauldrons
-@dataclass
-class CauldronSpec:
-    chapter: int
-    max_magimins: int
-
-
-cauldrons: dict[str, CauldronSpec] = {
-    # starters
-    # "Wooden Cauldron": CauldronSpec(chapter=1, max_magimins=75),
-    # "Clay Cauldron": CauldronSpec(chapter=1, max_magimins=115),
-    # chapter 1
-    "Mudpack Cauldron": CauldronSpec(chapter=1, max_magimins=225),
-    "Glass Cauldron": CauldronSpec(chapter=1, max_magimins=200),
-    # chapter 2
-    "Storm Cauldron": CauldronSpec(chapter=2, max_magimins=375),
-    "Ocean Cauldron": CauldronSpec(chapter=2, max_magimins=320),
-    "Shadow Cauldron": CauldronSpec(chapter=2, max_magimins=345),
-    # chapter 3
-    "Crystal Cauldron": CauldronSpec(chapter=3, max_magimins=575),
-    "Steel Cauldron": CauldronSpec(chapter=3, max_magimins=540),
-    "Celestial Cauldron": CauldronSpec(chapter=3, max_magimins=505),
-    # chapter 4
-    "Arctic Cauldron": CauldronSpec(chapter=4, max_magimins=975),
-    "Crater Cauldron": CauldronSpec(chapter=4, max_magimins=940),
-    "Dragon Cauldron": CauldronSpec(chapter=4, max_magimins=860),
-    # chapter 5
-    "Magical Wasteland Cauldron": CauldronSpec(chapter=5, max_magimins=2000),
-}
-
-
-progressive_cauldrons = spec.define_item(
-    f"Progressive Cauldrons",
-    category=f"Cauldrons",
-    progression=True,
-    count=chapter_count,
-    starting_count=1,
-    early=1,
-)
-
-for cauldron, cauldron_spec in cauldrons.items():
-    spec.define_location(
-        f"Buy a {cauldron}",
-        category=[
-            f"Cauldrons (Chapter {cauldron_spec.chapter})",
-            f"Chapter {cauldron_spec.chapter}",
-        ],
-        region=__get_chapter_region_name(cauldron_spec.chapter),
+    spec.define_region(
+        chapter_1,
+        connects_to=[chapter_2],
         requires=Requires.all_of(
-            Requires.item("Muktuk"),
-            Requires.item(progressive_cauldrons, cauldron_spec.chapter),
+            Requires.item(health_potion_recipe),
+            Requires.item(fire_tonic_recipe),
+            Requires.item(mana_potion_recipe),
+            Requires.item(mana_potion_recipe),
+            Requires.item(enchanted_forest_map),
+            Requires.item(bone_wastes_map),
         ),
     )
-# endregion cauldrons
 
-
-# region potions
-@dataclass
-class PotionSpec:
-    chapter: int
-
-
-potions = {
-    "Health Potion": PotionSpec(chapter=1),
-    "Mana Potion": PotionSpec(chapter=1),
-    "Stamina Potion": PotionSpec(chapter=2),
-    "Speed Potion": PotionSpec(chapter=2),
-    "Tolerance Potion": PotionSpec(chapter=4),
-    "Fire Tonic": PotionSpec(chapter=1),
-    "Ice Tonic": PotionSpec(chapter=2),
-    "Thunder Tonic": PotionSpec(chapter=2),
-    "Shadow Tonic": PotionSpec(chapter=2),
-    "Radiation Tonic": PotionSpec(chapter=4),
-    "Sight Enhancer": PotionSpec(chapter=1),
-    "Alertness Enhancer": PotionSpec(chapter=2),
-    "Insight Enhancer": PotionSpec(chapter=3),
-    "Dowsing Enhancer": PotionSpec(chapter=3),
-    "Seeking Enhancer": PotionSpec(chapter=4),
-    "Poison Cure": PotionSpec(chapter=1),
-    "Drowsiness Cure": PotionSpec(chapter=2),
-    "Petrification Cure": PotionSpec(chapter=3),
-    "Silence Cure": PotionSpec(chapter=3),
-    "Curse Cure": PotionSpec(chapter=4),
-}
-
-for potion, potion_spec in potions.items():
-    potion_location = spec.define_location(
-        f"Brew {potion}",
-        category=[f"Potions", f"Chapter {potion_spec.chapter}"],
-        region=__get_chapter_region_name(potion_spec.chapter),
-    )
-
-    # past the initial few starter potions,
-    # you need certain key characters to feasibly make anything else
-    if potion not in ["Health Potion", "Mana Potion", "Fire Tonic"]:
-        potion_location["requires"] = Requires.all_of(
-            Requires.item("Quinn"),
-            Requires.item("Muktuk"),
-        )
-# endregion potions
-
-
-# region potion tiers
-@dataclass
-class PotionTierSpec:
-    chapter: int
-    magimin_requirements: tuple[int, int, int, int, int, int]
-    """The amount of magimins required for each star rating in this tier, from 0 to 5"""
-
-
-potion_tiers = {
-    "Minor": PotionTierSpec(chapter=1, magimin_requirements=(0, 10, 20, 30, 40, 50)),
-    "Common": PotionTierSpec(
-        chapter=1, magimin_requirements=(60, 75, 90, 105, 115, 130)
-    ),
-    "Greater": PotionTierSpec(
-        chapter=1, magimin_requirements=(150, 170, 195, 215, 235, 260)
-    ),
-    "Grand": PotionTierSpec(
-        chapter=2, magimin_requirements=(290, 315, 345, 370, 400, 430)
-    ),
-    "Superior": PotionTierSpec(
-        chapter=3, magimin_requirements=(470, 505, 545, 580, 620, 660)
-    ),
-    "Masterwork": PotionTierSpec(
-        chapter=4, magimin_requirements=(720, 800, 875, 960, 1040, 1121)
-    ),
-}
-
-for potion_tier, potion_tier_spec in potion_tiers.items():
-    potion_tier_requirement = Requires.item(
-        progressive_cauldrons, potion_tier_spec.chapter
-    )
-
-    if potion_tier not in ["Minor", "Common"]:
-        potion_tier_requirement = Requires.all_of(
-            potion_tier_requirement,
-            Requires.item("Muktuk"),
-        )
-
-    spec.define_location(
-        f"Brew a {potion_tier} Tier Potion",
-        category=["Potions", f"Chapter {potion_tier_spec.chapter}"],
-        region=__get_chapter_region_name(potion_tier_spec.chapter),
-        requires=potion_tier_requirement,
-    )
-# endregion potion tiers
-
-
-# region adventure
-@dataclass
-class AdventureLocationSpec:
-    chapter: int
-
-
-adventure_locations = {
-    "Enchanted Forest": AdventureLocationSpec(chapter=1),
-    "Bone Wastes": AdventureLocationSpec(chapter=1),
-    "Mushroom Mire": AdventureLocationSpec(chapter=1),
-    "Shadow Steppe": AdventureLocationSpec(chapter=2),
-    "Ocean Coasts": AdventureLocationSpec(chapter=2),
-    "Storm Plains": AdventureLocationSpec(chapter=2),
-    "Sulfuric Falls": AdventureLocationSpec(chapter=3),
-    "Crystalline Forest": AdventureLocationSpec(chapter=3),
-    "Ice Craggs": AdventureLocationSpec(chapter=3),
-    "Dragon Oasis": AdventureLocationSpec(chapter=4),
-    "Crater": AdventureLocationSpec(chapter=4),
-    "Arctic": AdventureLocationSpec(chapter=4),
-    "Magical Wasteland": AdventureLocationSpec(chapter=5),
-}
-
-for adventure_location, adventure_location_spec in adventure_locations.items():
-    spec.define_location(
-        f"Adventure in {adventure_location}",
-        category=[f"Adventure", f"Chapter {adventure_location_spec.chapter}"],
-        region=__get_chapter_region_name(adventure_location_spec.chapter),
-        requires=Requires.any_of(
-            Requires.item("Mint"),
-            Requires.all_of(Requires.item("Xidriel"), Requires.item(license, 2)),
-            Requires.all_of(Requires.item("Corsac"), Requires.item(license, 3)),
-        ),
-    )
-# endregion adventure
-
-
-# region shop upgrades
-@dataclass
-class ShopUpgradeSpec:
-    upgrade_count: int
-
-
-shop_upgrades = {
-    "Shop Front": ShopUpgradeSpec(upgrade_count=3),
-    "Brewing Area": ShopUpgradeSpec(upgrade_count=3),
-    "Basement": ShopUpgradeSpec(upgrade_count=3),
-}
-
-for shop_upgrade, shop_upgrade_spec in shop_upgrades.items():
-    shop_upgrade_item = spec.define_item(
-        f"{shop_upgrade} Upgrades",
-        category="Shop Upgrades",
-        progression=True,
-    )
-
-    for shop_upgrade_index in range(shop_upgrade_spec.upgrade_count):
-        spec.define_location(
-            f"Buy Level {shop_upgrade_index + 2} {shop_upgrade}",
-            category=["Shop Upgrades", f"Chapter {shop_upgrade_index + 2}"],
-            region=__get_chapter_region_name(shop_upgrade_index + 2),
-            requires=Requires.all_of(
-                Requires.item(shop_upgrade_item),
-                Requires.item("Saffron"),
+    spec.define_region(
+        chapter_2,
+        connects_to=[chapter_3],
+        requires=Requires.all_of(
+            Requires.item(contest_reward, 1),
+            Requires.item(license_level, 2),
+            Requires.item(ice_tonic_recipe),
+            Requires.item(sight_enhancer_recipe),
+            Requires.item(speed_potion_recipe),
+            Requires.item(mushroom_mire_map),
+            Requires.any_of(
+                Requires.item(ocean_coasts_map),
+                Requires.item(storm_plains_map),
             ),
-            # Basement is very out of the way and unnecessary,
-            # so prehint to know if I need to care about it
-            prehint=shop_upgrade == "Basement",
-        )
-# endregion shop upgrades
-
-
-# region shelves
-@dataclass
-class ShelfSpec:
-    chapter: int
-
-
-shelves = {
-    "Mushroom Mire Shelf": ShelfSpec(chapter=1),
-    "Bone Wastes Shelf": ShelfSpec(chapter=1),
-    "Storm Plains Shelf": ShelfSpec(chapter=2),
-    "Ocean Coasts Shelf": ShelfSpec(chapter=2),
-    "Shadow Steppe Shelf": ShelfSpec(chapter=2),
-    "Sulfuric Falls Shelf": ShelfSpec(chapter=3),
-    "Crystalline Forest Shelf": ShelfSpec(chapter=3),
-    "Ice Craggs Shelf": ShelfSpec(chapter=3),
-    "Crater Shelf": ShelfSpec(chapter=4),
-    "Dragon Oasis Shelf": ShelfSpec(chapter=4),
-    "Arctic Shelf": ShelfSpec(chapter=4),
-    "Magical Wasteland Shelf": ShelfSpec(chapter=5),
-}
-
-for shelf_name, shelf_spec in shelves.items():
-    spec.define_location(
-        f"Buy a {shelf_name}",
-        category=["Shelves", f"Chapter {shelf_spec.chapter}"],
-        region=__get_chapter_region_name(shelf_spec.chapter),
-        requires=Requires.item("Muktuk"),
-        prehint=True,
+        ),
     )
-# endregion shelves
 
-
-# region showcases
-@dataclass
-class ShowcaseSpec:
-    chapter: int
-
-
-showcases = {
-    # chapter 1
-    "Mushroom Mire Showcase": ShowcaseSpec(chapter=1),
-    "Bone Wastes Showcase": ShowcaseSpec(chapter=1),
-    # chapter 2
-    "Storm Plains Showcase": ShowcaseSpec(chapter=2),
-    "Ocean Coasts Showcase": ShowcaseSpec(chapter=2),
-    "Shadow Steppe Showcase": ShowcaseSpec(chapter=2),
-    # chapter 3
-    "Sulfuric Falls Showcase": ShowcaseSpec(chapter=3),
-    "Crystalline Forest Showcase": ShowcaseSpec(chapter=3),
-    "Ice Craggs Showcase": ShowcaseSpec(chapter=3),
-    # chapter 4
-    "Crater Showcase": ShowcaseSpec(chapter=4),
-    "Dragon Oasis Showcase": ShowcaseSpec(chapter=4),
-    "Arctic Showcase": ShowcaseSpec(chapter=4),
-    # chapter 5
-    "Magical Wasteland Showcase": ShowcaseSpec(chapter=5),
-}
-
-for showcase_name, showcase_spec in showcases.items():
-    spec.define_location(
-        f"Buy a {showcase_name}",
-        category=["Showcases", f"Chapter {showcase_spec.chapter}"],
-        region=__get_chapter_region_name(showcase_spec.chapter),
-        requires=Requires.item("Muktuk"),
-        prehint=True,
+    spec.define_region(
+        chapter_3,
+        connects_to=[chapter_4],
+        requires=Requires.all_of(
+            Requires.item(contest_reward, 2),
+            Requires.item(license_level, 3),
+            Requires.item(poison_cure_recipe),
+            Requires.item(thunder_tonic_recipe),
+            Requires.item(stamina_potion_recipe),
+            Requires.any_of(
+                Requires.item(sulfuric_falls_map),
+                Requires.item(crystalline_forest_map),
+                Requires.item(ice_craggs_map),
+            ),
+        ),
     )
-# endregion showcases
+
+    spec.define_region(
+        chapter_4,
+        connects_to=[chapter_5],
+        requires=Requires.all_of(
+            Requires.item(contest_reward, 3),
+            Requires.item(license_level, 4),
+            Requires.item(silence_cure_recipe),
+            Requires.item(tolerance_potion_recipe),
+            Requires.item(insight_enhancer_recipe),
+            Requires.any_of(
+                Requires.item(dragon_oasis_map),
+                Requires.item(crater_map),
+                Requires.item(arctic_map),
+            ),
+        ),
+    )
+
+    spec.define_region(
+        chapter_5,
+        requires=Requires.all_of(
+            Requires.item(contest_reward, 4),
+            Requires.item(license_level, 5),
+            Requires.item(radiation_tonic_recipe),
+            Requires.item(curse_cure_recipe),
+            Requires.item(seeking_enhancer_recipe),
+            Requires.item(magical_wasteland_map),
+        ),
+    )
+    # endregion chapter regions
+
+    return spec
+
+
+spec = __define_world_spec()
