@@ -63,11 +63,15 @@ def __define_world_spec():
 
         @property
         def name(self) -> str:
-            return f"Stage {self.id:02d}" if isinstance(self.id, int) else self.id
+            return (
+                f"{self.spot.name} - Stage {self.id:02d}"
+                if isinstance(self.id, int)
+                else self.id
+            )
 
         @property
         def unlocks_region_name(self) -> str:
-            return f"{self.spot.name} - {self.name} Unlocks"
+            return f"{self.name} Unlocks"
 
     area_0 = Area(0, starting=True)
 
