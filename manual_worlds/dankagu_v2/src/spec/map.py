@@ -6,13 +6,13 @@ type SpotData = dict[int, "StageNode"]
 
 
 class SpotNode(TypedDict):
-    stages: dict[int, "StageNode"]
+    stages: dict[int | str, "StageNode"]
     required_clears: int
     """The number of required stage clears to unlock the Great Reigen Kaisei Prayer for this spot"""
 
 
 class StageNode(TypedDict):
-    requires: NotRequired[int]
+    requires: NotRequired[int | str]
     """Unlocked by this stage"""
     dlc: NotRequired[int]
     """Available after purchasing this "Extra Songs Pack" DLC by number (e.g. `3` means "Extra Songs Pack 3")"""
@@ -21,7 +21,7 @@ class StageNode(TypedDict):
 map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
     0: {
         "Hakurei Shrine": {
-            "required_clears": 3,
+            "required_clears": 2,
             "stages": {
                 1: {},
                 2: {},
@@ -33,12 +33,13 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
                 12: {"dlc": 2},
                 13: {"dlc": 3},
                 14: {"dlc": 4},
+                "White World 01": {},
             },
         },
     },
     1: {
         "Scarlet Devil Mansion": {
-            "required_clears": 6,
+            "required_clears": 5,
             "stages": {
                 1: {},
                 2: {},
@@ -60,7 +61,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Misty Lake": {
-            "required_clears": 5,
+            "required_clears": 4,
             "stages": {
                 1: {},
                 2: {},
@@ -74,7 +75,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Forest of Magic": {
-            "required_clears": 5,
+            "required_clears": 3,
             "stages": {
                 1: {},
                 2: {},
@@ -92,7 +93,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
     },
     2: {
         "Human Village": {
-            "required_clears": 3,
+            "required_clears": 4,
             "stages": {
                 1: {},
                 2: {},
@@ -108,7 +109,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Bamboo Forest of the Lost": {
-            "required_clears": 4,
+            "required_clears": 3,
             "stages": {
                 1: {},
                 2: {},
@@ -123,7 +124,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Eientei": {
-            "required_clears": 5,
+            "required_clears": 4,
             "stages": {
                 1: {},
                 2: {},
@@ -138,7 +139,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Underworld": {
-            "required_clears": 4,
+            "required_clears": 5,
             "stages": {
                 1: {},
                 2: {},
@@ -159,7 +160,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Myouren Temple": {
-            "required_clears": 6,
+            "required_clears": 4,
             "stages": {
                 1: {},
                 2: {},
@@ -183,7 +184,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
     },
     3: {
         "Youkai Mountain": {
-            "required_clears": 6,
+            "required_clears": 5,
             "stages": {
                 1: {},
                 2: {},
@@ -236,7 +237,7 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
         "Hades": {
-            "required_clears": 5,
+            "required_clears": 3,
             "stages": {
                 1: {},
                 2: {},
@@ -256,17 +257,25 @@ map_graph: dict[AreaNumber, dict[SpotName, SpotNode]] = {
             },
         },
     },
-    4: {
-        "Hakurei Shrine - Reconstructed": {
-            "required_clears": 4,
+    5: {
+        "White World": {
+            "required_clears": 1,
             "stages": {
-                8: {},
-                9: {},
-                10: {},
-                11: {},
+                1: {},
+            },
+        }
+    },
+    6: {
+        "Hakurei Shrine": {
+            "required_clears": 0,
+            "stages": {
+                8: {"requires": 1},
+                9: {"requires": 1},
+                10: {"requires": 1},
+                11: {"requires": 1},
             },
         },
-        "Scarlet Devil Mansion - Seeking Memories": {
+        "Scarlet Devil Mansion": {
             "required_clears": 0,
             "stages": {
                 13: {},
