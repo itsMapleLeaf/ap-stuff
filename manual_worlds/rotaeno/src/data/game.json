@@ -1,6 +1,6 @@
 {
     "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
-    "game": "YourGameName",
-    "creator": "YourName",
-    "filler_item_name": "Useless Filler Item"
+    "game": "Rotaeno",
+    "creator": "MapleLeaf",
+    "filler_item_name": "Ilot Likes Girls"
 }
