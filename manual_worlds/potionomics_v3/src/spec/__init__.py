@@ -150,7 +150,7 @@ def __define_world_spec() -> WorldSpec:
 
         spec.define_location(
             f"Accept {character_name}'s Confession",
-            category=[character_name, "Confessions"],
+            category=["Confessions"],
             requires=Requires.item(character_item),
             # it's effectively impossible to level them up before chapter 4,
             # but if you _somehow_ do, then that can be a valid logic break
@@ -165,10 +165,10 @@ def __define_world_spec() -> WorldSpec:
     quinn = define_character("Quinn", region=day_1, starting_count=1)
     mint = define_character("Mint", region=day_1, starting_count=1)
     muktuk = define_character("Muktuk", region=day_2, early=True)
-    baptiste = define_character("Baptiste", region=day_3, early=True)
-    saffron = define_character("Saffron", region=chapter_1, early=True)
+    baptiste = define_character("Baptiste", region=day_3)
+    saffron = define_character("Saffron", region=chapter_1)
     roxanne = define_character("Roxanne", region=chapter_2)
-    xid = define_character("Xid", region=chapter_2)
+    xidriel = define_character("Xidriel", region=chapter_2)
     luna = define_character("Luna", region=chapter_3)
     salt_and_pepper = define_character("Salt & Pepper", region=chapter_3)
     corsac = define_character("Corsac", region=chapter_4)
@@ -382,11 +382,22 @@ def __define_world_spec() -> WorldSpec:
     # endregion barrels
 
     # region slots
+    # adding extras for a bunch of these just to make sure they get found at some point
+
+    spec.define_item(
+        "Cauldron Slots",
+        category="Other",
+        useful=True,
+        count=8,
+        starting_count=1,
+        early=2,
+    )
+
     spec.define_item(
         "Vending Machine Slots",
         category="Other",
         useful=True,
-        count=12,
+        count=20,
         starting_count=2,
     )
 
@@ -394,7 +405,7 @@ def __define_world_spec() -> WorldSpec:
         "Shelf Slots",
         category="Other",
         useful=True,
-        count=4,
+        count=8,
         starting_count=1,
         early=1,
     )
@@ -403,7 +414,7 @@ def __define_world_spec() -> WorldSpec:
         "Display Case Slots",
         category="Other",
         useful=True,
-        count=3,
+        count=6,
     )
     # endregion slots
 
@@ -418,15 +429,15 @@ def __define_world_spec() -> WorldSpec:
         day_2,
         connects_to=[day_3],
     )
-    spec.define_region(
-        day_3,
-        connects_to=[chapter_1],
-    )
+    spec.define_region(day_3, connects_to=[chapter_1])
 
     spec.define_region(
         chapter_1,
         connects_to=[chapter_2],
         requires=Requires.all_of(
+            Requires.item(quinn),
+            Requires.item(muktuk),
+            Requires.item(mint),
             Requires.item(health_potion_recipe),
             Requires.item(fire_tonic_recipe),
             Requires.item(mana_potion_recipe),
@@ -440,6 +451,7 @@ def __define_world_spec() -> WorldSpec:
         chapter_2,
         connects_to=[chapter_3],
         requires=Requires.all_of(
+            Requires.item(baptiste),
             Requires.item(contest_reward, 1),
             Requires.item(license_level, 2),
             Requires.item(ice_tonic_recipe),
@@ -457,6 +469,8 @@ def __define_world_spec() -> WorldSpec:
         chapter_3,
         connects_to=[chapter_4],
         requires=Requires.all_of(
+            Requires.item(saffron),
+            Requires.item(xidriel),
             Requires.item(contest_reward, 2),
             Requires.item(license_level, 3),
             Requires.item(poison_cure_recipe),
