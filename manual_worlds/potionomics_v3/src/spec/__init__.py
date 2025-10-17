@@ -6,9 +6,9 @@ from .requires import Requires
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
-    day_1 = "Day 1"
-    day_2 = "Day 2"
-    day_3 = "Day 3"
+    day_1 = "Chapter 1 - Day 1"
+    day_2 = "Chapter 1 - Day 2"
+    day_3 = "Chapter 1 - Day 3"
 
     chapter_1 = "Chapter 1"
     chapter_2 = "Chapter 2"
@@ -38,6 +38,19 @@ def __define_world_spec() -> WorldSpec:
         requires=Requires.item(contest_reward, "all"),
         victory=True,
     )
+
+    # region days
+    for chapter_index, chapter_region in enumerate(
+        [chapter_1, chapter_2, chapter_3, chapter_4, chapter_5]
+    ):
+        # make locations for days 1-9 of each chapter
+        for day in range(1, 10):
+            spec.define_location(
+                f"Complete Day {chapter_index * 10 + day}",
+                category=[chapter_region, "Day Completion"],
+                region=chapter_region,
+            )
+    # endregion days
 
     # region potions
     potion_recipes_category = "Recipes"
@@ -106,6 +119,8 @@ def __define_world_spec() -> WorldSpec:
     # endregion potions
 
     # region characters
+    characters_item_category = "Characters"
+
     def define_character(
         character_name: str,
         region: str,
@@ -114,7 +129,7 @@ def __define_world_spec() -> WorldSpec:
     ):
         character_item = spec.define_item(
             character_name,
-            category=["Characters"],
+            category=[characters_item_category],
             progression=True,
             starting_count=starting_count,
             early=early,
@@ -162,10 +177,10 @@ def __define_world_spec() -> WorldSpec:
 
         return character_name
 
-    quinn = define_character("Quinn", region=day_1, starting_count=1)
-    mint = define_character("Mint", region=day_1, starting_count=1)
-    muktuk = define_character("Muktuk", region=day_2, early=True)
-    baptiste = define_character("Baptiste", region=day_3)
+    quinn = define_character("Quinn", region=day_2, starting_count=1)
+    mint = define_character("Mint", region=day_2, early=True)
+    muktuk = define_character("Muktuk", region=day_3)
+    baptiste = define_character("Baptiste", region=chapter_1)
     saffron = define_character("Saffron", region=chapter_1)
     roxanne = define_character("Roxanne", region=chapter_2)
     xidriel = define_character("Xidriel", region=chapter_2)
@@ -200,8 +215,8 @@ def __define_world_spec() -> WorldSpec:
                 ),
             )
 
-    define_cauldron("Mudpack", region=day_3, level=1)
-    define_cauldron("Glass", region=day_3, level=1)
+    define_cauldron("Mudpack", region=chapter_1, level=1)
+    define_cauldron("Glass", region=chapter_1, level=1)
 
     define_cauldron("Storm", region=chapter_2, level=2)
     define_cauldron("Ocean", region=chapter_2, level=2)
@@ -299,6 +314,18 @@ def __define_world_spec() -> WorldSpec:
     def define_shelf(shelf_name: str, region: str):
         spec.define_location(
             f"Buy a {shelf_name} Shelf",
+            category=["Shelves", region],
+            region=region,
+            requires=Requires.item(muktuk),
+        )
+        spec.define_location(
+            f"Upgrade to {shelf_name} Shelf+",
+            category=["Shelves", region],
+            region=region,
+            requires=Requires.item(muktuk),
+        )
+        spec.define_location(
+            f"Upgrade to {shelf_name} Shelf++",
             category=["Shelves", region],
             region=region,
             requires=Requires.item(muktuk),
@@ -419,16 +446,8 @@ def __define_world_spec() -> WorldSpec:
     # endregion slots
 
     # region chapter regions
-    spec.define_region(
-        day_1,
-        starting=True,
-        connects_to=[day_2],
-        requires=Requires.item(license_level, 1),
-    )
-    spec.define_region(
-        day_2,
-        connects_to=[day_3],
-    )
+    spec.define_region(day_1, starting=True, connects_to=[day_2])
+    spec.define_region(day_2, connects_to=[day_3])
     spec.define_region(day_3, connects_to=[chapter_1])
 
     spec.define_region(
@@ -488,6 +507,7 @@ def __define_world_spec() -> WorldSpec:
         chapter_4,
         connects_to=[chapter_5],
         requires=Requires.all_of(
+            Requires.category(characters_item_category, 8),
             Requires.item(contest_reward, 3),
             Requires.item(license_level, 4),
             Requires.item(silence_cure_recipe),
@@ -504,6 +524,7 @@ def __define_world_spec() -> WorldSpec:
     spec.define_region(
         chapter_5,
         requires=Requires.all_of(
+            Requires.category(characters_item_category, "all"),
             Requires.item(contest_reward, 4),
             Requires.item(license_level, 5),
             Requires.item(radiation_tonic_recipe),
