@@ -74,6 +74,7 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
     for item in item_pool:
         if item.player == player and item.name in starter_course_items:
             multiworld.push_precollected(item)
+            item_pool.remove(item)
 
     return item_pool
 

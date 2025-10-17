@@ -68,7 +68,7 @@ for course in courses:
 # region upgrades
 spec.define_item(
     "Max Time +10s",
-    category="Upgrades",
+    category="Upgrades - Settings",
     useful=True,
     count=24,
     early=3,
@@ -77,7 +77,7 @@ spec.define_item(
 
 spec.define_item(
     "Max Shots +1",
-    category="Upgrades",
+    category="Upgrades - Settings",
     useful=True,
     count=15,
     early=3,
@@ -86,38 +86,92 @@ spec.define_item(
 
 spec.define_item(
     "Free-cam Time +2s",
-    category="Upgrades",
+    category="Upgrades - Abilities",
     useful=True,
     count=15,
 )
 
-spec.define_item("Retry Shot", category="Upgrades", useful=True, count=2)
-spec.define_item("Ball Spin", category="Upgrades", useful=True, count=2)
-spec.define_item("Jumping", category="Upgrades", useful=True, count=2)
-spec.define_item("Spiking", category="Upgrades", useful=True, count=2)
-spec.define_item("Handbrake", category="Upgrades", useful=True, count=2)
-spec.define_item("Show Last Power", category="Upgrades", useful=True, count=2)
+
+def __define_ability(name: str, count: int = 2) -> None:
+    spec.define_item(name, category="Upgrades - Abilities", useful=True, count=count)
+
+
+__define_ability("Retry Shot")
+__define_ability("Ball Spin")
+__define_ability("Jumping")
+__define_ability("Spiking")
+__define_ability("Handbrake")
+__define_ability("Show Last Power")
 # endregion upgrades
 
 # region traps
-spec.define_item("Gravity 0.25", category="Traps", trap=True, count=3)
-spec.define_item("Gravity 0.5", category="Traps", trap=True, count=3)
-spec.define_item("Gravity 0.75", category="Traps", trap=True, count=3)
+spec.define_item(
+    "Cancel Trap",
+    category="Cancel Trap (One-time use, clear all traps in one category)",
+    useful=True,
+    count=10,
+)
 
-spec.define_item("Egg Ball", category="Traps", trap=True)
-spec.define_item("Cube Ball", category="Traps", trap=True)
-spec.define_item("Cylinder Ball", category="Traps", trap=True)
-spec.define_item("Cone Ball", category="Traps", trap=True)
-spec.define_item("Icosphere Ball", category="Traps", trap=True)
-spec.define_item("Puck Ball", category="Traps", trap=True)
-spec.define_item("Star Ball", category="Traps", trap=True)
-spec.define_item("Acorn Ball", category="Traps", trap=True)
-spec.define_item("Ornament Ball", category="Traps", trap=True)
-spec.define_item("Chicken Nugget Ball", category="Traps", trap=True)
 
-spec.define_item("Small Ball", category="Traps", trap=True, count=3)
-spec.define_item("Large Ball", category="Traps", trap=True, count=3)
+def __define_gravity_trap(name: str, count: int = 3) -> None:
+    spec.define_item(
+        name,
+        category="Traps - Gravity (Apply Latest)",
+        trap=True,
+        count=count,
+    )
 
-spec.define_item("Medium Bouncy Ground", category="Traps", trap=True)
-spec.define_item("High Bouncy Ground", category="Traps", trap=True)
+
+__define_gravity_trap("Gravity 0.25")
+__define_gravity_trap("Gravity 0.50")
+__define_gravity_trap("Gravity 0.75")
+
+
+def __define_shape_trap(name: str) -> None:
+    spec.define_item(
+        name,
+        category="Traps - Ball Shape (Apply Latest)",
+        trap=True,
+    )
+
+
+__define_shape_trap("Egg")
+__define_shape_trap("Cube")
+__define_shape_trap("Cylinder")
+__define_shape_trap("Cone")
+__define_shape_trap("Icosphere")
+__define_shape_trap("Puck")
+__define_shape_trap("Star")
+__define_shape_trap("Acorn")
+__define_shape_trap("Bauble")
+__define_shape_trap("Random Shape - Each")
+__define_shape_trap("Random Shape - All")
+
+
+def __define_size_trap(name: str, count: int = 3) -> None:
+    spec.define_item(
+        name,
+        category="Traps - Ball Size (Apply Latest)",
+        trap=True,
+        count=count,
+    )
+
+
+__define_size_trap("Small Ball")
+__define_size_trap("Large Ball")
+__define_size_trap("Random Size - Each")
+__define_size_trap("Random Size - All")
+
+
+def __define_bouncy_ground_trap(name: str, count: int = 2) -> None:
+    spec.define_item(
+        name,
+        category="Traps - Bouncy Ground (Apply Latest)",
+        trap=True,
+        count=count,
+    )
+
+
+__define_bouncy_ground_trap("Medium Bouncy Ground")
+__define_bouncy_ground_trap("High Bouncy Ground")
 # endregion traps
