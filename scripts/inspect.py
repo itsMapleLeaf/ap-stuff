@@ -11,6 +11,7 @@ from typing import Any, Optional
 from zipfile import ZipFile
 from dataclasses_json import DataClassJsonMixin
 from ._paths import worlds_dir, user_archipelago_worlds_dir
+import argparse
 
 
 @dataclass
@@ -89,13 +90,28 @@ def load_manual_world_module(src_dir: Path, module_name: str) -> object:
 
 
 def __main() -> None:
-    world_arg = " ".join(sys.argv[1:])
+
+    @dataclass
+    class Args:
+        world: str = ""
+        summary: bool = False
+
+    parser = argparse.ArgumentParser(description="Inspect AP Manual world data")
+    parser.add_argument("world", help="World name or path to inspect")
+    parser.add_argument(
+        "--summary",
+        action="store_true",
+        help="Display a summary instead of full JSON output",
+    )
+
+    args = Args()
+    parser.parse_args(namespace=args)
 
     potential_world_src_paths = [
-        worlds_dir / world_arg / "src",
-        worlds_dir / world_arg,
-        user_archipelago_worlds_dir / f"{world_arg}.apworld",
-        user_archipelago_worlds_dir / world_arg,
+        worlds_dir / args.world / "src",
+        worlds_dir / args.world,
+        user_archipelago_worlds_dir / f"{args.world}.apworld",
+        user_archipelago_worlds_dir / args.world,
     ]
 
     world_src = next(
@@ -103,7 +119,7 @@ def __main() -> None:
     )
 
     if not world_src:
-        print(f'Failed to find world "{world_arg}"')
+        print(f'Failed to find world "{args.world}"')
         print("Searched paths:")
         for path in potential_world_src_paths:
             print("-", path)
@@ -120,7 +136,14 @@ def __main() -> None:
     else:
         world_data = inspect_manual_world(world_src)
 
-    json.dump(dataclasses.asdict(world_data), fp=sys.stdout, indent=4)
+    if args.summary:
+        print(f"Game: {world_data.game_table.game}")
+        print(f"Creator: {world_data.game_table.creator}")
+        print(f"Player: {world_data.game_table.player}")
+        print(f"Item Count: {world_data.item_count}")
+        print(f"Location Count: {world_data.location_count}")
+    else:
+        json.dump(dataclasses.asdict(world_data), fp=sys.stdout, indent=4)
 
 
 if __name__ == "__main__":

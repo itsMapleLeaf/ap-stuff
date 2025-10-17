@@ -55,8 +55,8 @@ create world:
     git subtree add --prefix {{ worlds_dirname }}/{{ world }} template main
 
 # print the data for a world (after hooks)
-inspect world:
-    uv run -m scripts.inspect {{ world }}
+inspect world *args:
+    uv run -m scripts.inspect {{ world }} {{ args }}
 
 run script *args:
     uv run -m {{ script }} {{ args }}
