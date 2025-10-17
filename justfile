@@ -41,18 +41,9 @@ serve:
 export game:
     uv run -m scripts.export {{ game }}
 
-# update all manual worlds with the latest template code
-update-all: (update "distance") (update "sdvx")
-
-# update a given manual world with the latest template code
-update world:
-    git stash
-    git subtree pull --prefix {{ worlds_dirname }}/{{ world }} template main
-    git stash pop
-
 # create a new manual world
 create world:
-    git subtree add --prefix {{ worlds_dirname }}/{{ world }} template main
+    cp -r template/src manual_worlds/{{ world }}
 
 # print the data for a world (after hooks)
 inspect world *args:

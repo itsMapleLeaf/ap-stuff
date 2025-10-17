@@ -108,8 +108,8 @@ def __main() -> None:
     parser.parse_args(namespace=args)
 
     potential_world_src_paths = [
-        worlds_dir / args.world / "src",
         worlds_dir / args.world,
+        worlds_dir / args.world / "src",
         user_archipelago_worlds_dir / f"{args.world}.apworld",
         user_archipelago_worlds_dir / args.world,
     ]

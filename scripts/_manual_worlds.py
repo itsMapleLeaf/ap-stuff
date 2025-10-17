@@ -15,7 +15,7 @@ class ManualWorldInfo:
 
     @property
     def src_dir(self) -> Path:
-        return self.root_dir / "src"
+        return self.root_dir
 
 
 def list_project_manual_worlds() -> Generator[ManualWorldInfo]:
