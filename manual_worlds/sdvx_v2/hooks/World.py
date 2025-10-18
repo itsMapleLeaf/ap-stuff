@@ -1,4 +1,5 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
+from typing import cast
 from ..spec import SongSpec
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
@@ -43,9 +44,22 @@ def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int)
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     from .State import player_chart_pools
 
-    player_chart_pools[player] = world.random.sample(
-        [chart for chart in __charts if chart.level >= 17], 100
+    chart_count_per_level = cast(
+        dict[str, int],
+        get_option_value(multiworld, player, "chart_count_per_level"),
     )
+
+    player_chart_pools[player] = []
+
+    for level, count in chart_count_per_level.items():
+        charts_with_level = [chart for chart in __charts if chart.level == int(level)]
+        if len(charts_with_level) < count:
+            logging.warning(
+                f"[SDVX] [Player {player}] Wanted {count} charts with level {level}, only found {len(charts_with_level)}"
+            )
+        player_chart_pools[player].extend(
+            world.random.sample(charts_with_level, min(count, len(charts_with_level)))
+        )
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):

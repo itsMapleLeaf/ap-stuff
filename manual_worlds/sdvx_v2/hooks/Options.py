@@ -1,5 +1,19 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import Option, FreeText, NumericOption, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
+from Options import (
+    Option,
+    FreeText,
+    NumericOption,
+    OptionDict,
+    Toggle,
+    DefaultOnToggle,
+    Choice,
+    TextChoice,
+    Range,
+    NamedRange,
+    OptionGroup,
+    PerGameCommonOptions,
+)
+
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
 from typing import Type, Any
@@ -34,6 +48,23 @@ from typing import Type, Any
 
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(options: dict[str, Type[Option[Any]]]) -> dict[str, Type[Option[Any]]]:
+
+    class ChartCountPerLevel(OptionDict):
+        """The number of charts you want to include per level.
+
+        The sum is the total number of charts you'll have available."""
+
+        display_name = "Chart Count per Level"
+
+        default = {
+            "17": 10,
+            "18": 40,
+            "19": 15,
+            "20": 5,
+        }
+
+    options["chart_count_per_level"] = ChartCountPerLevel
+
     return options
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
