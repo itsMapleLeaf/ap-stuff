@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Iterable
 from ..spec import SongSpec
 
 
@@ -13,7 +13,7 @@ class ChartPool:
     def __init__(self) -> None:
         self.charts: list[SongSpec.Chart] = []
 
-    def add_charts(self, *charts: SongSpec.Chart):
+    def add_charts(self, charts: Iterable[SongSpec.Chart]):
         self.charts.extend(charts)
 
     @property

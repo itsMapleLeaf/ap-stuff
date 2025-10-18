@@ -1,6 +1,6 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
 from os import getenv
-from typing import cast
+from typing import Iterable, cast
 from ..spec import SongSpec
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
@@ -51,8 +51,16 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     def log_warning(msg: str):
         logging.warning(f"[warn] {log_context} {msg}")
 
+    def fail(msg: str):
+        raise Exception(f"{log_context} {msg}")
+
     if log_debug_enabled:
         log_debug("Debug logging enabled")
+
+    def format_list(items: Iterable[str]):
+        return "\n".join(f"- {error}" for error in errors)
+
+    errors: list[str] = []
 
     from .State import ChartPool
 
@@ -91,11 +99,56 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     log_debug(f"{len(available_charts)} total charts to pick from")
 
+    force_include = cast(
+        set[str], get_option_value(multiworld, player, "force_include")
+    )
+    if force_include:
+        log_debug(f"Force-including {len(force_include)} items")
+
+    force_exclude = cast(
+        set[str], get_option_value(multiworld, player, "force_exclude")
+    )
+    if force_exclude:
+        log_debug(f"Force-excluding {len(force_exclude)} items")
+
+    included_and_excluded = force_include.intersection(force_exclude)
+    if len(included_and_excluded) > 0:
+        errors.append(
+            "Found the following entries in both `force_include_songs` and `force_exclude_songs`"
+            " - only specify the song in one or the other:\n"
+            f"{format_list(included_and_excluded)}"
+        )
+
+    all_charts_by_item_name = {
+        chart.item_name: chart
+        for song in (
+            SongSpec.base_songs
+            + SongSpec.member_songs
+            + SongSpec.blaster_songs
+            + SongSpec.pack_songs
+        )
+        for chart in song.charts
+    }
+
+    for entry in force_include:
+        if not entry in all_charts_by_item_name:
+            errors.append(f"Unknown entry in `force_include`: {entry}")
+
+    for entry in force_exclude:
+        if not entry in all_charts_by_item_name:
+            errors.append(f"Unknown entry in `force_exclude`: {entry}")
+
+    if len(errors) > 0:
+        fail(f"Found the following errors in the YAML:\n{format_list(errors)}")
+
     pool = ChartPool.for_player(player)
 
     for level, count in chart_count_per_level.items():
         charts_with_level = [
-            chart for chart in available_charts if chart.level == int(level)
+            chart
+            for chart in available_charts
+            if chart.level == int(level)
+            if chart.item_name not in force_exclude
         ]
 
         actual_included_count = min(count, len(charts_with_level))
@@ -109,7 +162,10 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
             f"Including {actual_included_count}/{len(charts_with_level)} songs at level {level}"
         )
 
-        pool.add_charts(*world.random.sample(charts_with_level, actual_included_count))
+        pool.add_charts(world.random.sample(charts_with_level, actual_included_count))
+
+    log_debug(f"Including {len(force_include)} force-included charts")
+    pool.add_charts(all_charts_by_item_name[entry] for entry in force_include)
 
     log_debug(f"Selected {len(pool.charts)} charts for the pool")
 

@@ -54,7 +54,10 @@ class SongSpec:
 
         @property
         def location_names(self):
-            return [f"{self.song.title} - {self.summary} - {i}" for i in range(2)]
+            return [
+                f"{self.song.title} - {self.summary} - Track Clear",
+                f"{self.song.title} - {self.summary} - Gate Clear",
+            ]
 
     @staticmethod
     def from_data(data: SongData) -> "SongSpec":
@@ -145,7 +148,7 @@ SongSpec.pack_songs = [
     PackSongSpec.from_data(data) for data in SongSpec.songs_data["pack"]
 ]
 
-songs_category_name = "All Songs"
+songs_category_name = "Songs"
 
 
 def __define_world_spec() -> WorldSpec:
@@ -184,7 +187,12 @@ def __define_world_spec() -> WorldSpec:
                 for location_name in chart.location_names:
                     spec.define_location(
                         location_name,
-                        category=categories,
+                        category=[
+                            *categories,
+                            location_name.endswith("Track Clear")
+                            and "Goals - Track Clear"
+                            or "Goals - Gate Clear",
+                        ],
                         requires=Requires.item(song_item),
                     )
 
@@ -197,7 +205,7 @@ def __define_world_spec() -> WorldSpec:
         default=False,
     )[0]
     member_songs_category = spec.define_category(
-        "Member Songs",
+        "Songs - Membership",
         yaml_option=[member_songs_option],
     )[0]
     __define_song_list(SongSpec.member_songs, member_songs_category)
@@ -209,7 +217,7 @@ def __define_world_spec() -> WorldSpec:
         default=False,
     )[0]
     blaster_songs_category = spec.define_category(
-        "BLASTER GATE",
+        "Songs - BLASTER GATE",
         yaml_option=[blaster_songs_option],
     )[0]
     __define_song_list(SongSpec.blaster_songs, blaster_songs_category)
@@ -217,27 +225,53 @@ def __define_world_spec() -> WorldSpec:
     for pack in PackSongSpec.all_song_packs:
         __define_song_list(
             (song for song in SongSpec.pack_songs if song.pack == pack),
-            f"Song Packs - {pack}",
+            f"Songs - {pack}",
         )
 
     # endregion songs
 
     # region other items
+    @dataclass
+    class ScoreHelperSpec:
+        bonus: int  # as x.0000
+        count: int
+        early: int = 0
+
+    score_helpers = [
+        ScoreHelperSpec(bonus=1, count=25, early=5),
+        ScoreHelperSpec(bonus=5, count=12, early=1),
+        ScoreHelperSpec(bonus=10, count=6),
+        ScoreHelperSpec(bonus=20, count=3),
+        ScoreHelperSpec(bonus=50, count=1),
+    ]
+
+    for score_helper in score_helpers:
+        score_helper_item = spec.define_item(
+            f"Score +{score_helper.bonus}.0000",
+            category=[
+                "Helpers - Score (Consume after a play for a score bonus to meet pass requirement)"
+            ],
+            useful=True,
+            count=score_helper.count,
+        )
+
+        if score_helper.early > 0:
+            score_helper_item["early"] = score_helper.early
 
     gate_track = ["S", "AAA+", "AAA", "AA+", "AA", "A+", "A", "TRACK CLEAR"]
     gate_item = spec.define_item(
         "Progressive Gate",
         category=[
-            f"Progressive Gate (Your passing requirement, which goes down with each item: {" -> ".join (gate_track)})"
+            f"Progressive Gate (Passing requirement: {", ".join (f"{index + 1} = {item}" for index, item in enumerate(gate_track))})"
         ],
         count=len(gate_track),
         progression=True,
         starting_count=1,
-        early=2,
+        early=False,
     )
 
     traps_category = (
-        "Traps (The next track must be made with a trap, then you clear it)"
+        "Traps (The next track must be made with an uncleared trap, then clear it)"
     )
     spec.define_item("Speed 4.0", category=[traps_category], trap=True, count=3)
     spec.define_item("Speed 12.0", category=[traps_category], trap=True, count=3)
@@ -246,25 +280,27 @@ def __define_world_spec() -> WorldSpec:
 
     spec.define_item(
         "Clear Trap",
-        category=["Clear Trap (Consume to clear a single trap)"],
+        category=["Helpers - Clear Trap (Consume to clear a single trap)"],
         useful=True,
         count=10,
+        early=3,
     )
 
     spec.define_item(
         "Song Skip",
         category=[
-            "Song Skip (Consume to complete a song location without clearing it)"
+            "Helpers - Song Skip (Consume to complete a song location without clearing it)"
         ],
         useful=True,
         count=5,
+        early=1,
     )
 
     # endregion other items
 
     spec.define_location(
-        "Boss Song",
-        category="Boss Song",
+        "Finale",
+        category="Finale (Pick a boss song to conclude your multiworld!)",
         requires=Requires.all_of(
             Requires.category(songs_category, "70%"),
             Requires.item(gate_item, 5),

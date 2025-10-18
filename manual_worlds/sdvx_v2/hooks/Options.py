@@ -79,13 +79,46 @@ Available packs:
 """
 
 
+class ForceInclude(OptionSet):
+    """
+    Force these charts to be included in the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+
+    Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+
+    Example: "BLIZZARD BEAT - MXM 17"
+
+    Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+
+    Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    """
+
+    display_name = "Force Include"
+
+
+class ForceExclude(OptionSet):
+    """
+    Force these charts to be excluded from the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+
+    Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+
+    Example: "BLIZZARD BEAT - MXM 17"
+
+    Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+
+    Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    """
+
+    display_name = "Force Exclude"
+
+
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(
     options: dict[str, Type[Option[Any]]],
 ) -> dict[str, Type[Option[Any]]]:
-
     options["chart_count_per_level"] = ChartCountPerLevel
     options["include_song_packs"] = SongPacks
+    options["force_include"] = ForceInclude
+    options["force_exclude"] = ForceExclude
 
     return options
 
