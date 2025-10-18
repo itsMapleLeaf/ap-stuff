@@ -86,27 +86,58 @@ SongSpec.blaster_songs = [
 ]
 SongSpec.pack_songs = [SongSpec.from_data(data) for data in SongSpec.songs_data["pack"]]
 
-SongSpec.packs = {song.pack for song in SongSpec.pack_songs if song.pack != None}
-
 
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
     songs_category = spec.define_category("Songs", starting_count=7)[0]
 
-    for song in SongSpec.base_songs:
-        for chart in song.charts:
-            song_item = spec.define_item(
-                chart.item_name,
-                category=[songs_category, "Base Songs"],
-                progression=True,
-            )["name"]
+    def __define_songs(song_list: list[SongSpec], other_category: str | None = None):
+        for song in song_list:
+            for chart in song.charts:
+                song_item = spec.define_item(
+                    chart.item_name,
+                    category=[
+                        songs_category,
+                        *(other_category if other_category != None else []),
+                    ],
+                    progression=True,
+                )
 
-            spec.define_location(
-                chart.location_name,
-                category=[songs_category, "Base Songs"],
-                requires=Requires.item(song_item),
-            )
+                spec.define_location(
+                    chart.location_name,
+                    category=[
+                        songs_category,
+                        *(other_category if other_category != None else []),
+                    ],
+                    requires=Requires.item(song_item),
+                )
+
+    __define_songs(SongSpec.base_songs)
+
+    member_songs_option = spec.define_toggle_option(
+        "enable_member_songs",
+        display_name="Enable Membership songs",
+        description="Enable songs that require a membership subscription",
+        default=False,
+    )[0]
+    member_songs_category = spec.define_category(
+        "Member Songs",
+        yaml_option=[member_songs_option],
+    )[0]
+    __define_songs(SongSpec.member_songs, member_songs_category)
+
+    blaster_songs_option = spec.define_toggle_option(
+        "enable_blaster_gate_songs",
+        display_name="Enable BLASTER GATE songs",
+        description="Enable songs unlocked through BLASTER GATE",
+        default=False,
+    )[0]
+    blaster_songs_category = spec.define_category(
+        "BLASTER GATE",
+        yaml_option=[blaster_songs_option],
+    )[0]
+    __define_songs(SongSpec.blaster_songs, blaster_songs_category)
 
     spec.define_location(
         "Boss Song",

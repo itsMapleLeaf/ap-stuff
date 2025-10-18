@@ -32,9 +32,6 @@ import logging
 ########################################################################################
 
 
-__charts = [chart for song in SongSpec.base_songs for chart in song.charts]
-
-
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
@@ -49,10 +46,24 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         get_option_value(multiworld, player, "chart_count_per_level"),
     )
 
+    available_charts = [chart for song in SongSpec.base_songs for chart in song.charts]
+
+    if is_option_enabled(multiworld, player, "enable_member_songs"):
+        available_charts.extend(
+            chart for song in SongSpec.member_songs for chart in song.charts
+        )
+
+    if is_option_enabled(multiworld, player, "enable_blaster_songs"):
+        available_charts.extend(
+            chart for song in SongSpec.blaster_songs for chart in song.charts
+        )
+
     player_chart_pools[player] = []
 
     for level, count in chart_count_per_level.items():
-        charts_with_level = [chart for chart in __charts if chart.level == int(level)]
+        charts_with_level = [
+            chart for chart in available_charts if chart.level == int(level)
+        ]
         if len(charts_with_level) < count:
             logging.warning(
                 f"[SDVX] [Player {player}] Wanted {count} charts with level {level}, only found {len(charts_with_level)}"
