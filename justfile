@@ -27,7 +27,7 @@ generate game: build
 
     uv run -m scripts.create_generate_players_dir "{{ game }}"
 
-    {{ archipelago_generate }} \
+    uv run -m archipelago.Generate \
         --player_files_path "{{ generate_players_dir }}" \
         --outputpath "{{ generate_output_dir }}"
 
@@ -49,9 +49,10 @@ create world:
 inspect world *args:
     uv run -m scripts.inspect {{ world }} {{ args }}
 
+# run any arbitrary script
 run script *args:
     uv run -m {{ script }} {{ args }}
 
-# update songs for the sound voltex manual
-fetch-sdvx-songs:
-    uv run -m {{ worlds_dirname }}.sdvx.scripts.fetch_songs
+# generates default YAML options - same as "Generate Template Options" in AP launcher
+gen-yamls:
+    uv run -m scripts.gen_yamls
