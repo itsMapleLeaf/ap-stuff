@@ -27,7 +27,7 @@ class GameData(TypedDict):
 
 
 class ItemArgs(TypedDict):
-    category: NotRequired[str | list[str]]
+    category: NotRequired[list[str]]
     count: NotRequired[str | int]
     value: NotRequired[dict[str, int]]
     progression: NotRequired[bool]

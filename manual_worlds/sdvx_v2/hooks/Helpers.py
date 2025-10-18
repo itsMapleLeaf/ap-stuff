@@ -8,6 +8,9 @@ if TYPE_CHECKING:
 # Use this if you want to override the default behavior of is_option_enabled
 # Return True to enable the category, False to disable it, or None to use the default behavior
 def before_is_category_enabled(multiworld: MultiWorld, player: int, category_name: str) -> Optional[bool]:
+    if hasattr(multiworld, "generation_is_fake"):
+        return None
+
     return None
 
 
@@ -16,12 +19,14 @@ def before_is_category_enabled(multiworld: MultiWorld, player: int, category_nam
 def before_is_item_enabled(
     multiworld: MultiWorld, player: int, item: dict
 ) -> Optional[bool]:
-    from .State import player_chart_pools
+    if hasattr(multiworld, "generation_is_fake"):
+        return None
 
-    if "Songs" in item["category"]:
-        return any(
-            chart.item_name == item["name"] for chart in player_chart_pools[player]
-        )
+    from ..spec import songs_category_name
+    from .State import ChartPool
+
+    if songs_category_name in item["category"]:
+        return item["name"] in ChartPool.for_player(player).enabled_item_names
 
     return None
 
@@ -31,12 +36,13 @@ def before_is_item_enabled(
 def before_is_location_enabled(
     multiworld: MultiWorld, player: int, location: dict
 ) -> Optional[bool]:
-    from .State import player_chart_pools
+    if hasattr(multiworld, "generation_is_fake"):
+        return None
 
-    if "Songs" in location["category"]:
-        return any(
-            chart.location_name == location["name"]
-            for chart in player_chart_pools[player]
-        )
+    from ..spec import songs_category_name
+    from .State import ChartPool
+
+    if songs_category_name in location["category"]:
+        return location["name"] in ChartPool.for_player(player).enabled_location_names
 
     return None

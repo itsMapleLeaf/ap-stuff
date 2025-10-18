@@ -1,4 +1,5 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
+from os import getenv
 from typing import cast
 from ..spec import SongSpec
 from worlds.AutoWorld import World
@@ -39,7 +40,21 @@ def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int)
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    from .State import player_chart_pools
+    log_context = f"[{game_table['game']}][Player {player} \"{world.player_name}\"]"
+    log_debug_enabled = not not getenv("DEBUG")
+
+    def log_debug(msg: str):
+        if not log_debug_enabled:
+            return
+        logging.info(f"[debug] {log_context} {msg}")
+
+    def log_warning(msg: str):
+        logging.warning(f"[warn] {log_context} {msg}")
+
+    if log_debug_enabled:
+        log_debug("Debug logging enabled")
+
+    from .State import ChartPool
 
     chart_count_per_level = cast(
         dict[str, int],
@@ -52,25 +67,52 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         available_charts.extend(
             chart for song in SongSpec.member_songs for chart in song.charts
         )
+        log_debug("Including member songs")
 
-    if is_option_enabled(multiworld, player, "enable_blaster_songs"):
+    if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
         available_charts.extend(
             chart for song in SongSpec.blaster_songs for chart in song.charts
         )
+        log_debug("Including BLASTER GATE songs")
 
-    player_chart_pools[player] = []
+    included_song_packs = set(
+        cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
+    )
+
+    if len(included_song_packs) > 0:
+        log_debug(f"Including songs from {len(included_song_packs)} song packs")
+
+    available_charts.extend(
+        chart
+        for song in SongSpec.pack_songs
+        if song.pack in included_song_packs
+        for chart in song.charts
+    )
+
+    log_debug(f"{len(available_charts)} total charts to pick from")
+
+    pool = ChartPool.for_player(player)
 
     for level, count in chart_count_per_level.items():
         charts_with_level = [
             chart for chart in available_charts if chart.level == int(level)
         ]
-        if len(charts_with_level) < count:
-            logging.warning(
-                f"[SDVX] [Player {player}] Wanted {count} charts with level {level}, only found {len(charts_with_level)}"
+
+        actual_included_count = min(count, len(charts_with_level))
+
+        if actual_included_count < count:
+            log_warning(
+                f"Wanted {count} charts with level {level}, only found {actual_included_count}"
             )
-        player_chart_pools[player].extend(
-            world.random.sample(charts_with_level, min(count, len(charts_with_level)))
+
+        log_debug(
+            f"Including {actual_included_count}/{len(charts_with_level)} songs at level {level}"
         )
+
+        pool.add_charts(*world.random.sample(charts_with_level, actual_included_count))
+
+    log_debug(f"Selected {len(pool.charts)} charts for the pool")
+
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):

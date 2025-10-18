@@ -4,6 +4,8 @@ from Options import (
     FreeText,
     NumericOption,
     OptionDict,
+    OptionList,
+    OptionSet,
     Toggle,
     DefaultOnToggle,
     Choice,
@@ -13,6 +15,7 @@ from Options import (
     OptionGroup,
     PerGameCommonOptions,
 )
+from ..spec import PackSongSpec
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
@@ -46,26 +49,46 @@ from typing import Type, Any
 #     range_end = 50
 #     default = 50
 
+
+class ChartCountPerLevel(OptionDict):
+    """
+    The number of charts you want to include per level.
+    The sum is the total number of charts you'll have available.
+    """
+
+    display_name = "Chart Count per Level"
+
+    default = {
+        "17": 10,
+        "18": 40,
+        "19": 15,
+        "20": 5,
+    }
+
+
+class SongPacks(OptionSet):
+    display_name = "Song Packs"
+
+
+SongPacks.__doc__ = f"""
+Include songs from these purchasable song packs.
+Comment out the ones you don't have with a '#' in front of the line.
+
+Available packs:
+{"\n".join(f"- {pack}" for pack in PackSongSpec.all_song_packs)}
+"""
+
+
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
-def before_options_defined(options: dict[str, Type[Option[Any]]]) -> dict[str, Type[Option[Any]]]:
-
-    class ChartCountPerLevel(OptionDict):
-        """The number of charts you want to include per level.
-
-        The sum is the total number of charts you'll have available."""
-
-        display_name = "Chart Count per Level"
-
-        default = {
-            "17": 10,
-            "18": 40,
-            "19": 15,
-            "20": 5,
-        }
+def before_options_defined(
+    options: dict[str, Type[Option[Any]]],
+) -> dict[str, Type[Option[Any]]]:
 
     options["chart_count_per_level"] = ChartCountPerLevel
+    options["include_song_packs"] = SongPacks
 
     return options
+
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
 def after_options_defined(options: Type[PerGameCommonOptions]):
@@ -79,10 +102,14 @@ def after_options_defined(options: Type[PerGameCommonOptions]):
 
     pass
 
+
 # Use this Hook if you want to add your Option to an Option group (existing or not)
-def before_option_groups_created(groups: dict[str, list[Type[Option[Any]]]]) -> dict[str, list[Type[Option[Any]]]]:
+def before_option_groups_created(
+    groups: dict[str, list[Type[Option[Any]]]],
+) -> dict[str, list[Type[Option[Any]]]]:
     # Uses the format groups['GroupName'] = [TotalCharactersToWinWith]
     return groups
+
 
 def after_option_groups_created(groups: list[OptionGroup]) -> list[OptionGroup]:
     return groups
