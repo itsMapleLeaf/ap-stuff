@@ -120,7 +120,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         )
 
     all_charts_by_item_name = {
-        chart.item_name: chart
+        chart.song.item_name: chart
         for song in (
             SongSpec.base_songs
             + SongSpec.member_songs
@@ -148,7 +148,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
             chart
             for chart in available_charts
             if chart.level == int(level)
-            if chart.item_name not in force_exclude
+            if chart.song.item_name not in force_exclude
         ]
 
         actual_included_count = min(count, len(charts_with_level))

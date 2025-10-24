@@ -18,7 +18,7 @@ class ChartPool:
 
     @property
     def enabled_item_names(self):
-        return {chart.item_name for chart in self.charts}
+        return {chart.song.item_name for chart in self.charts}
 
     @property
     def enabled_location_names(self):

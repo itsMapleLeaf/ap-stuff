@@ -3,8 +3,10 @@ import dataclasses
 import hashlib
 from math import floor
 import re
-from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict
+from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict, Unpack
 from unicodedata import category
+
+from .types import ItemArgs
 
 from .requires import Requires
 from ..Helpers import load_data_file
@@ -38,27 +40,6 @@ class SongSpec:
     pack_songs: ClassVar[list["PackSongSpec"]]
     packs: ClassVar[set[str]]
 
-    @dataclass
-    class Chart:
-        diff: str
-        level: int
-        song: "SongSpec"
-
-        @property
-        def summary(self):
-            return f"{self.diff.upper()} {self.level}"
-
-        @property
-        def item_name(self):
-            return f"{self.song.safe_title} - {self.summary}"
-
-        @property
-        def location_names(self):
-            return [
-                f"{self.song.title} - {self.summary} - Track Clear",
-                f"{self.song.title} - {self.summary} - Gate Clear",
-            ]
-
     @staticmethod
     def from_data(data: SongData) -> "SongSpec":
         spec = SongSpec(
@@ -78,6 +59,27 @@ class SongSpec:
     @property
     def safe_title(self):
         return re.sub(r"\s*[:|]\s*", " ", self.title)
+
+    @property
+    def item_name(self):
+        return f"{self.safe_title}"
+
+    @dataclass
+    class Chart:
+        diff: str
+        level: int
+        song: "SongSpec"
+
+        @property
+        def summary(self):
+            return f"{self.diff.upper()} {self.level}"
+
+        @property
+        def location_names(self):
+            return [
+                f"{self.song.title} - {self.summary} - Track Clear",
+                f"{self.song.title} - {self.summary} - Gate Clear",
+            ]
 
 
 @dataclass
@@ -158,37 +160,33 @@ def __define_world_spec() -> WorldSpec:
 
     songs_category = spec.define_category(songs_category_name, starting_count=3)[0]
 
-    def __define_song_list(
-        song_list: Iterable[SongSpec],
-        other_category: str | None = None,
+    def define_song_list(
+        song_list: Iterable[SongSpec], other_category: str | None = None
     ):
-        categories = [
-            songs_category,
-            *([other_category] if other_category != None else []),
-        ]
-
         for song in song_list:
+            if song.item_name in spec.items:
+                if other_category:
+                    existing = spec.items[song.item_name]
+                    existing["category"] = spec.items[song.item_name].get(
+                        "category", []
+                    )
+                    existing["category"].append(other_category)
+                continue
+
+            song_item = spec.define_item(
+                song.item_name,
+                category=[songs_category],
+                progression=True,
+            )
+
             for chart in song.charts:
-                if chart.item_name in spec.items:
-                    if other_category:
-                        existing = spec.items[chart.item_name]
-                        existing["category"] = spec.items[chart.item_name].get(
-                            "category", []
-                        )
-                        existing["category"].append(other_category)
-                    continue
-
-                song_item = spec.define_item(
-                    chart.item_name,
-                    category=categories,
-                    progression=True,
-                )
-
                 for location_name in chart.location_names:
                     spec.define_location(
                         location_name,
                         category=[
-                            *categories,
+                            songs_category,
+                            *([other_category] if other_category != None else []),
+                            f"Songs - {song.title}",
                             location_name.endswith("Track Clear")
                             and "Goals - Track Clear"
                             or "Goals - Gate Clear",
@@ -196,7 +194,7 @@ def __define_world_spec() -> WorldSpec:
                         requires=Requires.item(song_item),
                     )
 
-    __define_song_list(SongSpec.base_songs)
+    define_song_list(SongSpec.base_songs)
 
     member_songs_option = spec.define_toggle_option(
         "enable_member_songs",
@@ -205,10 +203,10 @@ def __define_world_spec() -> WorldSpec:
         default=False,
     )[0]
     member_songs_category = spec.define_category(
-        "Songs - Membership",
+        "Groups - Membership",
         yaml_option=[member_songs_option],
     )[0]
-    __define_song_list(SongSpec.member_songs, member_songs_category)
+    define_song_list(SongSpec.member_songs, member_songs_category)
 
     blaster_songs_option = spec.define_toggle_option(
         "enable_blaster_gate_songs",
@@ -217,46 +215,34 @@ def __define_world_spec() -> WorldSpec:
         default=False,
     )[0]
     blaster_songs_category = spec.define_category(
-        "Songs - BLASTER GATE",
+        "Groups - BLASTER GATE",
         yaml_option=[blaster_songs_option],
     )[0]
-    __define_song_list(SongSpec.blaster_songs, blaster_songs_category)
+    define_song_list(SongSpec.blaster_songs, blaster_songs_category)
 
     for pack in PackSongSpec.all_song_packs:
-        __define_song_list(
+        define_song_list(
             (song for song in SongSpec.pack_songs if song.pack == pack),
-            f"Songs - {pack}",
+            f"Groups - {pack}",
         )
 
     # endregion songs
 
     # region other items
-    @dataclass
-    class ScoreHelperSpec:
-        bonus: int  # as x.0000
-        count: int
-        early: int = 0
-
-    score_helpers = [
-        ScoreHelperSpec(bonus=1, count=25, early=5),
-        ScoreHelperSpec(bonus=5, count=12, early=1),
-        ScoreHelperSpec(bonus=10, count=6),
-        ScoreHelperSpec(bonus=20, count=3),
-        ScoreHelperSpec(bonus=50, count=1),
-    ]
-
-    for score_helper in score_helpers:
-        score_helper_item = spec.define_item(
-            f"Score +{score_helper.bonus}.0000",
-            category=[
+    def define_score_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
+        args.setdefault(
+            "category",
+            [
                 "Helpers - Score (Consume after a play for a score bonus to meet pass requirement)"
             ],
-            useful=True,
-            count=score_helper.count,
         )
+        spec.define_item(f"Score +{bonus}.0000", **args)
 
-        if score_helper.early > 0:
-            score_helper_item["early"] = score_helper.early
+    define_score_helper(bonus=1, count=25, filler=True)
+    define_score_helper(bonus=5, count=12, useful=True)
+    define_score_helper(bonus=10, count=6, useful=True)
+    define_score_helper(bonus=20, count=3, useful=True)
+    define_score_helper(bonus=50, count=1, useful=True)
 
     gate_track = ["S", "AAA+", "AAA", "AA+", "AA", "A+", "A", "TRACK CLEAR"]
     gate_item = spec.define_item(
@@ -283,7 +269,7 @@ def __define_world_spec() -> WorldSpec:
         category=["Helpers - Clear Trap (Consume to clear a single trap)"],
         useful=True,
         count=10,
-        early=3,
+        early=2,
     )
 
     spec.define_item(
@@ -300,7 +286,7 @@ def __define_world_spec() -> WorldSpec:
 
     spec.define_location(
         "Finale",
-        category="Finale (Pick a boss song to conclude your multiworld!)",
+        category="Finale (Pick a boss song to conclude your playthrough!)",
         requires=Requires.all_of(
             Requires.category(songs_category, "70%"),
             Requires.item(gate_item, 5),
