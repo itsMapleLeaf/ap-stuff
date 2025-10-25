@@ -1,0 +1,6 @@
+{
+    "$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
+    "game": "GolfWithYourFriends_TestingChaos",
+    "creator": "MapleLeaf",
+    "filler_item_name": "Take a Break"
+}
