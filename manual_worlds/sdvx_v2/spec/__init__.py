@@ -157,7 +157,6 @@ def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
     # region songs
-
     songs_category = spec.define_category(songs_category_name, starting_count=3)[0]
 
     def define_song_list(
@@ -225,26 +224,20 @@ def __define_world_spec() -> WorldSpec:
             (song for song in SongSpec.pack_songs if song.pack == pack),
             f"Groups - {pack}",
         )
-
     # endregion songs
 
-    # region other items
-    def define_score_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
-        args.setdefault(
-            "category",
-            [
-                "Helpers - Score (Consume after a play for a score bonus to meet pass requirement)"
-            ],
-        )
-        spec.define_item(f"Score +{bonus}.0000", **args)
+    # region progressive gate
+    gate_track = [
+        "S Rank",
+        "AAA+ Rank",
+        "AAA Rank",
+        "AA+ Rank",
+        "AA Rank",
+        "A+ Rank",
+        "A Rank",
+        "Any Clear",
+    ]
 
-    define_score_helper(bonus=1, count=25, filler=True)
-    define_score_helper(bonus=5, count=12, useful=True)
-    define_score_helper(bonus=10, count=6, useful=True)
-    define_score_helper(bonus=20, count=3, useful=True)
-    define_score_helper(bonus=50, count=1, useful=True)
-
-    gate_track = ["S", "AAA+", "AAA", "AA+", "AA", "A+", "A", "TRACK CLEAR"]
     gate_item = spec.define_item(
         "Progressive Gate",
         category=[
@@ -256,20 +249,67 @@ def __define_world_spec() -> WorldSpec:
         early=False,
     )
 
-    traps_category = (
-        "Traps (The next track must be made with an uncleared trap, then clear it)"
-    )
-    spec.define_item("Speed 4.0", category=[traps_category], trap=True, count=3)
-    spec.define_item("Speed 12.0", category=[traps_category], trap=True, count=3)
-    spec.define_item("Random", category=[traps_category], trap=True, count=3)
-    spec.define_item("Play First Random", category=[traps_category], trap=True, count=5)
+    for gate_index, requirement in enumerate(gate_track):
+        spec.define_location(
+            f"Gate: {requirement}",
+            category=["Progressive Gate"],
+            requires=Requires.item(gate_item, gate_index + 1),
+        )
+    # endregion progressive gate
 
+    # region other items
+    def define_score_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
+        args.setdefault(
+            "category",
+            [
+                "Helpers - Score (Consume after a play for a score bonus to meet pass requirement)"
+            ],
+        )
+        spec.define_item(f"Score +{bonus}.0000", **args)
+
+    # define_score_helper(bonus=1, count=25, filler=True)
+    # define_score_helper(bonus=5, count=12, filler=True)
+    # define_score_helper(bonus=10, count=6, filler=True)
+    # define_score_helper(bonus=20, count=3, useful=True)
+    # define_score_helper(bonus=50, count=1, useful=True)
+    define_score_helper(bonus=5, count=10, filler=True)
+
+    def define_gauge_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
+        args.setdefault(
+            "category",
+            [
+                "Helpers - Gauge (Consume after a play for a health gauge bonus to meet clear requirement)"
+            ],
+        )
+        spec.define_item(f"Gauge +{bonus}%", **args)
+
+    # define_gauge_helper(bonus=1, count=10, filler=True)
+    # define_gauge_helper(bonus=2, count=5, filler=True)
+    # define_gauge_helper(bonus=5, count=3, useful=True)
+    # define_gauge_helper(bonus=10, count=2, useful=True)
+    # define_gauge_helper(bonus=20, count=1, useful=True)
+    define_gauge_helper(bonus=5, count=10, filler=True)
+
+    mod_traps_category = (
+        "Mod Traps (The next check must be made with an uncleared trap, then clear it)"
+    )
+    spec.define_item("Speed 4.0", category=[mod_traps_category], trap=True, count=2)
+    spec.define_item("Speed 12.0", category=[mod_traps_category], trap=True, count=2)
+    spec.define_item("Random", category=[mod_traps_category], trap=True)
+
+    blocker_traps_category = (
+        "Russain Roulette (Choose random track and pass first pick)"
+    )
     spec.define_item(
-        "Clear Trap",
-        category=["Helpers - Clear Trap (Consume to clear a single trap)"],
-        useful=True,
-        count=10,
-        early=2,
+        "Russain Roulette (Normal Clear)",
+        category=[blocker_traps_category],
+        trap=True,
+        count=3,
+    )
+    spec.define_item(
+        "Russain Roulette (Gate Clear)",
+        category=[blocker_traps_category],
+        trap=True,
     )
 
     spec.define_item(
@@ -277,18 +317,30 @@ def __define_world_spec() -> WorldSpec:
         category=[
             "Helpers - Song Skip (Consume to complete a song location without clearing it)"
         ],
-        useful=True,
-        count=5,
-        early=1,
+        filler=True,
+        count=3,
     )
 
     # endregion other items
 
+    chain_count = 10
+    chain_required = 7
+
+    chain_item = spec.define_item(
+        "CHAIN",
+        category=[
+            f"CHAIN (Victory item, {chain_required} / {chain_count} needed to win)"
+        ],
+        count=chain_count,
+        progression=True,
+        early=False,
+    )
+
     spec.define_location(
-        "Finale",
+        "PERFECT ULTIMATE CHAIN",
         category="Finale (Pick a boss song to conclude your playthrough!)",
         requires=Requires.all_of(
-            Requires.category(songs_category, "70%"),
+            Requires.item(chain_item, chain_required),
             Requires.item(gate_item, 5),
         ),
         victory=True,
