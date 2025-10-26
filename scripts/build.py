@@ -4,7 +4,7 @@ import sys
 from tempfile import TemporaryDirectory
 
 from .inspect import inspect_manual_world
-from .paths import user_archipelago_worlds_dir
+from .lib.paths import user_archipelago_worlds_dir
 
 
 def build_apworld(
@@ -41,7 +41,7 @@ def build_apworld(
 
 
 def build_all_project_manual_worlds():
-    from .manual_worlds import list_project_manual_worlds
+    from .lib.manual_worlds import list_project_manual_worlds
 
     available_worlds = [*list_project_manual_worlds()]
 

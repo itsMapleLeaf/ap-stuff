@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Final
 
 
-project_dir: Final = Path(__file__).parent.parent
+project_dir: Final = Path(__file__).parent.parent.parent
 project_worlds_dir: Final = project_dir / "manual_worlds"
 
 # user_archipelago_dir: Final = Path("C:/ProgramData/Archipelago")

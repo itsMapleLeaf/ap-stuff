@@ -87,7 +87,7 @@ def load_manual_world_module(src_dir: Path, module_name: str) -> object:
 
 
 def __main() -> None:
-    from .paths import project_worlds_dir, user_archipelago_worlds_dir
+    from .lib.paths import project_worlds_dir, user_archipelago_worlds_dir
 
     @dataclass
     class Args:

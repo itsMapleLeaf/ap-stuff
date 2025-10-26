@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from typing import Generator
 
-from .inspect import ManualWorldData, inspect_manual_world
-from .build import build_apworld
+from ..inspect import ManualWorldData, inspect_manual_world
+from ..build import build_apworld
 from .paths import project_worlds_dir
 
 

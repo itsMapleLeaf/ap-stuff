@@ -9,9 +9,9 @@ from zipfile import ZipFile
 import yaml
 
 from .lib.args_override import ArgsOverride
-from .manual_worlds import list_project_manual_worlds
+from .lib.manual_worlds import list_project_manual_worlds
 from .build import build_apworld
-from .paths import dist_generate_dir, dist_generate_players_dir, project_dir
+from .lib.paths import dist_generate_dir, dist_generate_players_dir, project_dir
 
 
 def __main():

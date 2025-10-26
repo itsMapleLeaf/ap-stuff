@@ -4,7 +4,7 @@ from shutil import copy
 from sys import argv
 from typing import Generator, TypedDict
 import yaml
-from .paths import project_dir
+from .lib.paths import project_dir
 
 
 def list_player_file_paths(game_name: str) -> Generator[Path]:
