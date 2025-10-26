@@ -51,9 +51,11 @@ def __main():
     print(f"⚙️  Running generator")
     subprocess.run(
         [
-            *["uv", "run", "-m", "archipelago.Generate"],
-            *["--player_files_path", dist_generate_players_dir],
-            *["--outputpath", dist_generate_dir],
+            # fmt: off
+            "uv", "run", "-m", "archipelago.Generate",
+            "--player_files_path", dist_generate_players_dir,
+            "--outputpath", dist_generate_dir,
+            # fmt: on
         ],
         cwd=project_dir,
     )
