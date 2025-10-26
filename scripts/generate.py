@@ -4,18 +4,14 @@ import glob
 import os
 from pathlib import Path
 import shutil
-import subprocess
 from typing import Final, Generator, Iterable
 from zipfile import ZipFile
 import yaml
 
+from .lib.args_override import ArgsOverride
 from .manual_worlds import list_project_manual_worlds
 from .build import build_apworld
-from .paths import (
-    dist_generate_dir,
-    dist_generate_players_dir,
-    project_dir,
-)
+from .paths import dist_generate_dir, dist_generate_players_dir, project_dir
 
 
 def __main():
@@ -59,16 +55,21 @@ def __main():
 
     print(f"⚙️  Running generator")
 
-    subprocess.run(
-        [
-            # fmt: off
-            "uv", "run", "-m", "archipelago.Generate",
-            "--player_files_path", dist_generate_players_dir,
-            "--outputpath", output_dir,
-            # fmt: on
-        ],
-        cwd=project_dir,
-    )
+    # the generator isn't made to be invoked from a python script,
+    # and the cleanest, most future-proof way to invoke it
+    # is to override args so it parses them as if it were run via CLI
+    #
+    # gross, but better than subprocess!
+    with ArgsOverride(
+        # fmt: off
+        "--player_files_path", dist_generate_players_dir,
+        "--outputpath", output_dir,
+        # fmt: on
+    ):
+        import Generate, Main
+
+        (generator_args, generator_seed) = Generate.main()
+        Main.main(generator_args, generator_seed)
 
     print(f"⚙️  Extracting files")
 
@@ -77,7 +78,6 @@ def __main():
         generated_output_file.extractall(output_dir)
 
     print(f"✅  Done")
-
 
 class MultiWorldConfig:
     def __init__(self, path: Path):
