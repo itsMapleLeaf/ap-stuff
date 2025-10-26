@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 import dataclasses
 import importlib.util
 import json
@@ -10,7 +10,6 @@ from tempfile import TemporaryDirectory
 from typing import Any, Optional
 from zipfile import ZipFile
 from dataclasses_json import DataClassJsonMixin
-from .paths import worlds_dir, user_archipelago_worlds_dir
 import argparse
 
 
@@ -22,7 +21,7 @@ class GameData(DataClassJsonMixin):
 
 
 @dataclass
-class WorldData:
+class ManualWorldData:
     game_table: GameData
     item_table: Optional[list]
     location_table: Optional[list]
@@ -30,8 +29,6 @@ class WorldData:
     option_table: Optional[dict]
     region_table: Optional[dict]
     meta_table: Optional[dict]
-    item_count: int = field(init=False)
-    location_count: int = field(init=False)
 
     def __post_init__(self) -> None:
         self.item_count = (
@@ -42,10 +39,10 @@ class WorldData:
         self.location_count = len(self.location_table) if self.location_table else 0
 
 
-def inspect_manual_world(src_dir: Path) -> WorldData:
+def inspect_manual_world(src_dir: Path) -> ManualWorldData:
     data_module: Any = load_manual_world_module(src_dir, "Data")
 
-    return WorldData(
+    return ManualWorldData(
         game_table=GameData.from_dict(data_module.game_table),
         item_table=__safe_index(data_module, "item_table"),
         location_table=__safe_index(data_module, "location_table"),
@@ -90,6 +87,7 @@ def load_manual_world_module(src_dir: Path, module_name: str) -> object:
 
 
 def __main() -> None:
+    from .paths import project_worlds_dir, user_archipelago_worlds_dir
 
     @dataclass
     class Args:
@@ -108,8 +106,8 @@ def __main() -> None:
     parser.parse_args(namespace=args)
 
     potential_world_src_paths = [
-        worlds_dir / args.world,
-        worlds_dir / args.world / "src",
+        project_worlds_dir / args.world,
+        project_worlds_dir / args.world / "src",
         user_archipelago_worlds_dir / f"{args.world}.apworld",
         user_archipelago_worlds_dir / args.world,
     ]

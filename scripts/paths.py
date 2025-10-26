@@ -3,7 +3,7 @@ from typing import Final
 
 
 project_dir: Final = Path(__file__).parent.parent
-worlds_dir: Final = project_dir / "manual_worlds"
+project_worlds_dir: Final = project_dir / "manual_worlds"
 
 # user_archipelago_dir: Final = Path("C:/ProgramData/Archipelago")
 user_archipelago_dir: Final = project_dir / "archipelago"
