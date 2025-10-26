@@ -7,54 +7,10 @@ from pathlib import Path
 import random
 import sys
 from tempfile import TemporaryDirectory
-from typing import Any, Optional
 from zipfile import ZipFile
-from dataclasses_json import DataClassJsonMixin
 import argparse
 
-
-@dataclass
-class GameData(DataClassJsonMixin):
-    game: str
-    creator: Optional[str] = None
-    player: Optional[str] = None
-
-
-@dataclass
-class ManualWorldData:
-    game_table: GameData
-    item_table: Optional[list]
-    location_table: Optional[list]
-    category_table: Optional[dict]
-    option_table: Optional[dict]
-    region_table: Optional[dict]
-    meta_table: Optional[dict]
-
-    def __post_init__(self) -> None:
-        self.item_count = (
-            sum(item.get("count", 1) for item in self.item_table)
-            if self.item_table
-            else 0
-        )
-        self.location_count = len(self.location_table) if self.location_table else 0
-
-
-def inspect_manual_world(src_dir: Path) -> ManualWorldData:
-    data_module: Any = load_manual_world_module(src_dir, "Data")
-
-    return ManualWorldData(
-        game_table=GameData.from_dict(data_module.game_table),
-        item_table=__safe_index(data_module, "item_table"),
-        location_table=__safe_index(data_module, "location_table"),
-        category_table=__safe_index(data_module, "category_table"),
-        option_table=__safe_index(data_module, "option_table"),
-        region_table=__safe_index(data_module, "region_table"),
-        meta_table=__safe_index(data_module, "meta_table"),
-    )
-
-
-def __safe_index(object: Any, attr: str) -> Any | None:
-    return getattr(object, attr) if hasattr(object, attr) else None
+from .lib.manual_worlds import ManualWorldProject
 
 
 def load_manual_world_module(src_dir: Path, module_name: str) -> object:
@@ -110,6 +66,7 @@ def __main() -> None:
         project_worlds_dir / args.world / "src",
         user_archipelago_worlds_dir / f"{args.world}.apworld",
         user_archipelago_worlds_dir / args.world,
+        Path.cwd() / args.world,
     ]
 
     world_src = next(
@@ -120,7 +77,7 @@ def __main() -> None:
         print(f'Failed to find world "{args.world}"')
         print("Searched paths:")
         for path in potential_world_src_paths:
-            print("-", path)
+            print("-", path.relative_to(Path.cwd()))
         exit(1)
 
     world_data = None
@@ -130,9 +87,9 @@ def __main() -> None:
             with ZipFile(world_src) as world_zip:
                 world_zip.extractall(temp_world_dir)
             world_src = Path(temp_world_dir) / os.listdir(temp_world_dir)[0]
-            world_data = inspect_manual_world(world_src)
+            world_data = ManualWorldProject(src=world_src).inspect()
     else:
-        world_data = inspect_manual_world(world_src)
+        world_data = ManualWorldProject(src=world_src).inspect()
 
     if args.summary:
         print(f"Game: {world_data.game_table.game}")

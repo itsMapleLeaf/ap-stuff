@@ -2,15 +2,12 @@ import argparse
 from dataclasses import dataclass
 import glob
 import os
-from pathlib import Path
 import shutil
-from typing import Final, Generator, Iterable
 from zipfile import ZipFile
-import yaml
 
+from .lib.manual_worlds import find_local_manual_world_projects
+from .lib.multiworld import MultiWorldConfig
 from .lib.args_override import ArgsOverride
-from .lib.manual_worlds import list_project_manual_worlds
-from .build import build_apworld
 from .lib.paths import dist_generate_dir, dist_generate_players_dir, project_dir
 
 
@@ -24,9 +21,7 @@ def __main():
 
     args = parser.parse_args(None, Args())
 
-    multiworld_config = MultiWorldConfig(
-        project_dir / f"config/multiworlds/{args.game_name}.yaml"
-    )
+    multiworld_config = MultiWorldConfig.named(args.game_name)
 
     output_dir = dist_generate_dir
 
@@ -40,10 +35,10 @@ def __main():
         exit(1)
 
     player_config_world_ids = {c.game for c in multiworld_config.player_configs}
-    for manual_world_project in list_project_manual_worlds():
+    for manual_world_project in find_local_manual_world_projects():
         if manual_world_project.world_id in player_config_world_ids:
             print(f"⚙️  Building project world: {manual_world_project.world_id}")
-            build_apworld(manual_world_project.src_dir)
+            manual_world_project.build()
 
     print(f"⚙️  Cleaning up output path")
     shutil.rmtree(output_dir)
@@ -78,33 +73,6 @@ def __main():
         generated_output_file.extractall(output_dir)
 
     print(f"✅  Done")
-
-class MultiWorldConfig:
-    def __init__(self, path: Path):
-        with open(path) as game_file:
-            data: dict = yaml.safe_load(game_file)
-
-        self.path: Final = path
-        self.player_globs: Final[list[str]] = data["players"]
-        self.player_configs: Final = list(self.__load_player_configs())
-
-    def __load_player_configs(self) -> Generator["PlayerConfig"]:
-        for player_config_file_glob in self.player_globs:
-            for player_file_stem in glob.iglob(
-                player_config_file_glob, root_dir="config"
-            ):
-                config_path = project_dir / "config" / player_file_stem
-                with open(config_path, encoding="utf8") as config_file:
-                    # player config files can have multiple configurations specified
-                    configs: Iterable[dict] = yaml.full_load_all(config_file)
-                    for config in configs:
-                        yield PlayerConfig(path=config_path, data=config)
-
-
-class PlayerConfig:
-    def __init__(self, path: Path, data: dict):
-        self.path = path
-        self.game: Final[str] = data["game"]
 
 
 if __name__ == "__main__":
