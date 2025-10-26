@@ -1,4 +1,3 @@
-import logging
 from pathlib import Path
 import shutil
 import sys
@@ -49,11 +48,11 @@ def build_all_project_manual_worlds():
     ] or available_worlds
 
     for world in worlds_to_build:
-        logging.info(f"Building {world.name}...")
+        print(f"Building {world.name}...")
         final_destination_fox_only_no_items = make_apworld(
             world.src_dir, user_archipelago_worlds_dir
         )
-        logging.info(f"Built at {final_destination_fox_only_no_items}")
+        print(f"Built at {final_destination_fox_only_no_items}")
 
 
 if __name__ == "__main__":
