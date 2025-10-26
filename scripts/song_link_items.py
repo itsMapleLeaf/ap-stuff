@@ -2,7 +2,7 @@ import asyncio
 import json
 from typing import Final
 
-from ._paths import project_dir
+from .paths import project_dir
 
 LINKED_SONG_NAMES: Final = [
     "B.B.K.K.B.K.K.",

@@ -10,7 +10,7 @@ from tempfile import TemporaryDirectory
 from typing import Any, Optional
 from zipfile import ZipFile
 from dataclasses_json import DataClassJsonMixin
-from ._paths import worlds_dir, user_archipelago_worlds_dir
+from .paths import worlds_dir, user_archipelago_worlds_dir
 import argparse
 
 

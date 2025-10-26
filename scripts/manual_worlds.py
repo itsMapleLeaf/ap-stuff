@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from typing import Generator
-from ._paths import worlds_dir
+from .paths import worlds_dir
 
 
 @dataclass

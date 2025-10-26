@@ -1,11 +1,12 @@
+import logging
 from pathlib import Path
 import shutil
 import sys
 from tempfile import TemporaryDirectory
 
-from ._manual_worlds import list_project_manual_worlds
+from .manual_worlds import list_project_manual_worlds
 from .inspect import inspect_manual_world
-from ._paths import user_archipelago_worlds_dir
+from .paths import user_archipelago_worlds_dir
 
 
 def make_apworld(src_dir: Path, output_dir: str | Path) -> Path:
@@ -39,7 +40,7 @@ def make_apworld(src_dir: Path, output_dir: str | Path) -> Path:
     )
 
 
-def __main():
+def build_all_project_manual_worlds():
     available_worlds = [*list_project_manual_worlds()]
 
     world_args = set(sys.argv[1:])
@@ -48,12 +49,12 @@ def __main():
     ] or available_worlds
 
     for world in worlds_to_build:
-        print(f"Building {world.name}...")
+        logging.info(f"Building {world.name}...")
         final_destination_fox_only_no_items = make_apworld(
             world.src_dir, user_archipelago_worlds_dir
         )
-        print(f"Built at {final_destination_fox_only_no_items}")
+        logging.info(f"Built at {final_destination_fox_only_no_items}")
 
 
 if __name__ == "__main__":
-    __main()
+    build_all_project_manual_worlds()

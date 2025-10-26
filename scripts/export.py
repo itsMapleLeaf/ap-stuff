@@ -6,7 +6,7 @@ import yaml
 
 from .create_generate_players_dir import list_player_file_paths
 
-from ._paths import project_dir, user_archipelago_worlds_dir
+from .paths import project_dir, user_archipelago_worlds_dir
 
 
 def __main():
