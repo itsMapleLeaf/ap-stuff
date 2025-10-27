@@ -298,16 +298,16 @@ def __define_world_spec() -> WorldSpec:
     spec.define_item("Random", category=[mod_traps_category], trap=True)
 
     blocker_traps_category = (
-        "Russain Roulette (Choose random track and pass first pick)"
+        "Russian Roulette (Choose random, play whatever comes up first)"
     )
     spec.define_item(
-        "Russain Roulette (Normal Clear)",
+        "Russian Roulette (Normal Clear)",
         category=[blocker_traps_category],
         trap=True,
         count=3,
     )
     spec.define_item(
-        "Russain Roulette (Gate Clear)",
+        "Russian Roulette (Gate Clear)",
         category=[blocker_traps_category],
         trap=True,
     )
