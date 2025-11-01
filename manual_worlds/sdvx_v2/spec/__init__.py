@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 import re
-from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict, Unpack
+from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict
 
-from .types import ItemArgs
 
 from .requires import Requires
 from ..Helpers import load_data_file
@@ -71,11 +70,25 @@ class SongSpec:
             return f"{self.diff.upper()} {self.level}"
 
         @property
-        def location_names(self):
+        def locations(self):
             return [
-                f"{self.song.title} - {self.summary} - Track Clear",
-                f"{self.song.title} - {self.summary} - Gate Clear",
+                SongSpec.ChartLocation("score_pass", self),
+                SongSpec.ChartLocation("rate_pass", self),
             ]
+
+        @property
+        def location_names(self):
+            return {loc.name for loc in self.locations}
+
+    @dataclass
+    class ChartLocation:
+        type: Literal["score_pass", "rate_pass"]
+        chart: "SongSpec.Chart"
+
+        @property
+        def name(self):
+            type_text = self.type == "rate_pass" and "Rate Clear" or "Score Clear"
+            return f"{self.chart.song.title} - {self.chart.summary} - {type_text}"
 
 
 @dataclass
@@ -146,47 +159,112 @@ SongSpec.pack_songs = [
     PackSongSpec.from_data(data) for data in SongSpec.songs_data["pack"]
 ]
 
-songs_category_name = "Songs"
+song_item_category_name = "Songs"
+song_location_category_name = "Song Locations"
 
 
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
     # region progressive gate
-    gate_track = [
-        "S Rank",
-        "AAA+ Rank",
-        "AAA Rank",
-        "AA+ Rank",
-        "AA Rank",
-        "A+ Rank",
-        "A Rank",
-        "Any Clear",
-    ]
+    progressive_gate_item_category = spec.define_category(
+        "Progressive Gate", hidden=True
+    )[0]
 
-    gate_item = spec.define_item(
-        "Progressive Gate",
-        category=[
-            f"Progressive Gate (Passing requirement: {", ".join (f"{index + 1} = {item}" for index, item in enumerate(gate_track))})"
+    def define_progressive_gate(gate_name: str, description: str, steps: list[str]):
+        item = spec.define_item(
+            f"Progressive {gate_name} Gate",
+            category=[
+                f"Progressive {gate_name} Gate ({description})",
+                progressive_gate_item_category,
+            ],
+            progression_skip_balancing=True,
+            count=round(len(steps) * 1.5),  # add some extras just in case
+            early=False,
+        )
+
+        for step_index, step in enumerate(steps):
+            spec.define_location(
+                f"{gate_name} Gate: {step}",
+                category=[
+                    f"Progressive {gate_name} Gate (Track your current {gate_name} gate requirement)"
+                ],
+                requires=Requires.item(item, step_index),
+            )
+
+        anomaly_category = "ANOMALY (Play and clear the first randomly-selected chart within your range)"
+
+        anomaly_item_count = 3
+        anomaly_item = spec.define_item(
+            f"ANOMALY ({gate_name} Gate)",
+            category=[anomaly_category],
+            progression_skip_balancing=True,
+            trap=True,
+            count=anomaly_item_count,
+        )
+
+        for anomaly_index in range(anomaly_item_count):
+            spec.define_location(
+                f"Clear Anomaly {anomaly_index + 1} ({gate_name} Gate)",
+                category=[anomaly_category],
+                requires=Requires.item(anomaly_item, anomaly_index + 1),
+            )
+
+        spec.define_item(
+            f"{gate_name} Clear",
+            category=[
+                f"Clear (Consume after playing a song to auto-pass a corresponding gate location)"
+            ],
+            useful=True,
+            count=10,
+            starting_count=1,
+        )
+
+        return item
+
+    progressive_gate_grade_item = define_progressive_gate(
+        "Score",
+        "Required grade for 'Score Clear' locations",
+        [
+            "S",
+            "AAA+",
+            "AAA",
+            "AA+",
+            "AA",
+            "A+",
+            "A",
+            "Any Grade",
         ],
-        count=len(gate_track),
-        progression=True,
-        starting_count=1,
-        early=False,
     )
 
-    for gate_index, requirement in enumerate(gate_track):
-        spec.define_location(
-            f"Gate: {requirement}",
-            category=["Progressive Gate"],
-            requires=Requires.item(gate_item, gate_index + 1),
-        )
+    progressive_gate_rate_item = define_progressive_gate(
+        "Rate",
+        "Required effective rate for 'Rate Clear' locations",
+        [
+            "100%",
+            "90%",
+            "80%",
+            "70%",
+            # "60%",
+            "50%",
+            # "40%",
+            # "30%",
+            "20%",
+            # "10%",
+            "Any Rate",
+        ],
+    )
     # endregion progressive gate
 
     # region songs
-    songs_category = spec.define_category(
-        songs_category_name,
-        starting_count=3,
+    song_item_category = spec.define_category(
+        song_item_category_name,
+        starting_count=7,
+    )[0]
+
+    song_location_category = spec.define_category(
+        song_location_category_name,
+        hidden=True,
     )[0]
 
     def define_song_list(
@@ -205,26 +283,30 @@ def __define_world_spec() -> WorldSpec:
             song_item = spec.define_item(
                 song.item_name,
                 category=[
-                    songs_category,
+                    song_item_category,
                     *([group_category] if group_category != None else []),
                 ],
                 progression=True,
             )
 
             for chart in song.charts:
-                for location_name in chart.location_names:
+                for chart_location in chart.locations:
                     chart_location = spec.define_location(
-                        location_name,
+                        chart_location.name,
                         category=[
-                            songs_category,
+                            song_location_category,
                             *([group_category] if group_category != None else []),
                             f"Songs - {song.title} ({group_category or "Base Songs"})",
                         ],
                         requires=Requires.item(song_item),
+                        dont_place_item=(
+                            chart_location.type == "score_pass"
+                            and [progressive_gate_grade_item["name"]]
+                            or chart_location.type == "rate_pass"
+                            and [progressive_gate_rate_item["name"]]
+                            or []
+                        ),
                     )
-
-                    if location_name.endswith("Gate Clear"):
-                        chart_location["dont_place_item"] = [gate_item["name"]]
 
     define_song_list(SongSpec.base_songs)
 
@@ -265,78 +347,6 @@ def __define_world_spec() -> WorldSpec:
         )
     # endregion songs
 
-    # region other items
-    def define_score_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
-        args.setdefault(
-            "category",
-            [
-                "Helpers - Score (Consume after a play for a score bonus to meet pass requirement)"
-            ],
-        )
-        spec.define_item(f"Score +{bonus}.0000", **args)
-
-    # define_score_helper(bonus=1, count=25, filler=True)
-    # define_score_helper(bonus=5, count=12, filler=True)
-    # define_score_helper(bonus=10, count=6, filler=True)
-    # define_score_helper(bonus=20, count=3, useful=True)
-    # define_score_helper(bonus=50, count=1, useful=True)
-    define_score_helper(bonus=1, count=20, filler=True)
-    define_score_helper(bonus=5, count=5, filler=True)
-
-    def define_gauge_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
-        args.setdefault(
-            "category",
-            [
-                "Helpers - Gauge (Consume after a play for a health gauge bonus to meet clear requirement)"
-            ],
-        )
-        spec.define_item(f"Gauge +{bonus}%", **args)
-
-    # define_gauge_helper(bonus=1, count=10, filler=True)
-    # define_gauge_helper(bonus=2, count=5, filler=True)
-    # define_gauge_helper(bonus=5, count=3, useful=True)
-    # define_gauge_helper(bonus=10, count=2, useful=True)
-    # define_gauge_helper(bonus=20, count=1, useful=True)
-    define_gauge_helper(bonus=2, count=20, filler=True)
-    define_gauge_helper(bonus=10, count=5, filler=True)
-
-    # mod_traps_category = (
-    #     "Mod Traps (The next check must be made with an uncleared trap, then clear it)"
-    # )
-    # spec.define_item(
-    #     "Speed 5.0 (Trap)", category=[mod_traps_category], trap=True, count=2
-    # )
-    # spec.define_item(
-    #     "Speed 10.0 (Trap)", category=[mod_traps_category], trap=True, count=2
-    # )
-    # spec.define_item("Random (Trap)", category=[mod_traps_category], trap=True)
-
-    blocker_traps_category = (
-        "Russian Roulette (Choose random, play whatever comes up first)"
-    )
-    spec.define_item(
-        "Russian Roulette (Normal Clear) (Trap)",
-        category=[blocker_traps_category],
-        trap=True,
-        count=3,
-    )
-    spec.define_item(
-        "Russian Roulette (Gate Clear) (Trap)",
-        category=[blocker_traps_category],
-        trap=True,
-    )
-
-    spec.define_item(
-        "Song Skip",
-        category=[
-            "Helpers - Song Skip (Consume to complete any song's locations, or consume a trap)"
-        ],
-        useful=True,
-        count=7,
-    )
-
-    # endregion other items
-
     # region navigators
     navigators = [
         "RASIS",
@@ -354,8 +364,10 @@ def __define_world_spec() -> WorldSpec:
         "Lyric Rishuna",
     ]
 
-    navigators_category = "Navigators"
     navigators_required = round(len(navigators) * 0.7)
+    navigators_category = (
+        f"Navigators (Rescue {navigators_required} out of {len(navigators)} to win!)"
+    )
 
     for navigator_name in navigators:
         spec.define_item(
@@ -368,7 +380,7 @@ def __define_world_spec() -> WorldSpec:
         "Rescue GRACE",
         category="Victory (You win! If you like, play a finale song to conclude your playthrough.)",
         requires=Requires.all_of(
-            Requires.item(gate_item, 5),
+            Requires.category(progressive_gate_item_category, 8),
             Requires.category(navigators_category, navigators_required),
         ),
         victory=True,
