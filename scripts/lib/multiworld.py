@@ -35,4 +35,5 @@ class MultiWorldConfig:
 class PlayerConfig:
     def __init__(self, path: Path, data: dict):
         self.path = path
+        self.data = data
         self.game: Final[str] = data["game"]

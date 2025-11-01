@@ -22,7 +22,7 @@ def __main():
 
     with open(combined_config_path, "w", encoding="utf8") as combined_config_file:
         yaml.dump_all(
-            multiworld_config.player_configs,
+            [config.data for config in multiworld_config.player_configs],
             combined_config_file,
             sort_keys=False,
             allow_unicode=True,
