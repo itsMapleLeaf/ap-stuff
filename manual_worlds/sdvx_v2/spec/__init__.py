@@ -1,10 +1,6 @@
-from dataclasses import dataclass, field
-import dataclasses
-import hashlib
-from math import floor
+from dataclasses import dataclass
 import re
 from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict, Unpack
-from unicodedata import category
 
 from .types import ItemArgs
 
@@ -156,76 +152,6 @@ songs_category_name = "Songs"
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
-    # region songs
-    songs_category = spec.define_category(songs_category_name, starting_count=3)[0]
-
-    def define_song_list(
-        song_list: Iterable[SongSpec], other_category: str | None = None
-    ):
-        for song in song_list:
-            if song.item_name in spec.items:
-                if other_category:
-                    existing = spec.items[song.item_name]
-                    existing["category"] = spec.items[song.item_name].get(
-                        "category", []
-                    )
-                    existing["category"].append(other_category)
-                continue
-
-            song_item = spec.define_item(
-                song.item_name,
-                category=[songs_category],
-                progression=True,
-            )
-
-            for chart in song.charts:
-                for location_name in chart.location_names:
-                    spec.define_location(
-                        location_name,
-                        category=[
-                            songs_category,
-                            *([other_category] if other_category != None else []),
-                            f"Songs - {song.title}",
-                            location_name.endswith("Track Clear")
-                            and "Goals - Track Clear"
-                            or "Goals - Gate Clear",
-                        ],
-                        requires=Requires.item(song_item),
-                    )
-
-    define_song_list(SongSpec.base_songs)
-
-    member_songs_option = spec.define_toggle_option(
-        "enable_member_songs",
-        display_name="Enable Membership songs",
-        description="Enable songs that require a membership subscription",
-        default=False,
-    )[0]
-    member_songs_category = spec.define_category(
-        "Groups - Membership",
-        yaml_option=[member_songs_option],
-    )[0]
-    define_song_list(SongSpec.member_songs, member_songs_category)
-
-    blaster_songs_option = spec.define_toggle_option(
-        "enable_blaster_gate_songs",
-        display_name="Enable BLASTER GATE songs",
-        description="Enable songs unlocked through BLASTER GATE",
-        default=False,
-    )[0]
-    blaster_songs_category = spec.define_category(
-        "Groups - BLASTER GATE",
-        yaml_option=[blaster_songs_option],
-    )[0]
-    define_song_list(SongSpec.blaster_songs, blaster_songs_category)
-
-    for pack in PackSongSpec.all_song_packs:
-        define_song_list(
-            (song for song in SongSpec.pack_songs if song.pack == pack),
-            f"Groups - {pack}",
-        )
-    # endregion songs
-
     # region progressive gate
     gate_track = [
         "S Rank",
@@ -257,6 +183,88 @@ def __define_world_spec() -> WorldSpec:
         )
     # endregion progressive gate
 
+    # region songs
+    songs_category = spec.define_category(
+        songs_category_name,
+        starting_count=3,
+    )[0]
+
+    def define_song_list(
+        song_list: Iterable[SongSpec], group_category: str | None = None
+    ):
+        for song in song_list:
+            if song.item_name in spec.items:
+                if group_category:
+                    existing = spec.items[song.item_name]
+                    existing["category"] = spec.items[song.item_name].get(
+                        "category", []
+                    )
+                    existing["category"].append(group_category)
+                continue
+
+            song_item = spec.define_item(
+                song.item_name,
+                category=[
+                    songs_category,
+                    *([group_category] if group_category != None else []),
+                ],
+                progression=True,
+            )
+
+            for chart in song.charts:
+                for location_name in chart.location_names:
+                    chart_location = spec.define_location(
+                        location_name,
+                        category=[
+                            songs_category,
+                            *([group_category] if group_category != None else []),
+                            f"Songs - {song.title} ({group_category or "Base Songs"})",
+                        ],
+                        requires=Requires.item(song_item),
+                    )
+
+                    if location_name.endswith("Gate Clear"):
+                        chart_location["dont_place_item"] = [gate_item["name"]]
+
+    define_song_list(SongSpec.base_songs)
+
+    member_songs_option = spec.define_toggle_option(
+        "enable_member_songs",
+        display_name="Enable Membership songs",
+        description="Enable songs that require a membership subscription",
+        default=False,
+    )[0]
+    member_songs_category = spec.define_category(
+        "Membership",
+        yaml_option=[member_songs_option],
+        hidden=True,
+    )[0]
+    define_song_list(SongSpec.member_songs, member_songs_category)
+
+    blaster_songs_option = spec.define_toggle_option(
+        "enable_blaster_gate_songs",
+        display_name="Enable BLASTER GATE songs",
+        description="Enable songs unlocked through BLASTER GATE",
+        default=False,
+    )[0]
+    blaster_songs_category = spec.define_category(
+        "BLASTER GATE",
+        yaml_option=[blaster_songs_option],
+        hidden=True,
+    )[0]
+    define_song_list(SongSpec.blaster_songs, blaster_songs_category)
+
+    for pack in PackSongSpec.all_song_packs:
+        (pack_category, _) = spec.define_category(
+            pack,
+            hidden=True,
+        )
+        define_song_list(
+            (song for song in SongSpec.pack_songs if song.pack == pack),
+            pack_category,
+        )
+    # endregion songs
+
     # region other items
     def define_score_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
         args.setdefault(
@@ -272,7 +280,8 @@ def __define_world_spec() -> WorldSpec:
     # define_score_helper(bonus=10, count=6, filler=True)
     # define_score_helper(bonus=20, count=3, useful=True)
     # define_score_helper(bonus=50, count=1, useful=True)
-    define_score_helper(bonus=5, count=10, filler=True)
+    define_score_helper(bonus=1, count=20, filler=True)
+    define_score_helper(bonus=5, count=5, filler=True)
 
     def define_gauge_helper(bonus: int, **args: Unpack[ItemArgs]):  # as x.0000
         args.setdefault(
@@ -288,26 +297,31 @@ def __define_world_spec() -> WorldSpec:
     # define_gauge_helper(bonus=5, count=3, useful=True)
     # define_gauge_helper(bonus=10, count=2, useful=True)
     # define_gauge_helper(bonus=20, count=1, useful=True)
-    define_gauge_helper(bonus=5, count=10, filler=True)
+    define_gauge_helper(bonus=2, count=20, filler=True)
+    define_gauge_helper(bonus=10, count=5, filler=True)
 
-    mod_traps_category = (
-        "Mod Traps (The next check must be made with an uncleared trap, then clear it)"
-    )
-    spec.define_item("Speed 4.0", category=[mod_traps_category], trap=True, count=2)
-    spec.define_item("Speed 12.0", category=[mod_traps_category], trap=True, count=2)
-    spec.define_item("Random", category=[mod_traps_category], trap=True)
+    # mod_traps_category = (
+    #     "Mod Traps (The next check must be made with an uncleared trap, then clear it)"
+    # )
+    # spec.define_item(
+    #     "Speed 5.0 (Trap)", category=[mod_traps_category], trap=True, count=2
+    # )
+    # spec.define_item(
+    #     "Speed 10.0 (Trap)", category=[mod_traps_category], trap=True, count=2
+    # )
+    # spec.define_item("Random (Trap)", category=[mod_traps_category], trap=True)
 
     blocker_traps_category = (
         "Russian Roulette (Choose random, play whatever comes up first)"
     )
     spec.define_item(
-        "Russian Roulette (Normal Clear)",
+        "Russian Roulette (Normal Clear) (Trap)",
         category=[blocker_traps_category],
         trap=True,
         count=3,
     )
     spec.define_item(
-        "Russian Roulette (Gate Clear)",
+        "Russian Roulette (Gate Clear) (Trap)",
         category=[blocker_traps_category],
         trap=True,
     )
@@ -315,36 +329,51 @@ def __define_world_spec() -> WorldSpec:
     spec.define_item(
         "Song Skip",
         category=[
-            "Helpers - Song Skip (Consume to complete a song location without clearing it)"
+            "Helpers - Song Skip (Consume to complete any song's locations, or consume a trap)"
         ],
-        filler=True,
-        count=3,
+        useful=True,
+        count=7,
     )
 
     # endregion other items
 
-    chain_count = 10
-    chain_required = 7
+    # region navigators
+    navigators = [
+        "RASIS",
+        "Tsumabuki RIGHT",
+        "Tsumabuki LEFT",
+        "TSUMABUKI",
+        "TAMA-chan",
+        "TAMANEKO",
+        "Voltenizer Maxima",
+        "NEAR & NOAH",
+        "Kanade Yamashina",
+        "Kureha",
+        "Hina, Ao, and Momo",
+        "Kougei Ciel Nana",
+        "Lyric Rishuna",
+    ]
 
-    chain_item = spec.define_item(
-        "CHAIN",
-        category=[
-            f"CHAIN (Victory item, {chain_required} / {chain_count} needed to win)"
-        ],
-        count=chain_count,
-        progression=True,
-        early=False,
-    )
+    navigators_category = "Navigators"
+    navigators_required = round(len(navigators) * 0.7)
+
+    for navigator_name in navigators:
+        spec.define_item(
+            navigator_name,
+            category=[navigators_category],
+            progression=True,
+        )
 
     spec.define_location(
-        "PERFECT ULTIMATE CHAIN",
-        category="Finale (Pick a boss song to conclude your playthrough!)",
+        "Rescue GRACE",
+        category="Victory (You win! If you like, play a finale song to conclude your playthrough.)",
         requires=Requires.all_of(
-            Requires.item(chain_item, chain_required),
             Requires.item(gate_item, 5),
+            Requires.category(navigators_category, navigators_required),
         ),
         victory=True,
     )
+    # endregion navigators
 
     return spec
 
