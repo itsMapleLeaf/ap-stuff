@@ -16,5 +16,5 @@ dev = [
 ]
 
 [tool.pyright]
-include = ["scripts"]
+include = ["scripts", "archipelago"]
 extraPaths = ["archipelago"]
