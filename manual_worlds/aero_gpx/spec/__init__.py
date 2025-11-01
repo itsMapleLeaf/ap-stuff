@@ -13,12 +13,14 @@ class TemplateWorldSpec(WorldSpec):
 
         ticket_item = self.define_item(
             "Ticket",
+            category=["Tickets"],
             count=30,
             progression=True,
         )
 
         self.define_item(
             "Level Skip",
+            category=["Level Skips"],
             count=7,
             useful=True,
         )
