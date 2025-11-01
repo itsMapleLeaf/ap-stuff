@@ -11,24 +11,24 @@ archipelago_server := user_archipelago_dir / "ArchipelagoServer.exe"
 
 export PYTHONPATH := justfile_directory() / "archipelago"
 
-# build all manual worlds into your Archipelago custom_worlds folder
-build *worlds:
-    uv run -m scripts.build {{ worlds }}
+# build specified local manual worlds into the Archipelago custom_worlds folder
+build *args:
+    uv run -m scripts.build {{ args }}
 
-# generate and serve a multiworld for a given game
-play game: (generate game) serve
+# generate and serve a multiworld for a given multi
+play multi: (generate multi) serve
 
-# generate a multiworld with a given game
-generate game:
-    uv run -m scripts.generate {{ game }}
+# generate a multiworld with a given multiworld config
+generate multi: (build "--multi" multi)
+    uv run -m scripts.generate {{ multi }}
 
 # serve a generated multiworld
 serve:
     cd "{{ generate_dir }}"; {{ archipelago_server }} *.archipelago
 
 # create apworlds and a stitched config for a multi
-export game:
-    uv run -m scripts.export {{ game }}
+export multi:
+    uv run -m scripts.export {{ multi }}
 
 # create a new manual world
 create world:

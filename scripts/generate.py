@@ -5,7 +5,6 @@ import os
 import shutil
 from zipfile import ZipFile
 
-from .lib.manual_worlds import find_local_manual_world_projects
 from .lib.multiworld import MultiWorldConfig
 from .lib.args_override import ArgsOverride
 from .lib.paths import dist_generate_dir, dist_generate_players_dir, project_dir
@@ -23,8 +22,6 @@ def __main():
 
     multiworld_config = MultiWorldConfig.named(args.game_name)
 
-    output_dir = dist_generate_dir
-
     print(
         f'⚙️  Generating for "{args.game_name}"'
         f" ({multiworld_config.path.relative_to(project_dir)})"
@@ -34,11 +31,7 @@ def __main():
         print("⚠️ No player configs found")
         exit(1)
 
-    player_config_world_ids = {c.game for c in multiworld_config.player_configs}
-    for manual_world_project in find_local_manual_world_projects():
-        if manual_world_project.world_id in player_config_world_ids:
-            print(f"⚙️  Building project world: {manual_world_project.world_id}")
-            manual_world_project.build()
+    output_dir = dist_generate_dir
 
     print(f"⚙️  Cleaning up output path")
     shutil.rmtree(output_dir)
