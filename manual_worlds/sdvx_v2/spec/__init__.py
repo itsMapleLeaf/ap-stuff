@@ -178,6 +178,7 @@ def __define_world_spec() -> WorldSpec:
                 f"Progressive {gate_name} Gate ({description})",
                 progressive_gate_item_category,
             ],
+            starting_count=1,
             progression_skip_balancing=True,
             count=round(len(steps) * 1.5),  # add some extras just in case
             early=False,
@@ -189,25 +190,7 @@ def __define_world_spec() -> WorldSpec:
                 category=[
                     f"Progressive {gate_name} Gate (Track your current {gate_name} gate requirement)"
                 ],
-                requires=Requires.item(item, step_index),
-            )
-
-        anomaly_category = "ANOMALY (Play and clear the first randomly-selected chart within your range)"
-
-        anomaly_item_count = 3
-        anomaly_item = spec.define_item(
-            f"ANOMALY ({gate_name} Gate)",
-            category=[anomaly_category],
-            progression_skip_balancing=True,
-            trap=True,
-            count=anomaly_item_count,
-        )
-
-        for anomaly_index in range(anomaly_item_count):
-            spec.define_location(
-                f"Clear Anomaly {anomaly_index + 1} ({gate_name} Gate)",
-                category=[anomaly_category],
-                requires=Requires.item(anomaly_item, anomaly_index + 1),
+                requires=Requires.item(item, step_index + 1),
             )
 
         spec.define_item(
@@ -216,7 +199,7 @@ def __define_world_spec() -> WorldSpec:
                 f"Clear (Consume after playing a song to auto-pass a corresponding gate location)"
             ],
             useful=True,
-            count=10,
+            count=20,
             starting_count=1,
         )
 
@@ -379,13 +362,19 @@ def __define_world_spec() -> WorldSpec:
     spec.define_location(
         "Rescue GRACE",
         category="Victory (You win! If you like, play a finale song to conclude your playthrough.)",
-        requires=Requires.all_of(
-            Requires.category(progressive_gate_item_category, 8),
-            Requires.category(navigators_category, navigators_required),
-        ),
+        requires=Requires.category(navigators_category, navigators_required),
         victory=True,
     )
     # endregion navigators
+
+    spec.define_item(
+        f"ANOMALY",
+        category=[
+            "ANOMALY (Play and clear the first randomly-selected chart within your range)"
+        ],
+        trap=True,
+        count=5,
+    )
 
     return spec
 
