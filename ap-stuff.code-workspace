@@ -1,3 +1,21 @@
 {
-	"folders": [{ "path": "." }, { "path": "manual_worlds" }]
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "manual_worlds"
+		},
+		{
+			"name": "saika",
+			"path": "../saika-react"
+		}
+	],
+	"settings": {},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			// todo
+		]
+	}
 }
