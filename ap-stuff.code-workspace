@@ -11,7 +11,9 @@
 			"path": "../saika-react"
 		}
 	],
-	"settings": {},
+	"settings": {
+		"typescript.tsdk": "saika\\node_modules\\typescript\\lib"
+	},
 	"tasks": {
 		"version": "2.0.0",
 		"tasks": [
