@@ -73,7 +73,7 @@ class SongSpec:
         def locations(self):
             return [
                 SongSpec.ChartLocation("score_pass", self),
-                SongSpec.ChartLocation("rate_pass", self),
+                SongSpec.ChartLocation("hp_pass", self),
             ]
 
         @property
@@ -82,12 +82,12 @@ class SongSpec:
 
     @dataclass
     class ChartLocation:
-        type: Literal["score_pass", "rate_pass"]
+        type: Literal["score_pass", "hp_pass"]
         chart: "SongSpec.Chart"
 
         @property
         def name(self):
-            type_text = self.type == "rate_pass" and "Rate Clear" or "Score Clear"
+            type_text = self.type == "hp_pass" and "HP Clear" or "Score Clear"
             return f"{self.chart.song.title} - {self.chart.summary} - {type_text}"
 
 
@@ -167,75 +167,43 @@ def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
     # region progressive gate
-    progressive_gate_item_category = spec.define_category(
-        "Progressive Gate", hidden=True
-    )[0]
+    progressive_gate_category = spec.define_category("Progressive Gate")[0]
 
-    def define_progressive_gate(gate_name: str, description: str, steps: list[str]):
-        item = spec.define_item(
-            f"Progressive {gate_name} Gate",
-            category=[
-                f"Progressive {gate_name} Gate ({description})",
-                progressive_gate_item_category,
-            ],
-            starting_count=1,
-            progression_skip_balancing=True,
-            count=round(len(steps) * 1.5),  # add some extras just in case
-            early=False,
-        )
+    progressive_gate_steps = [
+        "S",
+        "AAA+",
+        "AAA",
+        "AA+",
+        "AA",
+        "A+",
+        "A",
+        "Any Grade",
+    ]
 
-        for step_index, step in enumerate(steps):
-            spec.define_location(
-                f"{gate_name} Gate: {step}",
-                category=[
-                    f"Progressive {gate_name} Gate (Track your current {gate_name} gate requirement)"
-                ],
-                requires=Requires.item(item, step_index + 1),
-            )
-
-        spec.define_item(
-            f"{gate_name} Clear",
-            category=[
-                f"Clear (Consume after playing a song to auto-pass a corresponding gate location)"
-            ],
-            useful=True,
-            count=20,
-            starting_count=1,
-        )
-
-        return item
-
-    progressive_gate_grade_item = define_progressive_gate(
-        "Score",
-        "Required grade for 'Score Clear' locations",
-        [
-            "S",
-            "AAA+",
-            "AAA",
-            "AA+",
-            "AA",
-            "A+",
-            "A",
-            "Any Grade",
-        ],
+    progressive_gate_item = spec.define_item(
+        f"Progressive Gate",
+        category=[progressive_gate_category],
+        starting_count=1,
+        progression=True,
+        count=round(len(progressive_gate_steps) * 1.5),  # add some extras just in case
+        early=False,
     )
 
-    progressive_gate_rate_item = define_progressive_gate(
-        "Rate",
-        "Required effective rate for 'Rate Clear' locations",
-        [
-            "100%",
-            "90%",
-            "80%",
-            "70%",
-            # "60%",
-            "50%",
-            # "40%",
-            # "30%",
-            "20%",
-            # "10%",
-            "Any Rate",
+    for step_index, step in enumerate(progressive_gate_steps):
+        spec.define_location(
+            f"Score Gate: {step}",
+            category=[f"Progressive Gate (Track your current score requirement)"],
+            requires=Requires.item(progressive_gate_item, step_index + 1),
+        )
+
+    spec.define_item(
+        "Song Skip",
+        category=[
+            f"Song Skip (Consume after playing a song to auto-pass a song's locations)"
         ],
+        useful=True,
+        count=20,
+        starting_count=1,
     )
     # endregion progressive gate
 
@@ -284,9 +252,9 @@ def __define_world_spec() -> WorldSpec:
                         requires=Requires.item(song_item),
                         dont_place_item=(
                             chart_location.type == "score_pass"
-                            and [progressive_gate_grade_item["name"]]
-                            or chart_location.type == "rate_pass"
-                            and [progressive_gate_rate_item["name"]]
+                            and [progressive_gate_item["name"]]
+                            # or chart_location.type == "hp_pass"
+                            # and [progressive_gate_hp_item["name"]]
                             or []
                         ),
                     )
