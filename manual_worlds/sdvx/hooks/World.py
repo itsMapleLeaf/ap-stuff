@@ -1,31 +1,24 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
-from math import floor
-from typing import cast
+from os import getenv
+from typing import Iterable, cast
+from ..spec import SongSpec
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
 
 # Object classes from Manual -- extending AP core -- representing items and locations that are used in generation
 from ..Items import ManualItem
-from ..spec import (
-    SongSpec,
-    song_specs,
-    song_specs_by_item_name,
-    inclusion_brackets,
-    rank_locations,
-    score_helpers,
-    filler_score_helper,
-)
+from ..Locations import ManualLocation
 
 # Raw JSON data from the Manual apworld, respectively:
 #          data/game.json, data/items.json, data/locations.json, data/regions.json
 #
+from ..Data import game_table, item_table, location_table, region_table
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
-from ..Helpers import get_option_value, is_option_enabled
+from ..Helpers import is_option_enabled, get_option_value, format_state_prog_items_key, ProgItemsCat
 
 # calling logging.info("message") anywhere below in this file will output the message to both console and log file
-
-excluded_songs_by_player = dict[int, list[SongSpec]]()
+import logging
 
 ########################################################################################
 ## Order of method calls when the world generates:
@@ -43,84 +36,147 @@ excluded_songs_by_player = dict[int, list[SongSpec]]()
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
-    return filler_score_helper.item["name"]
-
+    return False
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    from .state import disabled_categories_by_player_id
+    log_context = f"[{game_table['game']}][Player {player} \"{world.player_name}\"]"
+    log_debug_enabled = not not getenv("DEBUG")
 
-    songs_by_level: dict[int, list[SongSpec]] = {}
+    def log_debug(msg: str):
+        if not log_debug_enabled:
+            return
+        logging.info(f"[debug] {log_context} {msg}")
 
-    for song in song_specs:
-        for _, level in song.charts.items():
-            songs_by_level[level] = songs_by_level.get(level, [])
-            songs_by_level[level].append(song)
+    def log_warning(msg: str):
+        logging.warning(f"[warn] {log_context} {msg}")
 
-    chosen_songs: list[SongSpec] = []
+    def fail(msg: str):
+        raise Exception(f"{log_context} {msg}")
 
-    force_included_songs = cast(
-        list[str], get_option_value(multiworld, player, "force_include_songs")
-    )
-    unknown_song_names = []
-    for force_included_song_name in force_included_songs:
-        force_included_song_spec = song_specs_by_item_name.get(
-            force_included_song_name, None
-        )
-        if force_included_song_spec == None:
-            unknown_song_names.append(force_included_song_name)
-        else:
-            chosen_songs.append(force_included_song_spec)
+    if log_debug_enabled:
+        log_debug("Debug logging enabled")
 
-    if len(unknown_song_names) > 0:
-        raise Exception(
-            f'Unknown songs found in `force_include_songs`: "{unknown_song_names}"'
-        )
+    def format_list(items: Iterable[str]):
+        return "\n".join(f"- {error}" for error in errors)
 
-    # if we go with lower levels first,
-    # it's possible we pick, for example, all of the level 20 songs in the game
-    # via their lower diffs, then once we get up to higher diffs,
-    # we have no more level 20s to pick from :(
-    # so we want to start picking via the higher song levels first instead of the lower ones
-    song_brackets_sorted = sorted(
-        inclusion_brackets,
-        key=lambda bracket: bracket.max_level,
-        reverse=True,
+    errors: list[str] = []
+
+    from .State import ChartPool
+
+    chart_count_per_level = cast(
+        dict[str, int],
+        get_option_value(multiworld, player, "chart_count_per_level"),
     )
 
-    for bracket in song_brackets_sorted:
-        # ensure we pick from songs that haven't already been picked
-        available_songs_for_bracket = [
-            song
-            for level in range(bracket.min_level, bracket.max_level + 1)
-            for song in songs_by_level[level]
-            if song not in chosen_songs
+    available_charts = [chart for song in SongSpec.base_songs for chart in song.charts]
+
+    if is_option_enabled(multiworld, player, "enable_member_songs"):
+        available_charts.extend(
+            chart for song in SongSpec.member_songs for chart in song.charts
+        )
+        log_debug("Including member songs")
+
+    if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
+        available_charts.extend(
+            chart for song in SongSpec.blaster_songs for chart in song.charts
+        )
+        log_debug("Including BLASTER GATE songs")
+
+    included_song_packs = set(
+        cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
+    )
+
+    if len(included_song_packs) > 0:
+        log_debug(f"Including songs from {len(included_song_packs)} song packs")
+
+    available_charts.extend(
+        chart
+        for song in SongSpec.pack_songs
+        if song.pack in included_song_packs
+        for chart in song.charts
+    )
+
+    log_debug(f"{len(available_charts)} total charts to pick from")
+
+    force_include = cast(
+        set[str], get_option_value(multiworld, player, "force_include")
+    )
+    if force_include:
+        log_debug(f"Force-including {len(force_include)} items")
+
+    force_exclude = cast(
+        set[str], get_option_value(multiworld, player, "force_exclude")
+    )
+    if force_exclude:
+        log_debug(f"Force-excluding {len(force_exclude)} items")
+
+    included_and_excluded = force_include.intersection(force_exclude)
+    if len(included_and_excluded) > 0:
+        errors.append(
+            "Found the following entries in both `force_include_songs` and `force_exclude_songs`"
+            " - only specify the song in one or the other:\n"
+            f"{format_list(included_and_excluded)}"
+        )
+
+    all_charts_by_item_name = {
+        chart.song.item_name: chart
+        for song in (
+            SongSpec.base_songs
+            + SongSpec.member_songs
+            + SongSpec.blaster_songs
+            + SongSpec.pack_songs
+        )
+        for chart in song.charts
+    }
+
+    for entry in force_include:
+        if not entry in all_charts_by_item_name:
+            errors.append(f"Unknown entry in `force_include`: {entry}")
+
+    for entry in force_exclude:
+        if not entry in all_charts_by_item_name:
+            errors.append(f"Unknown entry in `force_exclude`: {entry}")
+
+    if len(errors) > 0:
+        fail(f"Found the following errors in the YAML:\n{format_list(errors)}")
+
+    pool = ChartPool.for_player(player)
+
+    for level, count in chart_count_per_level.items():
+        charts_with_level = [
+            chart
+            for chart in available_charts
+            if chart.level == int(level)
+            if chart.song.item_name not in force_exclude
         ]
 
-        bracket_song_count = cast(
-            int,
-            get_option_value(multiworld, player, bracket.option_name),
+        actual_included_count = min(count, len(charts_with_level))
+
+        if actual_included_count < count:
+            log_warning(
+                f"Wanted {count} charts with level {level}, only found {actual_included_count}"
+            )
+
+        log_debug(
+            f"Including {actual_included_count}/{len(charts_with_level)} songs at level {level}"
         )
 
-        chosen_songs.extend(
-            world.random.sample(available_songs_for_bracket, bracket_song_count)
-        )
+        pool.add_charts(world.random.sample(charts_with_level, actual_included_count))
 
-    disabled_categories_by_player_id[player] = {
-        song.id_category_name for song in song_specs if song not in chosen_songs
-    }
-    excluded_songs_by_player[player] = [
-        song for song in song_specs if song not in chosen_songs
-    ]
+    log_debug(f"Including {len(force_include)} force-included charts")
+    pool.add_charts(all_charts_by_item_name[entry] for entry in force_include)
+
+    log_debug(f"Selected {len(pool.charts)} charts for the pool")
 
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     # Use this hook to remove locations from the world
     locationNamesToRemove: list[str] = [
-        # location["name"]
-        # for song in excluded_songs_by_player[player]
-        # for location in song.locations
+        # chart.location_name
+        # for chart in __charts
+        # if chart not in player_chart_pools[player]
     ]
 
     # Add your code here to calculate which locations to remove
@@ -140,26 +196,6 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
-    included_song_count = sum(
-        cast(int, get_option_value(multiworld, player, bracket.option_name))
-        for bracket in inclusion_brackets
-    )
-
-    rank_location_count = sum(
-        is_option_enabled(multiworld, player, location.option_name)
-        for location in rank_locations
-    )
-
-    total_slot_count = included_song_count * rank_location_count
-    total_score_helper_count = 0
-
-    for score_helper in score_helpers:
-        score_helper_count = floor(total_slot_count * (score_helper.percentage / 100))
-        total_score_helper_count += score_helper_count
-        item_config[score_helper.item["name"]] = score_helper_count
-
-    item_config["CHAIN"] = total_slot_count - total_score_helper_count
-
     return item_config
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
@@ -169,8 +205,8 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
-    item_names_to_remove: list[str] = [
-        # item["name"] for song in excluded_songs_by_player[player] for item in song.items
+    itemNamesToRemove: list[str] = [
+        # chart.item_name for chart in __charts if chart not in player_chart_pools[player]
     ]
 
     # Add your code here to calculate which items to remove.
@@ -178,11 +214,9 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # Because multiple copies of an item can exist, you need to add an item name
     # to the list multiple times if you want to remove multiple copies of it.
 
-    for item_name in item_names_to_remove:
-        for item_in_pool in item_pool:
-            if item_name == item_in_pool.name:
-                item_pool.remove(item_in_pool)
-                break
+    for itemName in itemNamesToRemove:
+        item = next((i for i in item_pool if i.name == itemName), None)
+        if item: item_pool.remove(item)
 
     return item_pool
 

@@ -1,5 +1,22 @@
 # Object classes from AP that represent different types of options that you can create
-from Options import Option, FreeText, NumericOption, OptionList, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, OptionGroup, PerGameCommonOptions
+from Options import (
+    Option,
+    FreeText,
+    NumericOption,
+    OptionDict,
+    OptionList,
+    OptionSet,
+    Toggle,
+    DefaultOnToggle,
+    Choice,
+    TextChoice,
+    Range,
+    NamedRange,
+    OptionGroup,
+    PerGameCommonOptions,
+)
+from ..spec import PackSongSpec
+
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
 from typing import Type, Any
@@ -32,21 +49,79 @@ from typing import Type, Any
 #     range_end = 50
 #     default = 50
 
-class ForceIncludeSongs(OptionList):
-    """Guarantees the song(s) specifed by title will be generated in the multiworld.
 
-    Search songs here: https://www.myshkin.io/sdvx/songlist
-
-    If your song shares a title with another song (such as "Prayer"), you need to add (by Artist Name) at the end.
-    Example: "Prayer (by ぺのれり)"
+class ChartCountPerLevel(OptionDict):
     """
-    display_name = "Force Include Songs"
-    verify_item_name = True
+    The number of charts you want to include per level.
+    The sum is the total number of charts you'll have available.
+    """
+
+    display_name = "Chart Count per Level"
+
+    default = {
+        "17": 10,
+        "18": 40,
+        "19": 15,
+        "20": 5,
+    }
+
+
+class SongPacks(OptionSet):
+    display_name = "Song Packs"
+
+
+SongPacks.__doc__ = f"""
+Include songs from these purchasable song packs.
+Comment out the ones you don't have with a '#' in front of the line.
+
+Available packs:
+{"\n".join(f"- {pack}" for pack in PackSongSpec.all_song_packs)}
+"""
+
+
+class ForceInclude(OptionSet):
+    """
+    Force these charts to be included in the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+
+    Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+
+    Example: "BLIZZARD BEAT - MXM 17"
+
+    Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+
+    Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    """
+
+    display_name = "Force Include"
+
+
+class ForceExclude(OptionSet):
+    """
+    Force these charts to be excluded from the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+
+    Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+
+    Example: "BLIZZARD BEAT - MXM 17"
+
+    Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+
+    Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    """
+
+    display_name = "Force Exclude"
+
 
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
-def before_options_defined(options: dict[str, Type[Option[Any]]]) -> dict[str, Type[Option[Any]]]:
-    options["force_include_songs"] = ForceIncludeSongs
+def before_options_defined(
+    options: dict[str, Type[Option[Any]]],
+) -> dict[str, Type[Option[Any]]]:
+    options["chart_count_per_level"] = ChartCountPerLevel
+    options["include_song_packs"] = SongPacks
+    options["force_include"] = ForceInclude
+    options["force_exclude"] = ForceExclude
+
     return options
+
 
 # This is called after any manual options are defined, in case you want to see what options are defined or want to modify the defined options
 def after_options_defined(options: Type[PerGameCommonOptions]):
@@ -60,10 +135,14 @@ def after_options_defined(options: Type[PerGameCommonOptions]):
 
     pass
 
+
 # Use this Hook if you want to add your Option to an Option group (existing or not)
-def before_option_groups_created(groups: dict[str, list[Type[Option[Any]]]]) -> dict[str, list[Type[Option[Any]]]]:
+def before_option_groups_created(
+    groups: dict[str, list[Type[Option[Any]]]],
+) -> dict[str, list[Type[Option[Any]]]]:
     # Uses the format groups['GroupName'] = [TotalCharactersToWinWith]
     return groups
+
 
 def after_option_groups_created(groups: list[OptionGroup]) -> list[OptionGroup]:
     return groups

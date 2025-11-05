@@ -1,235 +1,350 @@
-from dataclasses import dataclass, field
-import dataclasses
-from .songs import Song
-from .world import WorldSpec
-from .types import ItemData, LocationData
+from dataclasses import dataclass
+import re
+from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict
+
+
+from .requires import Requires
 from ..Helpers import load_data_file
+from .world import WorldSpec
+
+
+class SongData(TypedDict):
+    title: str
+    artist: str
+    bpm: str
+    nov: str
+    adv: str
+    exh: str
+    mxm: str
+    pack: NotRequired[str]
 
 
 @dataclass
-class SongSpec(Song):
-    items: list[ItemData] = field(default_factory=list)
-    locations: list[LocationData] = field(default_factory=list)
+class SongSpec:
+    title: str
+    artist: str
+    charts: list["Chart"]
+
+    type Difficulty = Literal["nov", "adv", "exh", "mxm"]
+    diffs: ClassVar[list[Difficulty]] = ["nov", "adv", "exh", "mxm"]
+
+    songs_data: ClassVar[dict]
+    base_songs: ClassVar[list["SongSpec"]]
+    member_songs: ClassVar[list["SongSpec"]]
+    blaster_songs: ClassVar[list["SongSpec"]]
+    pack_songs: ClassVar[list["PackSongSpec"]]
+    packs: ClassVar[set[str]]
+
+    @staticmethod
+    def from_data(data: SongData) -> "SongSpec":
+        spec = SongSpec(
+            title=data["title"],
+            artist=data["artist"],
+            charts=[],
+        )
+
+        for diff in SongSpec.diffs:
+            if data.get(diff, "").isdigit():
+                spec.charts.append(
+                    SongSpec.Chart(diff=diff, level=int(data[diff]), song=spec)
+                )
+
+        return spec
 
     @property
-    def id_category_name(self) -> str:
-        return f"Song ID {self.id}"
+    def safe_title(self):
+        return re.sub(r"\s*[:|]\s*", " ", self.title)
 
+    @property
+    def item_name(self):
+        return f"{self.safe_title}"
 
-songs_data: object = load_data_file("songs.json")
-if not isinstance(songs_data, list):
-    raise Exception("song data must be a list")
+    @dataclass
+    class Chart:
+        diff: str
+        level: int
+        song: "SongSpec"
 
-all_songs = [Song(**item) for item in songs_data]
+        @property
+        def summary(self):
+            return f"{self.diff.upper()} {self.level}"
 
-# figure out which song titles are duplicated,
-# so we can differentiate their item names later
-song_titles = set[str]()
-duplicate_song_titles = set[str]()
-for song in all_songs:
-    if not song.title in song_titles:
-        song_titles.add(song.title)
-    else:
-        duplicate_song_titles.add(song.title)
+        @property
+        def locations(self):
+            return [
+                SongSpec.ChartLocation("score_pass", self),
+                SongSpec.ChartLocation("hp_pass", self),
+            ]
+
+        @property
+        def location_names(self):
+            return {loc.name for loc in self.locations}
+
+    @dataclass
+    class ChartLocation:
+        type: Literal["score_pass", "hp_pass"]
+        chart: "SongSpec.Chart"
+
+        @property
+        def name(self):
+            type_text = self.type == "hp_pass" and "HP Clear" or "Score Clear"
+            return f"{self.chart.song.title} - {self.chart.summary} - {type_text}"
 
 
 @dataclass
-class InclusionBracketSpec:
-    min_level: int
-    max_level: int
-    default: int
+class PackSongSpec(SongSpec):
+    pack: str
 
-    @property
-    def option_name(self) -> str:
-        return "song_count_level_" + (
-            f"{self.min_level}_to_{self.max_level}"
-            if self.min_level != self.max_level
-            else f"{self.min_level}"
+    all_song_packs: ClassVar = [
+        "楽曲パック vol.1",
+        "楽曲パック vol.2",
+        "楽曲パック vol.3",
+        "楽曲パック vol.4",
+        "楽曲パック vol.5",
+        "楽曲パック vol.6",
+        "楽曲パック vol.7",
+        "楽曲パック vol.8",
+        "楽曲パック vol.9",
+        "楽曲パック vol.10",
+        "楽曲パック vol.11",
+        "楽曲パック vol.12",
+        "楽曲パック vol.13",
+        "楽曲パック vol.14",
+        "楽曲パック vol.15",
+        "楽曲パック vol.16",
+        "楽曲パック vol.17",
+        "楽曲パック vol.18",
+        "楽曲パック vol.19",
+        "楽曲パック vol.20",
+        "楽曲パック vol.21",
+        "楽曲パック vol.22",
+        "楽曲パック vol.23",
+        "楽曲パック vol.24",
+        "楽曲パック vol.25",
+        "10周年記念 楽曲パック",
+        "BEMANI セレクション 楽曲パック vol.1",
+        "BEMANI セレクション 楽曲パック vol.2",
+        "BEMANI セレクション 楽曲パック vol.3",
+        "MÚSECAセレクション 楽曲パック vol.1",
+        "MÚSECAセレクション 楽曲パック vol.2",
+        "REFLEC BEAT セレクション 楽曲パック vol.1",
+        "beatmania IIDX セレクション 楽曲パック vol.1",
+        "jubeat セレクション 楽曲パック vol.1",
+        "ここなつセレクション 楽曲パック",
+        "スタートアップセレクション 楽曲パック vol.1",
+        "東方Projectセレクション 楽曲パック",
+    ]
+
+    @staticmethod
+    def from_data(data: SongData) -> "PackSongSpec":
+        base_spec = SongSpec.from_data(data)
+        return PackSongSpec(
+            title=base_spec.title,
+            artist=base_spec.artist,
+            charts=base_spec.charts,
+            pack=data.get("pack", ""),
         )
 
-    @property
-    def option_display_name(self) -> str:
-        return (
-            "Song Count (Level "
-            + (
-                f"{self.min_level} to {self.max_level}"
-                if self.min_level != self.max_level
-                else f"{self.min_level}"
-            )
-            + ")"
-        )
 
+SongSpec.songs_data = load_data_file("songs.json")
 
-inclusion_brackets = [
-    InclusionBracketSpec(1, 7, default=0),
-    InclusionBracketSpec(8, 12, default=0),
-    InclusionBracketSpec(13, 15, default=0),
-    InclusionBracketSpec(16, 16, default=0),
-    InclusionBracketSpec(17, 17, default=20),
-    InclusionBracketSpec(18, 18, default=10),
-    InclusionBracketSpec(19, 19, default=7),
-    InclusionBracketSpec(20, 20, default=3),
+SongSpec.base_songs = [SongSpec.from_data(data) for data in SongSpec.songs_data["base"]]
+SongSpec.member_songs = [
+    SongSpec.from_data(data) for data in SongSpec.songs_data["member"]
+]
+SongSpec.blaster_songs = [
+    SongSpec.from_data(data) for data in SongSpec.songs_data["blaster"]
+]
+SongSpec.pack_songs = [
+    PackSongSpec.from_data(data) for data in SongSpec.songs_data["pack"]
 ]
 
+song_item_category_name = "Songs"
+song_location_category_name = "Song Locations"
 
-songs_item_category = "Songs"
 
-world_spec = WorldSpec(
-    starting_items=[
-        {"item_categories": [songs_item_category], "random": 5},
-    ],
-)
+def __define_world_spec() -> WorldSpec:
+    spec = WorldSpec()
 
-for inclusion_bracket in inclusion_brackets:
-    world_spec.define_range_option(
-        inclusion_bracket.option_name,
-        type="Range",
-        display_name=inclusion_bracket.option_display_name,
-        description=[
-            "Includes this number of randomly selected songs that have a chart with a level in this range.",
-            "You must include at least 1 total song across all song level options.",
+    # region progressive gate
+    progressive_gate_category = spec.define_category("Progressive Gate")[0]
+
+    progressive_gate_steps = [
+        "S",
+        "AAA+",
+        "AAA",
+        "AA+",
+        "AA",
+        "A+",
+        "A",
+        "Any Grade",
+    ]
+
+    progressive_gate_item = spec.define_item(
+        f"Progressive Gate",
+        category=[progressive_gate_category],
+        starting_count=1,
+        progression=True,
+        count=round(len(progressive_gate_steps) * 1.5),  # add some extras just in case
+        early=False,
+    )
+
+    for step_index, step in enumerate(progressive_gate_steps):
+        spec.define_location(
+            f"Score Gate: {step}",
+            category=[f"Progressive Gate (Track your current score requirement)"],
+            requires=Requires.item(progressive_gate_item, step_index + 1),
+        )
+
+    spec.define_item(
+        "Song Skip",
+        category=[
+            f"Song Skip (Consume after playing a song to auto-pass a song's locations)"
         ],
-        range_start=0,
-        range_end=100,
-        default=inclusion_bracket.default,
+        useful=True,
+        count=20,
+        starting_count=1,
     )
+    # endregion progressive gate
 
-goal_reward_category_name = "Goal Reward"
-world_spec.define_category(
-    goal_reward_category_name,
-    hidden=True,
-)
+    # region songs
+    song_item_category = spec.define_category(
+        song_item_category_name,
+        starting_count=7,
+    )[0]
 
-
-@dataclass
-class ScoreHelperSpec:
-    amount: int
-    percentage: int
-    name_suffix: str = ""
-
-    def __post_init__(self) -> None:
-        self.item = world_spec.define_item(
-            f"Score +{self.amount}.0000{self.name_suffix}",
-            category=["Score Helpers", goal_reward_category_name],
-            filler=True,
-        )
-
-
-filler_score_helper = ScoreHelperSpec(
-    amount=1, percentage=10, name_suffix=" (you tried)"
-)
-score_helpers = [
-    filler_score_helper,
-    ScoreHelperSpec(amount=5, percentage=5),
-    ScoreHelperSpec(amount=10, percentage=2),
-]
-
-world_spec.define_item(
-    "CHAIN",
-    category=["CHAIN", goal_reward_category_name],
-    progression_skip_balancing=True,
-    local=True,
-)
-
-world_spec.define_location(
-    "PERFECT ULTIMATE CHAIN",
-    category="Victory",
-    requires="|CHAIN:50%|",
-    victory=True,
-)
-
-
-@dataclass
-class RankLocationSpec:
-    name: str
-
-    def __post_init__(self) -> None:
-        (self.option_name, self.option) = world_spec.define_toggle_option(
-            f"enable_{self.name.lower()}_rank_locations",
-            type="Toggle",
-            display_name=f"Enable {self.name} rank locations",
-            description=[
-                f"Enable locations for getting a {self.name} rank or higher.",
-                "**At least one rank location must be enabled.**",
-            ],
-            default=True,
-        )
-
-        (self.category_name, self.category) = world_spec.define_category(
-            f"Rank {self.name} Locations",
-            hidden=True,
-            yaml_option=[self.option_name],
-        )
-
-
-rank_locations = [
-    RankLocationSpec("A"),
-    RankLocationSpec("AA"),
-    RankLocationSpec("AAA"),
-    RankLocationSpec("S"),
-]
-
-
-song_specs: list[SongSpec] = []
-song_specs_by_item_name: dict[str, SongSpec] = {}
-
-
-for song in all_songs:
-    song_item_name = (
-        song.title
-        if not song.title in duplicate_song_titles
-        else f"{song.title} (by {song.artist})"
-    )
-
-    song_spec = SongSpec(**dataclasses.asdict(song))
-    song_specs.append(song_spec)
-    song_specs_by_item_name[song_item_name] = song_spec
-
-    world_spec.define_category(
-        song_spec.id_category_name,
+    song_location_category = spec.define_category(
+        song_location_category_name,
         hidden=True,
+    )[0]
+
+    def define_song_list(
+        song_list: Iterable[SongSpec], group_category: str | None = None
+    ):
+        for song in song_list:
+            if song.item_name in spec.items:
+                if group_category:
+                    existing = spec.items[song.item_name]
+                    existing["category"] = spec.items[song.item_name].get(
+                        "category", []
+                    )
+                    existing["category"].append(group_category)
+                continue
+
+            song_item = spec.define_item(
+                song.item_name,
+                category=[
+                    song_item_category,
+                    *([group_category] if group_category != None else []),
+                ],
+                progression=True,
+            )
+
+            for chart in song.charts:
+                for chart_location in chart.locations:
+                    chart_location = spec.define_location(
+                        chart_location.name,
+                        category=[
+                            song_location_category,
+                            *([group_category] if group_category != None else []),
+                            f"Songs - {song.title} ({group_category or "Base Songs"})",
+                        ],
+                        requires=Requires.item(song_item),
+                        dont_place_item=(
+                            chart_location.type == "score_pass"
+                            and [progressive_gate_item["name"]]
+                            # or chart_location.type == "hp_pass"
+                            # and [progressive_gate_hp_item["name"]]
+                            or []
+                        ),
+                    )
+
+    define_song_list(SongSpec.base_songs)
+
+    member_songs_option = spec.define_toggle_option(
+        "enable_member_songs",
+        display_name="Enable Membership songs",
+        description="Enable songs that require a membership subscription",
+        default=False,
+    )[0]
+    member_songs_category = spec.define_category(
+        "Membership",
+        yaml_option=[member_songs_option],
+        hidden=True,
+    )[0]
+    define_song_list(SongSpec.member_songs, member_songs_category)
+
+    blaster_songs_option = spec.define_toggle_option(
+        "enable_blaster_gate_songs",
+        display_name="Enable BLASTER GATE songs",
+        description="Enable songs unlocked through BLASTER GATE",
+        default=False,
+    )[0]
+    blaster_songs_category = spec.define_category(
+        "BLASTER GATE",
+        yaml_option=[blaster_songs_option],
+        hidden=True,
+    )[0]
+    define_song_list(SongSpec.blaster_songs, blaster_songs_category)
+
+    for pack in PackSongSpec.all_song_packs:
+        (pack_category, _) = spec.define_category(
+            pack,
+            hidden=True,
+        )
+        define_song_list(
+            (song for song in SongSpec.pack_songs if song.pack == pack),
+            pack_category,
+        )
+    # endregion songs
+
+    # region navigators
+    navigators = [
+        "RASIS",
+        "Tsumabuki RIGHT",
+        "Tsumabuki LEFT",
+        "TSUMABUKI",
+        "TAMA-chan",
+        "TAMANEKO",
+        "Voltenizer Maxima",
+        "NEAR & NOAH",
+        "Kanade Yamashina",
+        "Kureha",
+        "Hina, Ao, and Momo",
+        "Kougei Ciel Nana",
+        "Lyric Rishuna",
+    ]
+
+    navigators_required = round(len(navigators) * 0.7)
+    navigators_category = (
+        f"Navigators (Rescue {navigators_required} out of {len(navigators)} to win!)"
     )
 
-    song_location_category_name = f"Songs - {song_item_name}"
-
-    song_spec.items.append(
-        world_spec.define_item(
-            song_item_name,
-            category=[song_spec.id_category_name, songs_item_category],
+    for navigator_name in navigators:
+        spec.define_item(
+            navigator_name,
+            category=[navigators_category],
             progression=True,
         )
+
+    spec.define_location(
+        "Rescue GRACE",
+        category="Victory (You win! If you like, play a finale song to conclude your playthrough.)",
+        requires=Requires.category(navigators_category, navigators_required),
+        victory=True,
+    )
+    # endregion navigators
+
+    spec.define_item(
+        f"ANOMALY",
+        category=[
+            "ANOMALY (Play and clear the first randomly-selected chart within your range)"
+        ],
+        trap=True,
+        count=5,
     )
 
-    # category requires are expensive for playthrough calculation,
-    # so only use them if necessary, such as if the song name
-    # would break the require string because sdvx artists
-    # can't use normal song titles fkldsjfl
-    song_requires = (
-        f"|{song_item_name}|"
-        if all(char not in song_item_name for char in ":|")
-        else f"|@{song_spec.id_category_name}|"
-    )
+    return spec
 
-    song_spec.locations.append(
-        world_spec.define_location(
-            f"{song_item_name} - Track Clear",
-            category=[song_location_category_name, song_spec.id_category_name],
-            requires=song_requires,
-        )
-    )
 
-    for rank_location in rank_locations:
-        song_spec.locations.append(
-            world_spec.define_location(
-                f"{song_item_name} - {rank_location.name} Rank or higher",
-                category=[
-                    song_location_category_name,
-                    song_spec.id_category_name,
-                    rank_location.category_name,
-                ],
-                requires=song_requires,
-                place_item_category=[goal_reward_category_name],
-            )
-        )
-
-spec = world_spec
+spec = __define_world_spec()
