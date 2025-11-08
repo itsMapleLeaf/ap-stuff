@@ -177,13 +177,11 @@ def __define_world_spec() -> WorldSpec:
         "AA",
         "A+",
         "A",
-        "Any Grade",
     ]
 
     progressive_gate_item = spec.define_item(
         f"Progressive Gate",
         category=[progressive_gate_category],
-        starting_count=1,
         progression=True,
         count=round(len(progressive_gate_steps) * 1.5),  # add some extras just in case
         early=False,
