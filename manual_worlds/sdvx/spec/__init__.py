@@ -321,10 +321,15 @@ def __define_world_spec() -> WorldSpec:
     )
 
     for navigator_name in navigators:
-        spec.define_item(
+        navigator_item = spec.define_item(
             navigator_name,
             category=[navigators_category],
             progression=True,
+        )["name"]
+        spec.define_location(
+            f"Rescue {navigator_name}",
+            category=[navigators_category],
+            requires=Requires.item(navigator_item),
         )
 
     spec.define_location(
