@@ -95,8 +95,11 @@ def __main() -> None:
         print(f"Game: {world_data.game_table.game}")
         print(f"Creator: {world_data.game_table.creator}")
         print(f"Player: {world_data.game_table.player}")
-        print(f"Item Count: {world_data.item_count}")
         print(f"Location Count: {world_data.location_count}")
+        print(f"Item Count: {world_data.item_count}")
+        print(f"Progression Item Count: {world_data.progression_item_count}")
+        print(f"Useful Item Count: {world_data.useful_item_count}")
+        print(f"Filler Item Count: {world_data.filler_item_count}")
     else:
         json.dump(dataclasses.asdict(world_data), fp=sys.stdout, indent=4)
 

@@ -131,11 +131,64 @@ class ManualWorldData:
 
     def __post_init__(self) -> None:
         self.item_count = (
-            sum(item.get("count", 1) for item in self.item_table)
+            sum(self.__item_count_of(item) for item in self.item_table)
             if self.item_table
             else 0
         )
         self.location_count = len(self.location_table) if self.location_table else 0
+
+        self.progression_item_count = 0
+        self.useful_item_count = 0
+        self.filler_item_count = 0
+
+        for item in self.item_table or []:
+            match item:
+                case {"classification_count": {**counts}}:
+                    for key, count in counts.items():
+                        if "progression" in key:
+                            self.progression_item_count += count
+                        elif "useful" in key:
+                            self.useful_item_count += count
+                        elif "filler" in key:
+                            self.filler_item_count += count
+
+                case {
+                    "progression": True,
+                    "count": count,
+                } | {
+                    "progression_skip_balancing": True,
+                    "count": count,
+                }:
+                    self.progression_item_count += count
+
+                case {"progression": True} | {"progression_skip_balancing": True}:
+                    self.progression_item_count += 1
+
+                case {"useful": True, "count": count}:
+                    self.useful_item_count += count
+
+                case {"useful": True}:
+                    self.useful_item_count += 1
+
+                case {"filler": True, "count": count}:
+                    self.filler_item_count += count
+
+                case {"filler": True}:
+                    self.filler_item_count += 1
+
+                case {"count": count}:
+                    self.filler_item_count += count
+
+                case _:
+                    self.filler_item_count += 1
+
+    @staticmethod
+    def __item_count_of(item: dict) -> int:
+        return (
+            "classification_count" in item
+            and sum(item["classification_count"].values())
+            or item.get("count", 1)
+        )
 
 
 @dataclass
