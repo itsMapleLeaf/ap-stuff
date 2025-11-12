@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import warnings
 from dataclasses_json import DataClassJsonMixin
 import os
 from pathlib import Path
@@ -12,10 +13,14 @@ from .paths import project_worlds_dir, user_archipelago_worlds_dir
 
 
 class ManualWorldProject:
-
     def __init__(self, src: Path, name: str | None = None):
-        self.src = src
+        self.path = src
         self.name = name or src.stem
+
+    @property
+    @warnings.deprecated("Use 'path' instead of 'src")
+    def src(self) -> Path:
+        return self.path
 
     @staticmethod
     def local(name: str):
