@@ -14,6 +14,7 @@ def __main():
     class Args:
         worlds: list[str] = field(default_factory=list)
         multi: str | None = None
+        all: bool = False
 
     arg_parser = argparse.ArgumentParser()
 
@@ -32,6 +33,13 @@ def __main():
             "The name of a multiworld config to use,"
             + " e.g. specify `solosync` to use the config at `config/multiworlds/solosync.yaml`"
         ),
+    )
+
+    arg_parser.add_argument(
+        '-a',
+        "--all",
+        action="store_true",
+        help="Build all local manual world projects",
     )
 
     args = arg_parser.parse_args(namespace=Args())
@@ -58,8 +66,10 @@ def __main():
             for manual_world_project in find_local_manual_world_projects()
             if manual_world_project.world_id in player_config_world_ids
         ]
+    elif args.all:
+        worlds_to_build = [*find_local_manual_world_projects()]
     else:
-        PrettyLog.error("Expected 1+ worlds or a --multi (-m)\n")
+        PrettyLog.error("Expected 1+ worlds, a --multi (-m)\n, or --all")
         arg_parser.print_help()
         exit(1)
 
