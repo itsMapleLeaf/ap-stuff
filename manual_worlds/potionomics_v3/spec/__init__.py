@@ -16,14 +16,6 @@ def __define_world_spec() -> WorldSpec:
     chapter_4 = "Chapter 4"
     chapter_5 = "Chapter 5"
 
-    license_level = spec.define_item(
-        "Progressive License Level",
-        category="Progression",
-        progression=True,
-        count=5,
-        starting_count=1,
-    )["name"]
-
     contest_reward = spec.define_item(
         "Contest Reward",
         category="Contest Rewards",
@@ -34,8 +26,7 @@ def __define_world_spec() -> WorldSpec:
     spec.define_location(
         "Save the Shop!",
         category="Victory",
-        region=chapter_5,
-        requires=Requires.item(contest_reward, "all"),
+        requires=Requires.item(contest_reward, 3),
         victory=True,
     )
 
@@ -43,13 +34,13 @@ def __define_world_spec() -> WorldSpec:
     for chapter_index, chapter_region in enumerate(
         [chapter_1, chapter_2, chapter_3, chapter_4, chapter_5]
     ):
-        # make locations for days 1-9 of each chapter
-        for day in range(1, 10):
-            spec.define_location(
-                f"Complete Day {chapter_index * 10 + day}",
-                category=[chapter_region, "Day Completion"],
-                region=chapter_region,
-            )
+        spec.define_location(
+            f"Win Contest {chapter_index + 1}",
+            category=["Contests", chapter_region],
+            region=chapter_region,
+            requires=Requires.item(contest_reward, chapter_index),
+            place_item=[contest_reward],
+        )
     # endregion days
 
     # region potions
@@ -136,7 +127,7 @@ def __define_world_spec() -> WorldSpec:
         )
 
         spec.define_item(
-            f"{character_name} (Progressive Cards)",
+            f"+1 {character_name} Card",
             category=["Cards"],
             useful=True,
             count=10,
@@ -184,22 +175,23 @@ def __define_world_spec() -> WorldSpec:
     saffron = define_character("Saffron", region=chapter_1)
     roxanne = define_character("Roxanne", region=chapter_2)
     xidriel = define_character("Xidriel", region=chapter_2)
-    luna = define_character("Luna", region=chapter_3)
+    luna = define_character("Luna", region=chapter_2)
     salt_and_pepper = define_character("Salt & Pepper", region=chapter_3)
     corsac = define_character("Corsac", region=chapter_4)
     # finn = define_character("Finn", region=chapter_4)
     # endregion characters
 
     # region cauldrons
+
     # defines which cauldrons you can access
     # amount you have = each cauldron's respective chapter level
     # e.g. with 3, you can access chapter 1, 2, and 3 cauldrons
+    progressive_cauldrons_extra_count = 0  # extras just to be safe
     progressive_cauldrons = spec.define_item(
         "Progressive Cauldrons",
         category=["Progression"],
         progression=True,
-        count=8,
-        starting_count=1,
+        count=5 + progressive_cauldrons_extra_count,
     )["name"]
 
     def define_cauldron(cauldron_name: str, region: str, level: int):
@@ -411,20 +403,20 @@ def __define_world_spec() -> WorldSpec:
     # region slots
     # adding extras for a bunch of these just to make sure they get found at some point
 
-    spec.define_item(
-        "Cauldron Slots",
-        category="Other",
-        useful=True,
-        count=8,
-        starting_count=1,
-        early=2,
-    )
+    # spec.define_item(
+    #     "Cauldron Slots",
+    #     category="Other",
+    #     useful=True,
+    #     count=5 + 3,
+    #     starting_count=1,
+    #     early=2,
+    # )
 
     spec.define_item(
         "Vending Machine Slots",
         category="Other",
         useful=True,
-        count=20,
+        count=8 + 2,
         starting_count=2,
     )
 
@@ -432,7 +424,7 @@ def __define_world_spec() -> WorldSpec:
         "Shelf Slots",
         category="Other",
         useful=True,
-        count=8,
+        count=4 + 1,
         starting_count=1,
         early=1,
     )
@@ -441,7 +433,7 @@ def __define_world_spec() -> WorldSpec:
         "Display Case Slots",
         category="Other",
         useful=True,
-        count=6,
+        count=3 + 2,
     )
     # endregion slots
 
@@ -460,9 +452,7 @@ def __define_world_spec() -> WorldSpec:
             Requires.item(health_potion_recipe),
             Requires.item(fire_tonic_recipe),
             Requires.item(mana_potion_recipe),
-            Requires.item(mana_potion_recipe),
             Requires.item(enchanted_forest_map),
-            Requires.item(bone_wastes_map),
         ),
     )
 
@@ -472,13 +462,13 @@ def __define_world_spec() -> WorldSpec:
         requires=Requires.all_of(
             Requires.item(baptiste),
             Requires.item(contest_reward, 1),
-            Requires.item(license_level, 2),
-            Requires.item(progressive_cauldrons, 2),
+            Requires.item(progressive_cauldrons, 1),
             Requires.item(ice_tonic_recipe),
             Requires.item(sight_enhancer_recipe),
             Requires.item(speed_potion_recipe),
             Requires.item(mushroom_mire_map),
             Requires.any_of(
+                Requires.item(bone_wastes_map),
                 Requires.item(ocean_coasts_map),
                 Requires.item(storm_plains_map),
             ),
@@ -492,8 +482,7 @@ def __define_world_spec() -> WorldSpec:
             Requires.item(saffron),
             Requires.item(xidriel),
             Requires.item(contest_reward, 2),
-            Requires.item(license_level, 3),
-            Requires.item(progressive_cauldrons, 3),
+            Requires.item(progressive_cauldrons, 2),
             Requires.item(poison_cure_recipe),
             Requires.item(thunder_tonic_recipe),
             Requires.item(stamina_potion_recipe),
@@ -511,8 +500,7 @@ def __define_world_spec() -> WorldSpec:
         requires=Requires.all_of(
             Requires.category(characters_item_category, 8),
             Requires.item(contest_reward, 3),
-            Requires.item(license_level, 4),
-            Requires.item(progressive_cauldrons, 4),
+            Requires.item(progressive_cauldrons, 3),
             Requires.item(silence_cure_recipe),
             Requires.item(tolerance_potion_recipe),
             Requires.item(insight_enhancer_recipe),
@@ -529,8 +517,7 @@ def __define_world_spec() -> WorldSpec:
         requires=Requires.all_of(
             Requires.category(characters_item_category, "all"),
             Requires.item(contest_reward, 4),
-            Requires.item(license_level, 5),
-            Requires.item(progressive_cauldrons, 5),
+            Requires.item(progressive_cauldrons, 4),
             Requires.item(radiation_tonic_recipe),
             Requires.item(curse_cure_recipe),
             Requires.item(seeking_enhancer_recipe),
