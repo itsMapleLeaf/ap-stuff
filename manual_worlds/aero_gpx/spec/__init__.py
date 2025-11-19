@@ -96,9 +96,9 @@ class TemplateWorldSpec(WorldSpec):
                     progression=True,
                 )
 
-                for difficulty in ["Standard", "Expert", "Ace Pilot"]:
-                    if level.startswith("Grand Prix:"):
-                        for track_index in range(5):
+                if level.startswith("Grand Prix:"):
+                    for track_index in range(5):
+                        for difficulty in ["Standard", "Expert", "Ace Pilot"]:
                             self.define_location(
                                 f"{level} - Track {track_index + 1} - {difficulty} Difficulty",
                                 category=[
@@ -107,7 +107,8 @@ class TemplateWorldSpec(WorldSpec):
                                 # requires=Requires.item(ticket_item, division.required_tickets),
                                 requires=Requires.item(level_item),
                             )
-                    else:
+                else:
+                    for difficulty in ["Standard", "Expert", "Ace Pilot"]:
                         self.define_location(
                             f"{level} - {difficulty} Difficulty",
                             category=[
