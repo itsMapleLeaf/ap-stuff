@@ -25,7 +25,7 @@ def before_is_item_enabled(
     from ..spec import song_item_category_name
     from .State import ChartPool
 
-    if song_item_category_name in item["category"]:
+    if "category" in item and song_item_category_name in item["category"]:
         return item["name"] in ChartPool.for_player(player).enabled_item_names
 
     return None
@@ -42,7 +42,7 @@ def before_is_location_enabled(
     from ..spec import song_location_category_name
     from .State import ChartPool
 
-    if song_location_category_name in location["category"]:
+    if "category" in location and song_location_category_name in location["category"]:
         return location["name"] in ChartPool.for_player(player).enabled_location_names
 
     return None

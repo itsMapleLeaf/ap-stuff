@@ -166,6 +166,41 @@ song_location_category_name = "Song Locations"
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec()
 
+    # region chain/victory
+    @dataclass
+    class ChainSpec:
+        count: int
+        value: int
+
+    chain_specs = {
+        "NEAR": ChainSpec(count=10, value=1),  # 10
+        "CRITICAL": ChainSpec(count=6, value=5),  # 30
+        "S-CRITICAL": ChainSpec(count=3, value=20),  # 60
+    }
+
+    # you have to get _at least_ one S-CRITICAL + a mix of NEAR/CRITICAL,
+    # or multiple S-CRITICAL if you get lucky
+    chain_required = 50
+
+    chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
+
+    for chain_spec_name, chain_spec in chain_specs.items():
+        spec.define_item(
+            f"{chain_spec_name} ({chain_spec.value} CHAIN)",
+            category=[chain_item_category],
+            progression=True,
+            count=chain_spec.count,
+            value={"CHAIN": chain_spec.value},
+        )
+
+    spec.define_location(
+        "PERFECT ULTIMATE CHAIN",
+        category=[f"Victory (Collect {chain_required} total CHAIN to win)"],
+        requires=f"{{ItemValue(CHAIN:{chain_required})}}",
+        victory=True,
+    )
+    # endregion chain/victory
+
     # region progressive gate
     progressive_gate_category = spec.define_category("Progressive Gate")[0]
 
@@ -189,11 +224,14 @@ def __define_world_spec() -> WorldSpec:
 
     for step_index, step in enumerate(progressive_gate_steps):
         spec.define_location(
-            f"Score Gate: {step}",
+            f"Progressive Gate {step_index:02d} - {step}",
             category=[f"Progressive Gate (Track your current score requirement)"],
             requires=Requires.item(progressive_gate_item, step_index + 1),
         )
 
+    # endregion progressive gate
+
+    # region helper items
     spec.define_item(
         "Song Skip",
         category=[
@@ -203,12 +241,23 @@ def __define_world_spec() -> WorldSpec:
         count=20,
         starting_count=1,
     )
-    # endregion progressive gate
+    # endregion helper items
+
+    # region traps
+    spec.define_item(
+        f"ANOMALY",
+        category=[
+            "ANOMALY (Play and clear the first randomly-selected chart within your range)"
+        ],
+        trap=True,
+        count=5,
+    )
+    # endregion traps
 
     # region songs
     song_item_category = spec.define_category(
         song_item_category_name,
-        starting_count=7,
+        starting_count=5,
     )[0]
 
     song_location_category = spec.define_category(
@@ -295,57 +344,6 @@ def __define_world_spec() -> WorldSpec:
             pack_category,
         )
     # endregion songs
-
-    # region navigators
-    navigators = [
-        "RASIS",
-        "Tsumabuki RIGHT",
-        "Tsumabuki LEFT",
-        "TSUMABUKI",
-        "TAMA-chan",
-        "TAMANEKO",
-        "Voltenizer Maxima",
-        "NEAR & NOAH",
-        "Kanade Yamashina",
-        "Kureha",
-        "Hina, Ao, and Momo",
-        "Kougei Ciel Nana",
-        "Lyric Rishuna",
-    ]
-
-    navigators_required = round(len(navigators) * 0.7)
-    navigators_category = (
-        f"Navigators (Rescue {navigators_required} out of {len(navigators)} to win!)"
-    )
-
-    for navigator_name in navigators:
-        navigator_item = spec.define_item(
-            navigator_name,
-            category=[navigators_category],
-            progression=True,
-        )["name"]
-        spec.define_location(
-            f"Rescue {navigator_name}",
-            category=[navigators_category],
-            requires=Requires.item(navigator_item),
-        )
-
-    spec.define_location(
-        "Rescue GRACE",
-        category="Victory (You win! If you like, play a finale song to conclude your playthrough.)",
-        requires=Requires.category(navigators_category, navigators_required),
-        victory=True,
-    )
-    # endregion navigators
-
-    spec.define_item(
-        f"ANOMALY",
-        category=[
-            "ANOMALY (Play and clear the first randomly-selected chart within your range)"
-        ],
-        trap=True,
-        count=5,
-    )
 
     return spec
 
