@@ -1,8 +1,1 @@
-{
-	"[python]": {
-		"editor.formatOnSaveMode": "modificationsIfAvailable",
-		"editor.codeActionsOnSave": {
-			"source.unusedImports": "never"
-		}
-	}
-}
+{}
