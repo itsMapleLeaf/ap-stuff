@@ -163,8 +163,65 @@ song_item_category_name = "Songs"
 song_location_category_name = "Song Locations"
 
 
+filler_item_name = "Placeholder (If you see this, there's a bug)"
+
+song_skip_item_name = "Song Skip"
+song_skip_item_weight = 8
+
+anomaly_item_name = "ANOMALY"
+anomaly_item_weight = 1
+
+
+@dataclass
+class ChartLevelRangeSpec:
+    start: int
+    end: int
+    default: int
+
+    @property
+    def option_name(self) -> str:
+        if self.start != self.end:
+            return f"include_charts_level_{self.start}_to_{self.end}"
+        else:
+            return f"include_charts_level_{self.start}"
+
+    def define_range_option(self, spec: WorldSpec) -> None:
+        spec.define_range_option(
+            self.option_name,
+            description=(
+                f"Include this many charts"
+                + (
+                    f" from level {self.start} to {self.end}"
+                    if self.start != self.end
+                    else f" at level {self.start}"
+                )
+            ),
+            range_start=0,
+            range_end=1000,
+            default=self.default,
+        )
+
+
+chart_level_range_specs = [
+    ChartLevelRangeSpec(start=1, end=7, default=0),
+    ChartLevelRangeSpec(start=8, end=12, default=0),
+    ChartLevelRangeSpec(start=13, end=16, default=0),
+    ChartLevelRangeSpec(start=17, end=17, default=15),
+    ChartLevelRangeSpec(start=18, end=18, default=20),
+    ChartLevelRangeSpec(start=19, end=19, default=10),
+    ChartLevelRangeSpec(start=20, end=20, default=5),
+]
+
+
 def __define_world_spec() -> WorldSpec:
-    spec = WorldSpec()
+    spec = WorldSpec(
+        game="SoundVoltex_test",
+        creator="MapleLeaf",
+        filler_item_name=filler_item_name,
+    )
+
+    for chart_level_range_spec in chart_level_range_specs:
+        chart_level_range_spec.define_range_option(spec)
 
     # region chain/victory
     @dataclass
@@ -173,20 +230,18 @@ def __define_world_spec() -> WorldSpec:
         value: int
 
     chain_specs = {
-        "NEAR": ChainSpec(count=10, value=1),  # 10
-        "CRITICAL": ChainSpec(count=6, value=5),  # 30
-        "S-CRITICAL": ChainSpec(count=3, value=20),  # 60
+        "NEAR": ChainSpec(count=25, value=1),  # 25
+        "CRITICAL": ChainSpec(count=15, value=5),  # 75
+        "S-CRITICAL": ChainSpec(count=5, value=20),  # 100
     }
 
-    # you have to get _at least_ one S-CRITICAL + a mix of NEAR/CRITICAL,
-    # or multiple S-CRITICAL if you get lucky
-    chain_required = 50
+    chain_required = 80
 
     chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
 
     for chain_spec_name, chain_spec in chain_specs.items():
         spec.define_item(
-            f"{chain_spec_name} ({chain_spec.value} CHAIN)",
+            f"{chain_spec_name} (CHAIN {chain_spec.value})",
             category=[chain_item_category],
             progression=True,
             count=chain_spec.count,
@@ -194,10 +249,16 @@ def __define_world_spec() -> WorldSpec:
         )
 
     spec.define_location(
-        "PERFECT ULTIMATE CHAIN",
+        "WORLD CLEAR",
         category=[f"Victory (Collect {chain_required} total CHAIN to win)"],
         requires=f"{{ItemValue(CHAIN:{chain_required})}}",
         victory=True,
+    )
+
+    spec.define_location(
+        "ULTIMATE CHAIN",
+        category=[f"Victory (Collect ALL CHAIN items)"],
+        requires=Requires.category(chain_item_category, "all"),
     )
     # endregion chain/victory
 
@@ -225,7 +286,9 @@ def __define_world_spec() -> WorldSpec:
     for step_index, step in enumerate(progressive_gate_steps):
         spec.define_location(
             f"Progressive Gate {step_index:02d} - {step}",
-            category=[f"Progressive Gate (Track your current score requirement)"],
+            category=[
+                f"Progressive Gate (Your first unchecked location is your score clear requirement; check all for any clear)"
+            ],
             requires=Requires.item(progressive_gate_item, step_index + 1),
         )
 
@@ -233,24 +296,22 @@ def __define_world_spec() -> WorldSpec:
 
     # region helper items
     spec.define_item(
-        "Song Skip",
+        song_skip_item_name,
         category=[
-            f"Song Skip (Consume after playing a song to auto-pass a song's locations)"
+            f"{song_skip_item_name} (Consume after playing a song to auto-pass a song's locations)"
         ],
         useful=True,
-        count=20,
         starting_count=1,
     )
     # endregion helper items
 
     # region traps
     spec.define_item(
-        f"ANOMALY",
+        anomaly_item_name,
         category=[
-            "ANOMALY (Play and clear the first randomly-selected chart within your range)"
+            f"{anomaly_item_name} (Play and clear the first randomly-selected chart within your range)"
         ],
         trap=True,
-        count=5,
     )
     # endregion traps
 

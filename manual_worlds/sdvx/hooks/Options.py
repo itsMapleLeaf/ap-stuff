@@ -19,7 +19,7 @@ from ..spec import PackSongSpec
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
-from typing import Type, Any
+from typing import Final, Type, Any
 
 
 ####################################################################
@@ -50,19 +50,19 @@ from typing import Type, Any
 #     default = 50
 
 
-class ChartCountPerLevel(OptionDict):
+class AdditionalChartsPerLevel(OptionDict):
     """
-    The number of charts you want to include per level.
-    The sum is the total number of charts you'll have available.
+    Include additional numbers of charts per level (on top of charts included with other options)
     """
 
-    display_name = "Chart Count per Level"
+    name: Final = "additional_charts_per_level"
+    display_name = "Additional Charts Per Level"
 
     default = {
-        "17": 10,
-        "18": 40,
-        "19": 15,
-        "20": 5,
+        "17": 0,
+        "18": 0,
+        "19": 0,
+        "20": 0,
     }
 
 
@@ -81,7 +81,7 @@ Available packs:
 
 class ForceInclude(OptionSet):
     """
-    Force these charts to be included in the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+    Force these charts to be included in the generation.
 
     Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
 
@@ -97,7 +97,7 @@ class ForceInclude(OptionSet):
 
 class ForceExclude(OptionSet):
     """
-    Force these charts to be excluded from the generation. These will be included _on top of_ the charts included by `chart_count_per_level`
+    Force these charts to be excluded from the generation.
 
     Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
 
@@ -115,7 +115,7 @@ class ForceExclude(OptionSet):
 def before_options_defined(
     options: dict[str, Type[Option[Any]]],
 ) -> dict[str, Type[Option[Any]]]:
-    options["chart_count_per_level"] = ChartCountPerLevel
+    options[AdditionalChartsPerLevel.name] = AdditionalChartsPerLevel
     options["include_song_packs"] = SongPacks
     options["force_include"] = ForceInclude
     options["force_exclude"] = ForceExclude

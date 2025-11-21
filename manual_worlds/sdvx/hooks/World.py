@@ -1,7 +1,10 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
 from os import getenv
-from typing import Iterable, cast
-from ..spec import SongSpec
+from typing import Final, Iterable, cast
+
+from Options import Option, Range
+from .Options import AdditionalChartsPerLevel
+from ..spec import SongSpec, song_skip_item_weight, anomaly_item_weight
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
 
@@ -15,7 +18,12 @@ from ..Locations import ManualLocation
 from ..Data import game_table, item_table, location_table, region_table
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
-from ..Helpers import is_option_enabled, get_option_value, format_state_prog_items_key, ProgItemsCat
+from ..Helpers import (
+    is_option_enabled,
+    get_option_value,
+    format_state_prog_items_key,
+    ProgItemsCat,
+)
 
 # calling logging.info("message") anywhere below in this file will output the message to both console and log file
 import logging
@@ -35,81 +43,90 @@ import logging
 
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
-def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
-    return False
+def hook_get_filler_item_name(
+    world: World, multiworld: MultiWorld, player: int
+) -> str | bool:
+    choice_weight_map = {
+        "Song Skip": song_skip_item_weight,
+        "ANOMALY": anomaly_item_weight,
+    }
+    return multiworld.random.choices(
+        list(choice_weight_map.keys()),
+        list(choice_weight_map.values()),
+    )[0]
+
+
+def format_list(items: Iterable[str]):
+    return "\n".join(f"- {error}" for error in items)
+
 
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
-    log_context = f"[{game_table['game']}][Player {player} \"{world.player_name}\"]"
-    log_debug_enabled = not not getenv("DEBUG")
+    from .Helpers import TinyLog
 
-    def log_debug(msg: str):
-        if not log_debug_enabled:
-            return
-        logging.info(f"[debug] {log_context} {msg}")
-
-    def log_warning(msg: str):
-        logging.warning(f"[warn] {log_context} {msg}")
-
-    def fail(msg: str):
-        raise Exception(f"{log_context} {msg}")
-
-    if log_debug_enabled:
-        log_debug("Debug logging enabled")
-
-    def format_list(items: Iterable[str]):
-        return "\n".join(f"- {error}" for error in errors)
-
+    log = TinyLog(player, world)
     errors: list[str] = []
 
-    from .State import ChartPool
+    def option_value_of[T](
+        option_class: type[Option[T]],
+        option_name: str | None = None,
+    ) -> T:
+        resolved_option_name = option_name
+        if resolved_option_name is None:
+            if not hasattr(option_class, "name"):
+                raise ValueError(
+                    "option_name must be provided if option_class has no 'name' attribute"
+                )
+            resolved_option_name = getattr(option_class, "name")
 
-    chart_count_per_level = cast(
-        dict[str, int],
-        get_option_value(multiworld, player, "chart_count_per_level"),
-    )
+        return cast(
+            T,
+            get_option_value(multiworld, player, resolved_option_name),
+        )
 
-    available_charts = [chart for song in SongSpec.base_songs for chart in song.charts]
+    chart_count_per_level: dict[str, int] = option_value_of(AdditionalChartsPerLevel)
+
+    valid_charts = [chart for song in SongSpec.base_songs for chart in song.charts]
 
     if is_option_enabled(multiworld, player, "enable_member_songs"):
-        available_charts.extend(
+        valid_charts.extend(
             chart for song in SongSpec.member_songs for chart in song.charts
         )
-        log_debug("Including member songs")
+        log.debug("Including member songs")
 
     if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
-        available_charts.extend(
+        valid_charts.extend(
             chart for song in SongSpec.blaster_songs for chart in song.charts
         )
-        log_debug("Including BLASTER GATE songs")
+        log.debug("Including BLASTER GATE songs")
 
     included_song_packs = set(
         cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
     )
 
     if len(included_song_packs) > 0:
-        log_debug(f"Including songs from {len(included_song_packs)} song packs")
+        log.debug(f"Including songs from {len(included_song_packs)} song packs")
 
-    available_charts.extend(
+    valid_charts.extend(
         chart
         for song in SongSpec.pack_songs
         if song.pack in included_song_packs
         for chart in song.charts
     )
 
-    log_debug(f"{len(available_charts)} total charts to pick from")
+    log.debug(f"{len(valid_charts)} total charts to pick from")
 
     force_include = cast(
         set[str], get_option_value(multiworld, player, "force_include")
     )
     if force_include:
-        log_debug(f"Force-including {len(force_include)} items")
+        log.debug(f"Force-including {len(force_include)} items")
 
     force_exclude = cast(
         set[str], get_option_value(multiworld, player, "force_exclude")
     )
     if force_exclude:
-        log_debug(f"Force-excluding {len(force_exclude)} items")
+        log.debug(f"Force-excluding {len(force_exclude)} items")
 
     included_and_excluded = force_include.intersection(force_exclude)
     if len(included_and_excluded) > 0:
@@ -119,8 +136,8 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
             f"{format_list(included_and_excluded)}"
         )
 
-    all_charts_by_item_name = {
-        chart.song.item_name: chart
+    charts_by_location_name = {
+        f"{song.title} - {chart.summary}": chart
         for song in (
             SongSpec.base_songs
             + SongSpec.member_songs
@@ -131,43 +148,72 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     }
 
     for entry in force_include:
-        if not entry in all_charts_by_item_name:
+        if not entry in charts_by_location_name:
             errors.append(f"Unknown entry in `force_include`: {entry}")
 
     for entry in force_exclude:
-        if not entry in all_charts_by_item_name:
+        if not entry in charts_by_location_name:
             errors.append(f"Unknown entry in `force_exclude`: {entry}")
 
     if len(errors) > 0:
-        fail(f"Found the following errors in the YAML:\n{format_list(errors)}")
+        log.exception(f"Found the following errors in the YAML:\n{format_list(errors)}")
+
+    valid_charts = [
+        chart for chart in valid_charts if chart.song.item_name not in force_exclude
+    ]
+
+    from .State import ChartPool
+    from ..spec import chart_level_range_specs
 
     pool = ChartPool.for_player(player)
 
-    for level, count in chart_count_per_level.items():
-        charts_with_level = [
-            chart
-            for chart in available_charts
-            if chart.level == int(level)
-            if chart.song.item_name not in force_exclude
-        ]
-
-        actual_included_count = min(count, len(charts_with_level))
+    def add_charts(charts: list[SongSpec.Chart], count: int, level_text: str):
+        actual_included_count = min(count, len(charts))
 
         if actual_included_count < count:
-            log_warning(
-                f"Wanted {count} charts with level {level}, only found {actual_included_count}"
+            log.warning(
+                f"Wanted {count} charts with level {level_text}, only found {actual_included_count}"
             )
 
-        log_debug(
-            f"Including {actual_included_count}/{len(charts_with_level)} songs at level {level}"
+        log.debug(
+            f"Including {actual_included_count}/{len(charts)} songs at level {level_text}"
         )
 
-        pool.add_charts(world.random.sample(charts_with_level, actual_included_count))
+        pool.add_charts(world.random.sample(charts, actual_included_count))
 
-    log_debug(f"Including {len(force_include)} force-included charts")
-    pool.add_charts(all_charts_by_item_name[entry] for entry in force_include)
+    for chart_level_range_spec in chart_level_range_specs:
+        start = chart_level_range_spec.start
+        end = chart_level_range_spec.end
+        add_charts(
+            charts=[
+                chart
+                for chart in valid_charts
+                if (
+                    chart_level_range_spec.start
+                    <= chart.level
+                    <= chart_level_range_spec.end
+                )
+            ],
+            count=cast(
+                int,
+                get_option_value(
+                    multiworld, player, chart_level_range_spec.option_name
+                ),
+            ),
+            level_text=(start == end and f"{start}" or f"{start} to {end}"),
+        )
 
-    log_debug(f"Selected {len(pool.charts)} charts for the pool")
+    for level, count in chart_count_per_level.items():
+        add_charts(
+            charts=[chart for chart in valid_charts if chart.level == int(level)],
+            count=count,
+            level_text=level,
+        )
+
+    log.debug(f"Including {len(force_include)} force-included charts")
+    pool.add_charts(charts_by_location_name[entry] for entry in force_include)
+
+    log.debug(f"Selected {len(pool.charts)} charts for the pool")
 
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
