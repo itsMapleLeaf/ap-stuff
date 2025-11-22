@@ -195,9 +195,15 @@ class ChartLevelRangeSpec:
                     if self.start != self.end
                     else f" at level {self.start}"
                 )
+                + "\n\n"
+                + "You can specify a random number of charts with `random-range-#-#`, example:"
+                + "\n\n"
+                + "random-range-5-15: 50"
+                + "\n\n"
+                + "(And make sure you remove all other keys, or set them to 0!)"
             ),
             range_start=0,
-            range_end=1000,
+            range_end=100,
             default=self.default,
         )
 
@@ -215,7 +221,7 @@ chart_level_range_specs = [
 
 def __define_world_spec() -> WorldSpec:
     spec = WorldSpec(
-        game="SoundVoltex_test",
+        game="SoundVoltex",
         creator="MapleLeaf",
         filler_item_name=filler_item_name,
     )
@@ -230,12 +236,12 @@ def __define_world_spec() -> WorldSpec:
         value: int
 
     chain_specs = {
-        "NEAR": ChainSpec(count=25, value=1),  # 25
-        "CRITICAL": ChainSpec(count=15, value=5),  # 75
-        "S-CRITICAL": ChainSpec(count=5, value=20),  # 100
+        "NEAR": ChainSpec(count=20, value=1),  # 20
+        "CRITICAL": ChainSpec(count=8, value=5),  # 40
+        "S-CRITICAL": ChainSpec(count=3, value=20),  # 60
     }
 
-    chain_required = 80
+    chain_required = 60
 
     chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
 
