@@ -1,0 +1,325 @@
+﻿# Q. What is this file?
+# A. This file contains options which allow you to configure your multiworld experience while allowing
+#    others to play how they want as well.
+#
+# Q. How do I use it?
+# A. The options in this file are weighted. This means the higher number you assign to a value, the
+#    more chances you have for that option to be chosen. For example, an option like this:
+#
+#    map_shuffle:
+#      on: 5
+#      off: 15
+#
+#    Means you have 5 chances for map shuffle to occur, and 15 chances for map shuffle to be turned
+#    off.
+#
+# Q. I've never seen a file like this before. What characters am I allowed to use?
+# A. This is a .yaml file. You are allowed to use most characters.
+#    To test if your yaml is valid or not, you can use this website:
+#        http://www.yamllint.com/
+#    You can also verify that your Archipelago options are valid at this site:
+#        https://archipelago.gg/check
+
+# Your name in-game, limited to 16 characters.
+#     {player} will be replaced with the player's slot number.
+#     {PLAYER} will be replaced with the player's slot number, if that slot number is greater than 1.
+#     {number} will be replaced with the counter value of the name.
+#     {NUMBER} will be replaced with the counter value of the name, if the counter value is greater than 1.
+name: Player{number}
+
+# Used to describe your yaml. Useful if you have multiple files.
+description: Default Manual_SoundVoltex_MapleLeaf Template
+
+game: Manual_SoundVoltex_MapleLeaf
+requires:
+  version: 0.6.4 # Version of Archipelago required for this yaml to work as expected.
+  game:
+    Manual_SoundVoltex_MapleLeaf: 2.2.0 # Version of the world required for this yaml to work as expected.
+
+Manual_SoundVoltex_MapleLeaf:
+  ################
+  # Game Options #
+  ################
+  progression_balancing:
+    # A system that can move progression earlier, to try and prevent the player from getting stuck and bored early.
+    # 
+    # A lower setting means more getting stuck. A higher setting means less getting stuck.
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 99
+    random: 0
+    random-low: 0
+    random-high: 0
+    disabled: 0 # equivalent to 0
+    normal: 50 # equivalent to 50
+    extreme: 0 # equivalent to 99
+
+  accessibility:
+    # Set rules for reachability of your items/locations.
+    # 
+    # **Full:** ensure everything can be reached and acquired.
+    # 
+    # **Minimal:** ensure what is needed to reach your goal can be acquired.
+    full: 50
+    minimal: 0
+
+  additional_charts_per_level:
+    # Include additional numbers of charts per level (on top of charts included with other options)
+    '17': 0
+    '18': 0
+    '19': 0
+    '20': 0
+
+  include_song_packs:
+    # Include songs from these purchasable song packs.
+    # Comment out the ones you don't have with a '#' in front of the line.
+    # 
+    # Available packs:
+    # - 楽曲パック vol.1
+    # - 楽曲パック vol.2
+    # - 楽曲パック vol.3
+    # - 楽曲パック vol.4
+    # - 楽曲パック vol.5
+    # - 楽曲パック vol.6
+    # - 楽曲パック vol.7
+    # - 楽曲パック vol.8
+    # - 楽曲パック vol.9
+    # - 楽曲パック vol.10
+    # - 楽曲パック vol.11
+    # - 楽曲パック vol.12
+    # - 楽曲パック vol.13
+    # - 楽曲パック vol.14
+    # - 楽曲パック vol.15
+    # - 楽曲パック vol.16
+    # - 楽曲パック vol.17
+    # - 楽曲パック vol.18
+    # - 楽曲パック vol.19
+    # - 楽曲パック vol.20
+    # - 楽曲パック vol.21
+    # - 楽曲パック vol.22
+    # - 楽曲パック vol.23
+    # - 楽曲パック vol.24
+    # - 楽曲パック vol.25
+    # - 10周年記念 楽曲パック
+    # - BEMANI セレクション 楽曲パック vol.1
+    # - BEMANI セレクション 楽曲パック vol.2
+    # - BEMANI セレクション 楽曲パック vol.3
+    # - MÚSECAセレクション 楽曲パック vol.1
+    # - MÚSECAセレクション 楽曲パック vol.2
+    # - REFLEC BEAT セレクション 楽曲パック vol.1
+    # - beatmania IIDX セレクション 楽曲パック vol.1
+    # - jubeat セレクション 楽曲パック vol.1
+    # - ここなつセレクション 楽曲パック
+    # - スタートアップセレクション 楽曲パック vol.1
+    # - 東方Projectセレクション 楽曲パック
+    []
+
+  force_include:
+    # Force these charts to be included in the generation.
+    # 
+    # Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+    # 
+    # Example: "BLIZZARD BEAT - MXM 17"
+    # 
+    # Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+    # 
+    # Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    []
+
+  force_exclude:
+    # Force these charts to be excluded from the generation.
+    # 
+    # Specify the song title, difficulty, and level, in the format "[title] - [diff] [level]"
+    # 
+    # Example: "BLIZZARD BEAT - MXM 17"
+    # 
+    # Use "MXM" for the 'adopted' difficulty names as well, like XCD and VVD.
+    # 
+    # Full song list: https://bemaniwiki.com/?%A5%B3%A5%CA%A5%B9%A5%C6/SOUND+VOLTEX+EXCEED+GEAR/%B3%DA%B6%CA%A5%EA%A5%B9%A5%C8
+    []
+
+  filler_traps:
+    # How many fillers will be replaced with traps. 0 means no additional traps, 100 means all fillers are traps.
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    0: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_1_to_7:
+    # Include this many charts from level 1 to 7
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    0: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_8_to_12:
+    # Include this many charts from level 8 to 12
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    0: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_13_to_16:
+    # Include this many charts from level 13 to 16
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    0: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_17:
+    # Include this many charts at level 17
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    15: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_18:
+    # Include this many charts at level 18
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    20: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_19:
+    # Include this many charts at level 19
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    10: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  include_charts_level_20:
+    # Include this many charts at level 20
+    # 
+    # You can specify a random number of charts with `random-range-#-#`, example:
+    # 
+    # random-range-5-15: 50
+    # 
+    # (And make sure you remove all other keys, or set them to 0!)
+    #
+    # You can define additional values between the minimum and maximum values.
+    # Minimum value is 0
+    # Maximum value is 100
+    5: 50
+    random: 0
+    random-low: 0
+    random-high: 0
+
+  enable_member_songs:
+    # Enable songs that require a membership subscription
+    'false': 50
+    'true': 0
+
+  enable_blaster_gate_songs:
+    # Enable songs unlocked through BLASTER GATE
+    'false': 50
+    'true': 0
+
+  ###########################
+  # Item & Location Options #
+  ###########################
+  local_items:
+    # Forces these items to be in their native world.
+    []
+
+  non_local_items:
+    # Forces these items to be outside their native world.
+    []
+
+  start_inventory:
+    # Start with the specified amount of these items. Example: "Bomb: 1"
+    {}
+
+  start_inventory_from_pool:
+    # Start with the specified amount of these items and don't place them in the world. Example: "Bomb: 1"
+    # 
+    # The game decides what the replacement items will be.
+    {}
+
+  start_hints:
+    # Start with these item's locations prefilled into the ``!hint`` command.
+    []
+
+  start_location_hints:
+    # Start with these locations and their item prefilled into the ``!hint`` command.
+    []
+
+  exclude_locations:
+    # Prevent these locations from having an important item.
+    []
+
+  priority_locations:
+    # Prevent these locations from having an unimportant item.
+    []
+
+  item_links:
+    # Share part of your item pool with other players.
+    []
+
+  plando_items:
+    # Generic items plando.
+    []
