@@ -4,7 +4,7 @@ from typing import Final, Iterable, cast
 
 from Options import Option, Range
 from .Options import AdditionalChartsPerLevel
-from ..spec import SongSpec, song_skip_item_weight, anomaly_item_weight
+from .. import spec
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
 
@@ -47,8 +47,8 @@ def hook_get_filler_item_name(
     world: World, multiworld: MultiWorld, player: int
 ) -> str | bool:
     choice_weight_map = {
-        "Song Skip": song_skip_item_weight,
-        "ANOMALY": anomaly_item_weight,
+        spec.song_skip_item_name: spec.song_skip_item_weight,
+        spec.anomaly_item_name: spec.anomaly_item_weight,
     }
     return multiworld.random.choices(
         list(choice_weight_map.keys()),
@@ -86,17 +86,17 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     chart_count_per_level: dict[str, int] = option_value_of(AdditionalChartsPerLevel)
 
-    valid_charts = [chart for song in SongSpec.base_songs for chart in song.charts]
+    valid_charts = [chart for song in spec.SongSpec.base_songs for chart in song.charts]
 
     if is_option_enabled(multiworld, player, "enable_member_songs"):
         valid_charts.extend(
-            chart for song in SongSpec.member_songs for chart in song.charts
+            chart for song in spec.SongSpec.member_songs for chart in song.charts
         )
         log.debug("Including member songs")
 
     if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
         valid_charts.extend(
-            chart for song in SongSpec.blaster_songs for chart in song.charts
+            chart for song in spec.SongSpec.blaster_songs for chart in song.charts
         )
         log.debug("Including BLASTER GATE songs")
 
@@ -109,7 +109,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     valid_charts.extend(
         chart
-        for song in SongSpec.pack_songs
+        for song in spec.SongSpec.pack_songs
         if song.pack in included_song_packs
         for chart in song.charts
     )
@@ -139,10 +139,10 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     charts_by_location_name = {
         f"{song.title} - {chart.summary}": chart
         for song in (
-            SongSpec.base_songs
-            + SongSpec.member_songs
-            + SongSpec.blaster_songs
-            + SongSpec.pack_songs
+            spec.SongSpec.base_songs
+            + spec.SongSpec.member_songs
+            + spec.SongSpec.blaster_songs
+            + spec.SongSpec.pack_songs
         )
         for chart in song.charts
     }
@@ -167,7 +167,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     pool = ChartPool.for_player(player)
 
-    def add_charts(charts: list[SongSpec.Chart], count: int, level_text: str):
+    def add_charts(charts: list[spec.SongSpec.Chart], count: int, level_text: str):
         actual_included_count = min(count, len(charts))
 
         if actual_included_count < count:

@@ -165,7 +165,7 @@ song_location_category_name = "Song Locations"
 
 filler_item_name = "Placeholder (If you see this, there's a bug)"
 
-song_skip_item_name = "Song Skip"
+song_skip_item_name = "AUTO CLEAR"
 song_skip_item_weight = 8
 
 anomaly_item_name = "ANOMALY"
@@ -242,8 +242,9 @@ def __define_world_spec() -> WorldSpec:
     }
 
     chain_required = 60
-
     chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
+    chain_location_category = "CHAIN (Victory)"
+    chain_location_increment = 10
 
     for chain_spec_name, chain_spec in chain_specs.items():
         spec.define_item(
@@ -254,17 +255,20 @@ def __define_world_spec() -> WorldSpec:
             value={"CHAIN": chain_spec.value},
         )
 
-    spec.define_location(
-        "WORLD CLEAR",
-        category=[f"Victory (Collect {chain_required} total CHAIN to win)"],
-        requires=f"{{ItemValue(CHAIN:{chain_required})}}",
-        victory=True,
-    )
+    for chain_location_value in range(
+        chain_location_increment, chain_required, chain_location_increment
+    ):
+        spec.define_location(
+            f"CHAIN {chain_location_value}",
+            category=[chain_location_category],
+            requires=f"{{ItemValue(CHAIN:{chain_location_value})}}",
+        )
 
     spec.define_location(
-        "ULTIMATE CHAIN",
-        category=[f"Victory (Collect ALL CHAIN items)"],
-        requires=Requires.category(chain_item_category, "all"),
+        f"CHAIN {chain_required} - WORLD CLEAR",
+        category=[chain_location_category],
+        requires=f"{{ItemValue(CHAIN:{chain_required})}}",
+        victory=True,
     )
     # endregion chain/victory
 
@@ -279,6 +283,8 @@ def __define_world_spec() -> WorldSpec:
         "AA",
         "A+",
         "A",
+        "B",
+        "C",
     ]
 
     progressive_gate_item = spec.define_item(
