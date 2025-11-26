@@ -8,7 +8,7 @@ Focused on EXCEED GEAR KONASUTE ver.
 
 ## Setup
 
-> [!warn]
+> [!warning]
 >
 > This guide assumes some familiarity with setting up and using [Archipelago](https://archipelago.gg).
 >
@@ -36,10 +36,10 @@ For a solo randomizer, I recommend ensuring you can get an S rank on about 20% o
 
 For a multi, since others will lower your pass requirement for you, you can increase the overall difficulty of your pool:
 
-- For easier songs, you should be able to get AAA rank or higher
+- For your easier songs, you should be able to get AAA rank or higher (and ideally S or AAA+ on a handful of them)
 - For your harder songs, you should be able to get A+ rank or higher
 
-Adjust these recommendations accordingly [if you start with a lower Progressive Gate requirement](#decreasing-initial-gate).
+Adjust these recommendations accordingly [if you start with a lower Progressive Gate requirement](#decreasing-initial-pg).
 
 ## How to Play
 
@@ -84,9 +84,9 @@ start_inventory_from_pool:
 
 ### AUTO-CLEAR
 
-AUTO-CLEAR items can be used to:
+An AUTO-CLEAR item can be used to:
 
-- Clear _both_ chart locations
+- Clear _all_ locations for a chart
 - Skip an [ANOMALY](#anomaly) trap
 
 Keep track of your consumed AUTO-CLEAR items elsewhere, e.g. in notepad
@@ -97,6 +97,7 @@ When you get an **ANOMALY** trap:
 
 - Choose a random song until you find one within your difficulty range
 - Complete the song with an EFFECTIVE RATE 70% pass _or_ a score reaching your current [Progressive Gate](#progressive-gate) requirement
+- If you do not clear the song, randomly select another song and repeat.
 
 Then mark the ANOMALY trap as cleared (in notepad or elsewhere).
 
