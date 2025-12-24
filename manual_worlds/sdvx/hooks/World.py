@@ -22,6 +22,7 @@ from ..Helpers import (
     is_option_enabled,
     get_option_value,
     format_state_prog_items_key,
+    load_data_file,
     ProgItemsCat,
 )
 
@@ -47,6 +48,7 @@ def hook_get_filler_item_name(
     world: World, multiworld: MultiWorld, player: int
 ) -> str | bool:
     choice_weight_map = {
+        spec.filler_item_name: spec.filler_item_weight,
         spec.song_skip_item_name: spec.song_skip_item_weight,
         spec.anomaly_item_name: spec.anomaly_item_weight,
     }
@@ -161,6 +163,32 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     valid_charts = [
         chart for chart in valid_charts if chart.song.item_name not in force_exclude
     ]
+
+    converts_only: bool = cast(
+        bool,
+        get_option_value(multiworld, player, "converts_only"),
+    )
+
+    if converts_only:
+        log.debug("Only including charts that have converts available")
+
+        available_convert_difficulties = load_data_file("converts.json")
+        available_convert_difficulties = {
+            str(song_title): set[str](charts)
+            for song_title, charts in available_convert_difficulties.items()
+        }
+
+        for name, chart in charts_by_location_name.items():
+            available_convert_difficulties_for_song = (
+                available_convert_difficulties.get(chart.song.title, set())
+            )
+            if chart.diff.upper() not in available_convert_difficulties_for_song:
+                if name in force_include:
+                    log.warning(
+                        f"Chart {name} is being force-included but has no convert available"
+                    )
+                else:
+                    valid_charts.remove(chart)
 
     from .State import ChartPool
     from ..spec import chart_level_range_specs

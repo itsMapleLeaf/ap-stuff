@@ -163,10 +163,11 @@ song_item_category_name = "Songs"
 song_location_category_name = "Song Locations"
 
 
-filler_item_name = "Placeholder (If you see this, there's a bug)"
+filler_item_name = "sound voltex song effects to sleep and relax to"
+filler_item_weight = 7
 
 song_skip_item_name = "AUTO CLEAR"
-song_skip_item_weight = 8
+song_skip_item_weight = 3
 
 anomaly_item_name = "ANOMALY"
 anomaly_item_weight = 1
@@ -226,6 +227,13 @@ def __define_world_spec() -> WorldSpec:
         filler_item_name=filler_item_name,
     )
 
+    spec.define_toggle_option(
+        "converts_only",
+        display_name="Only use charts that have converts",
+        description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
+        default=False,
+    )
+
     for chart_level_range_spec in chart_level_range_specs:
         chart_level_range_spec.define_range_option(spec)
 
@@ -236,12 +244,15 @@ def __define_world_spec() -> WorldSpec:
         value: int
 
     chain_specs = {
-        "NEAR": ChainSpec(count=20, value=1),  # 20
-        "CRITICAL": ChainSpec(count=8, value=5),  # 40
-        "S-CRITICAL": ChainSpec(count=3, value=20),  # 60
+        "NEAR": ChainSpec(count=8, value=5),  # 40
+        "CRITICAL": ChainSpec(count=6, value=10),  # 60
+        "S-CRITICAL": ChainSpec(count=5, value=20),  # 100
     }
 
-    chain_required = 60
+    chain_required = 100
+    total_chain = sum(
+        chain_spec.count * chain_spec.value for chain_spec in chain_specs.values()
+    )
     chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
     chain_location_category = "CHAIN (Victory)"
     chain_location_increment = 10
@@ -256,7 +267,7 @@ def __define_world_spec() -> WorldSpec:
         )
 
     for chain_location_value in range(
-        chain_location_increment, chain_required, chain_location_increment
+        chain_location_increment, total_chain, chain_location_increment
     ):
         spec.define_location(
             f"CHAIN {chain_location_value}",
@@ -291,13 +302,22 @@ def __define_world_spec() -> WorldSpec:
         f"Progressive Gate",
         category=[progressive_gate_category],
         progression=True,
-        count=round(len(progressive_gate_steps) * 1.5),  # add some extras just in case
+        count=round(len(progressive_gate_steps)),
         early=False,
     )
 
-    for step_index, step in enumerate(progressive_gate_steps):
+    def zip_with_next[T](iterable: Iterable[T]) -> Iterable[tuple[T, T | None]]:
+        iterator = iter(iterable)
+        previous = next(iterator)
+        for current in iterator:
+            yield (previous, current)
+            previous = current
+
+    for step_index, (step_a, step_b) in enumerate(
+        zip_with_next(progressive_gate_steps)
+    ):
         spec.define_location(
-            f"Progressive Gate {step_index:02d} - {step}",
+            f"Progressive Gate {step_index:02d} - {step_a} -> {step_b}",
             category=[
                 f"Progressive Gate (Your first unchecked location is your score clear requirement; check all for any clear)"
             ],
