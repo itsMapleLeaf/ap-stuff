@@ -13,14 +13,14 @@ export PYTHONPATH := justfile_directory() / "archipelago"
 
 # build specified local manual worlds into the Archipelago custom_worlds folder
 build *args:
-    uv run -m scripts.build {{ args }}
+    echo "\n" | uv run -m scripts.build {{ args }}
 
 # generate and serve a multiworld for a given multi
 play multi: (generate multi) serve
 
 # generate a multiworld with a given multiworld config
 generate multi: (build "--multi" multi)
-    uv run -m scripts.generate {{ multi }}
+    echo "\n" | uv run -m scripts.generate {{ multi }}
 
 # serve a generated multiworld
 serve:
@@ -39,8 +39,10 @@ inspect world *args:
     uv run -m scripts.inspect {{ world }} {{ args }}
 
 # run any arbitrary script
+[positional-arguments]
 run script *args:
-    uv run -m {{ script }} {{ args }}
+    # passes arguments verbatim, supporting quoted arguments with spaces
+    uv run -m "$@"
 
 # generates default YAML options - same as "Generate Template Options" in AP launcher
 gen-yamls:
