@@ -1,0 +1,8 @@
+{
+	"$schema": "https://github.com/ManualForArchipelago/Manual/raw/main/schemas/Manual.game.schema.json",
+	"game": "KirbyAirRiders",
+	"creator": "MapleLeaf",
+	"filler_item_name": "Useless Filler Item",
+	"starting_items": [],
+	"death_link": false
+}
