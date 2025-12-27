@@ -13,12 +13,14 @@ def __main():
     multiworld_config = MultiWorldConfig.named(multiworld_arg)
 
     output_dir = project_dir / "dist/export" / multiworld_arg
-    combined_player_config_file_name = "Maple.yaml"
+    combined_player_config_file_name = (
+        "+".join(config.path.stem for config in multiworld_config.player_configs)
+        + ".yaml"
+    )
+    combined_config_path = output_dir / combined_player_config_file_name
 
     shutil.rmtree(output_dir, ignore_errors=True)
     os.makedirs(output_dir)
-
-    combined_config_path = output_dir / combined_player_config_file_name
 
     with open(combined_config_path, "w", encoding="utf8") as combined_config_file:
         yaml.dump_all(
