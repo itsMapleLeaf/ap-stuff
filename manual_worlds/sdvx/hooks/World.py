@@ -47,15 +47,7 @@ import logging
 def hook_get_filler_item_name(
     world: World, multiworld: MultiWorld, player: int
 ) -> str | bool:
-    choice_weight_map = {
-        spec.filler_item_name: spec.filler_item_weight,
-        spec.song_skip_item_name: spec.song_skip_item_weight,
-        spec.anomaly_item_name: spec.anomaly_item_weight,
-    }
-    return multiworld.random.choices(
-        list(choice_weight_map.keys()),
-        list(choice_weight_map.values()),
-    )[0]
+    return False
 
 
 def format_list(items: Iterable[str]):
@@ -243,6 +235,13 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     log.debug(f"Selected {len(pool.charts)} charts for the pool")
 
+    goal_level = cast(
+        int, get_option_value(multiworld, player, spec.goal_level_option_name)
+    )
+
+    pool.choose_goal_chart(multiworld.random, goal_level)
+    log.debug(f"Goal song: {pool.goal_chart.song.item_name} (level {goal_level})")
+
 
 # Called after regions and locations are created, in case you want to see or modify that information. Victory location is included.
 def after_create_regions(world: World, multiworld: MultiWorld, player: int):
@@ -270,14 +269,102 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
+    from .State import ChartPool
+    from .. import spec
+    from .Helpers import TinyLog
+
+    log = TinyLog(player, world)
+
+    pool = ChartPool.for_player(player)
+
+    goal_item_percent = cast(
+        int, get_option_value(multiworld, player, spec.goal_total_option_name)
+    )
+    goal_item_count = round(len(pool.charts) * (goal_item_percent / 100))
+    item_config[spec.goal_item_def["name"]] = goal_item_count
+    log.debug(f"VOLFORCE count = {goal_item_count}")
+
+    helper_percent = cast(
+        int, get_option_value(multiworld, player, spec.helper_percent_option_name)
+    )
+    helper_item_count = round(
+        (len(pool.charts) - goal_item_count) * (helper_percent / 100)
+    )
+    item_config[spec.helper_item_def["name"]] = helper_item_count
+    log.debug(f"AUTO CLEAR count = {helper_item_count}")
+
+    # ensure we have enough items to place at the goal chart's locations
+    item_config[spec.goal_song_item_def["name"]] = len(pool.goal_chart.location_names)
+
     return item_config
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+    from .State import ChartPool
+    from .. import spec
+    from .Helpers import TinyLog
+
+    log = TinyLog(player, world)
+
+    pool = ChartPool.for_player(player)
+
+    goal_song_item = next(
+        item for item in item_pool if item.name in pool.goal_chart.song.item_name
+    )
+    log.debug(f"{goal_song_item=}")
+    next(
+        loc
+        for loc in multiworld.get_unfilled_locations(player)
+        if loc.name == spec.goal_unlock_def["name"]
+    ).place_locked_item(goal_song_item)
+    item_pool.remove(goal_song_item)
+
+    for goal_song_location_name in pool.goal_chart.location_names:
+        try:
+            goal_song_location = next(
+                loc
+                for loc in multiworld.get_unfilled_locations(player)
+                if loc.name == goal_song_location_name
+            )
+        except (KeyError, StopIteration):
+            log.debug(f"Skipping location {goal_song_location_name} (doesn't exist)")
+            continue
+
+        victory_item = next(
+            item for item in item_pool if item.name == spec.goal_song_item_def["name"]
+        )
+        goal_song_location.place_locked_item(victory_item)
+        item_pool.remove(victory_item)
+        log.debug(f"Placed victory item at {goal_song_location.name}")
+
+    # should be no more final victory items left
+    for remaining_item in [*item_pool]:
+        if remaining_item.name == spec.goal_song_item_def["name"]:
+            item_pool.remove(remaining_item)
+            log.debug(f"Removed extra victory item")
+
+    # Use this hook to remove items from the item pool
+    itemNamesToRemove: list[str] = [
+        # chart.item_name for chart in __charts if chart not in player_chart_pools[player]
+    ]
+
+    # Add your code here to calculate which items to remove.
+    #
+    # Because multiple copies of an item can exist, you need to add an item name
+    # to the list multiple times if you want to remove multiple copies of it.
+
+    for itemName in itemNamesToRemove:
+        item = next((i for i in item_pool if i.name == itemName), None)
+        if item:
+            item_pool.remove(item)
+
     return item_pool
 
+
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
-def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
+def before_create_items_filler(
+    item_pool: list[Item], world: World, multiworld: MultiWorld, player: int
+) -> list:
     # Use this hook to remove items from the item pool
     itemNamesToRemove: list[str] = [
         # chart.item_name for chart in __charts if chart not in player_chart_pools[player]
@@ -301,6 +388,7 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
     # location.place_locked_item(item_to_place)
     # item_pool.remove(item_to_place)
+
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:

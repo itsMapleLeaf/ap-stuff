@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 from worlds.AutoWorld import World
 from ..Helpers import clamp, get_items_with_value
 from BaseClasses import MultiWorld, CollectionState
@@ -27,3 +27,15 @@ def anyClassLevel(state: CollectionState, player: int, level: str):
 def requiresMelee():
     """Returns a requires string that checks if the player has unlocked the tank."""
     return "|Figher Level:15| or |Black Belt Level:15| or |Thief Level:15|"
+
+
+def goal_access(world: World, player: int):
+    from ..spec import goal_item_def, goal_required_option_name
+    from ..Helpers import get_option_value
+
+    goal_item_percent = cast(
+        int,
+        get_option_value(world.multiworld, player, goal_required_option_name),
+    )
+
+    return f"|{goal_item_def['name']}:{goal_item_percent}%|"

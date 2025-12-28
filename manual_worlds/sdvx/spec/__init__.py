@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 import re
 from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict
-
-
 from .requires import Requires
 from ..Helpers import load_data_file
 from .world import WorldSpec
@@ -162,17 +160,26 @@ SongSpec.pack_songs = [
 song_item_category_name = "Songs"
 song_location_category_name = "Song Locations"
 
-
 filler_item_name = "sound voltex song effects to sleep and relax to"
 filler_item_weight = 7
 
-song_skip_item_name = "AUTO CLEAR"
-song_skip_item_weight = 3
+spec = WorldSpec(
+    game="SoundVoltex",
+    creator="MapleLeaf",
+    filler_item_name=filler_item_name,
+)
 
-anomaly_item_name = "ANOMALY"
-anomaly_item_weight = 1
+# backcompat re-export
+world_spec = spec
 
+spec.define_toggle_option(
+    "converts_only",
+    display_name="Only use charts that have converts",
+    description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
+    default=False,
+)
 
+# region chart level options
 @dataclass
 class ChartLevelRangeSpec:
     start: int
@@ -220,225 +227,244 @@ chart_level_range_specs = [
 ]
 
 
-def __define_world_spec() -> WorldSpec:
-    spec = WorldSpec(
-        game="SoundVoltex",
-        creator="MapleLeaf",
-        filler_item_name=filler_item_name,
-    )
+for chart_level_range_spec in chart_level_range_specs:
+    chart_level_range_spec.define_range_option(spec)
+# endregion chart level options
 
-    spec.define_toggle_option(
-        "converts_only",
-        display_name="Only use charts that have converts",
-        description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
-        default=False,
-    )
 
-    for chart_level_range_spec in chart_level_range_specs:
-        chart_level_range_spec.define_range_option(spec)
+# region goal/volforce
+goal_total_option_name = spec.define_range_option(
+    "volforce_percent",
+    display_name="VOLFORCE Percent",
+    description=[
+        "The percent of VOLFORCE items (victory items) to add to the pool, based on the number of songs (rounded)",
+        "e.g. 50 songs * 60% = 30 VOLFORCE items",
+    ],
+    range_start=10,
+    range_end=80,
+    default=40,
+)[0]
 
-    # region chain/victory
-    @dataclass
-    class ChainSpec:
-        count: int
-        value: int
+goal_required_option_name = spec.define_range_option(
+    "volforce_goal_percent",
+    display_name="VOLFORCE Goal Percent",
+    description=[
+        "The percent of VOLFORCE items required to unlock your goal song (rounded)",
+        "e.g. 30 total VOLFORCE * 70% = 21 to win",
+    ],
+    range_start=50,
+    range_end=100,
+    default=50,
+)[0]
 
-    chain_specs = {
-        "NEAR": ChainSpec(count=8, value=5),  # 40
-        "CRITICAL": ChainSpec(count=6, value=10),  # 60
-        "S-CRITICAL": ChainSpec(count=5, value=20),  # 100
-    }
+goal_level_option_name = spec.define_range_option(
+    "goal_level",
+    display_name="Goal Level",
+    description=["The level for your goal song"],
+    range_start=1,
+    range_end=20,
+    default=20,
+)[0]
 
-    chain_required = 100
-    total_chain = sum(
-        chain_spec.count * chain_spec.value for chain_spec in chain_specs.values()
-    )
-    chain_item_category = spec.define_category("CHAIN (Victory item)")[0]
-    chain_location_category = "CHAIN (Victory)"
-    chain_location_increment = 10
+goal_category = "Goal"
 
-    for chain_spec_name, chain_spec in chain_specs.items():
-        spec.define_item(
-            f"{chain_spec_name} (CHAIN {chain_spec.value})",
-            category=[chain_item_category],
-            progression=True,
-            count=chain_spec.count,
-            value={"CHAIN": chain_spec.value},
-        )
+goal_item_def = spec.define_item(
+    "VOLFORCE",
+    category=[goal_category],
+    progression=True,
+)
 
-    for chain_location_value in range(
-        chain_location_increment, total_chain, chain_location_increment
-    ):
-        spec.define_location(
-            f"CHAIN {chain_location_value}",
-            category=[chain_location_category],
-            requires=f"{{ItemValue(CHAIN:{chain_location_value})}}",
-        )
+goal_unlock_def = spec.define_location(
+    "GOAL ACCESS",
+    category=[goal_category],
+    requires="{goal_access()}",
+    prehint=True,
+)
 
+goal_song_item_def = spec.define_item(
+    "PERFECT ULTIMATE CHAIN",
+    category=[goal_category],
+    progression=True,
+)
+
+goal_location_def = spec.define_location(
+    "PERFECT ULTIMATE CHAIN",
+    requires=Requires.item(goal_song_item_def),
+    victory=True,
+)
+# endregion goal/volforce
+
+
+# region helpers
+helper_percent_option_name = spec.define_range_option(
+    "helper_percent",
+    display_name="Helper Item Percent",
+    description=[
+        "Percent of remaining space for AUTO CLEAR items after placing VOLFORCE"
+    ],
+    range_start=0,
+    range_end=100,
+    default=50,
+)[0]
+
+helper_item_def = spec.define_item(
+    "AUTO CLEAR",
+    category=["AUTO CLEAR (Consume after play to clear a single song location)"],
+    useful=True,
+)
+# endregion helpers
+
+
+# region traps
+# trap_percent_option_name = spec.define_range_option(
+#     "trap_percent",
+#     display_name="Helper Item Percent",
+#     description=[
+#         "Percent of remaining space for trap items (like ANOMALY) after placing VOLFORCE and helper items"
+#     ],
+#     range_start=0,
+#     range_end=100,
+#     default=15,
+# )[0]
+trap_item_def = spec.define_item(
+    "ANOMALY",
+    category=[
+        f"ANOMALY (Play and clear the first randomly-selected chart within your range)"
+    ],
+    trap=True,
+)
+# endregion traps
+
+
+# region progressive gate
+progressive_gate_category = spec.define_category("Progressive Gate")[0]
+
+progressive_gate_steps = [
+    "S",
+    "AAA+",
+    "AAA",
+    "AA+",
+    "AA",
+    "A+",
+    "A",
+    "B",
+    "C",
+]
+
+progressive_gate_item = spec.define_item(
+    f"Progressive Gate",
+    category=[progressive_gate_category],
+    progression=True,
+    count=round(len(progressive_gate_steps)),
+    early=False,
+)
+
+
+def zip_with_next[T](iterable: Iterable[T]) -> Iterable[tuple[T, T | None]]:
+    iterator = iter(iterable)
+    previous = next(iterator)
+    for current in iterator:
+        yield (previous, current)
+        previous = current
+
+
+for step_index, (step_a, step_b) in enumerate(zip_with_next(progressive_gate_steps)):
     spec.define_location(
-        f"CHAIN {chain_required} - WORLD CLEAR",
-        category=[chain_location_category],
-        requires=f"{{ItemValue(CHAIN:{chain_required})}}",
-        victory=True,
-    )
-    # endregion chain/victory
-
-    # region progressive gate
-    progressive_gate_category = spec.define_category("Progressive Gate")[0]
-
-    progressive_gate_steps = [
-        "S",
-        "AAA+",
-        "AAA",
-        "AA+",
-        "AA",
-        "A+",
-        "A",
-        "B",
-        "C",
-    ]
-
-    progressive_gate_item = spec.define_item(
-        f"Progressive Gate",
-        category=[progressive_gate_category],
-        progression=True,
-        count=round(len(progressive_gate_steps)),
-        early=False,
+        f"Progressive Gate {step_index:02d} - {step_a} -> {step_b}",
+        category=[
+            f"Progressive Gate (Your first unchecked location is your score clear requirement; check all for any clear)"
+        ],
+        requires=Requires.item(progressive_gate_item, step_index + 1),
     )
 
-    def zip_with_next[T](iterable: Iterable[T]) -> Iterable[tuple[T, T | None]]:
-        iterator = iter(iterable)
-        previous = next(iterator)
-        for current in iterator:
-            yield (previous, current)
-            previous = current
+# endregion progressive gate
 
-    for step_index, (step_a, step_b) in enumerate(
-        zip_with_next(progressive_gate_steps)
-    ):
-        spec.define_location(
-            f"Progressive Gate {step_index:02d} - {step_a} -> {step_b}",
+
+# region songs
+song_item_category = spec.define_category(
+    song_item_category_name,
+    starting_count=3,
+)[0]
+
+song_location_category = spec.define_category(
+    song_location_category_name,
+    hidden=True,
+)[0]
+
+
+def define_song_list(song_list: Iterable[SongSpec], group_category: str | None = None):
+    for song in song_list:
+        if song.item_name in spec.items:
+            if group_category:
+                existing = spec.items[song.item_name]
+                existing["category"] = spec.items[song.item_name].get("category", [])
+                existing["category"].append(group_category)
+            continue
+
+        song_item = spec.define_item(
+            song.item_name,
             category=[
-                f"Progressive Gate (Your first unchecked location is your score clear requirement; check all for any clear)"
+                song_item_category,
+                *([group_category] if group_category != None else []),
             ],
-            requires=Requires.item(progressive_gate_item, step_index + 1),
+            progression=True,
         )
 
-    # endregion progressive gate
+        for chart in song.charts:
+            for chart_location in chart.locations:
+                chart_location = spec.define_location(
+                    chart_location.name,
+                    category=[
+                        song_location_category,
+                        *([group_category] if group_category != None else []),
+                        f"Songs - {song.title} ({group_category or "Base Songs"})",
+                    ],
+                    requires=Requires.item(song_item),
+                    dont_place_item=(
+                        chart_location.type == "score_pass"
+                        and [progressive_gate_item["name"]]
+                        # or chart_location.type == "hp_pass"
+                        # and [progressive_gate_hp_item["name"]]
+                        or []
+                    ),
+                )
 
-    # region helper items
-    spec.define_item(
-        song_skip_item_name,
-        category=[
-            f"{song_skip_item_name} (Consume after playing a song to auto-pass a song's locations)"
-        ],
-        useful=True,
-        starting_count=1,
+
+define_song_list(SongSpec.base_songs)
+
+member_songs_option = spec.define_toggle_option(
+    "enable_member_songs",
+    display_name="Enable Membership songs",
+    description="Enable songs that require a membership subscription",
+    default=False,
+)[0]
+member_songs_category = spec.define_category(
+    "Membership",
+    yaml_option=[member_songs_option],
+    hidden=True,
+)[0]
+define_song_list(SongSpec.member_songs, member_songs_category)
+
+blaster_songs_option = spec.define_toggle_option(
+    "enable_blaster_gate_songs",
+    display_name="Enable BLASTER GATE songs",
+    description="Enable songs unlocked through BLASTER GATE",
+    default=False,
+)[0]
+blaster_songs_category = spec.define_category(
+    "BLASTER GATE",
+    yaml_option=[blaster_songs_option],
+    hidden=True,
+)[0]
+define_song_list(SongSpec.blaster_songs, blaster_songs_category)
+
+for pack in PackSongSpec.all_song_packs:
+    (pack_category, _) = spec.define_category(
+        pack,
+        hidden=True,
     )
-    # endregion helper items
-
-    # region traps
-    spec.define_item(
-        anomaly_item_name,
-        category=[
-            f"{anomaly_item_name} (Play and clear the first randomly-selected chart within your range)"
-        ],
-        trap=True,
+    define_song_list(
+        (song for song in SongSpec.pack_songs if song.pack == pack),
+        pack_category,
     )
-    # endregion traps
-
-    # region songs
-    song_item_category = spec.define_category(
-        song_item_category_name,
-        starting_count=5,
-    )[0]
-
-    song_location_category = spec.define_category(
-        song_location_category_name,
-        hidden=True,
-    )[0]
-
-    def define_song_list(
-        song_list: Iterable[SongSpec], group_category: str | None = None
-    ):
-        for song in song_list:
-            if song.item_name in spec.items:
-                if group_category:
-                    existing = spec.items[song.item_name]
-                    existing["category"] = spec.items[song.item_name].get(
-                        "category", []
-                    )
-                    existing["category"].append(group_category)
-                continue
-
-            song_item = spec.define_item(
-                song.item_name,
-                category=[
-                    song_item_category,
-                    *([group_category] if group_category != None else []),
-                ],
-                progression=True,
-            )
-
-            for chart in song.charts:
-                for chart_location in chart.locations:
-                    chart_location = spec.define_location(
-                        chart_location.name,
-                        category=[
-                            song_location_category,
-                            *([group_category] if group_category != None else []),
-                            f"Songs - {song.title} ({group_category or "Base Songs"})",
-                        ],
-                        requires=Requires.item(song_item),
-                        dont_place_item=(
-                            chart_location.type == "score_pass"
-                            and [progressive_gate_item["name"]]
-                            # or chart_location.type == "hp_pass"
-                            # and [progressive_gate_hp_item["name"]]
-                            or []
-                        ),
-                    )
-
-    define_song_list(SongSpec.base_songs)
-
-    member_songs_option = spec.define_toggle_option(
-        "enable_member_songs",
-        display_name="Enable Membership songs",
-        description="Enable songs that require a membership subscription",
-        default=False,
-    )[0]
-    member_songs_category = spec.define_category(
-        "Membership",
-        yaml_option=[member_songs_option],
-        hidden=True,
-    )[0]
-    define_song_list(SongSpec.member_songs, member_songs_category)
-
-    blaster_songs_option = spec.define_toggle_option(
-        "enable_blaster_gate_songs",
-        display_name="Enable BLASTER GATE songs",
-        description="Enable songs unlocked through BLASTER GATE",
-        default=False,
-    )[0]
-    blaster_songs_category = spec.define_category(
-        "BLASTER GATE",
-        yaml_option=[blaster_songs_option],
-        hidden=True,
-    )[0]
-    define_song_list(SongSpec.blaster_songs, blaster_songs_category)
-
-    for pack in PackSongSpec.all_song_packs:
-        (pack_category, _) = spec.define_category(
-            pack,
-            hidden=True,
-        )
-        define_song_list(
-            (song for song in SongSpec.pack_songs if song.pack == pack),
-            pack_category,
-        )
-    # endregion songs
-
-    return spec
-
-
-spec = __define_world_spec()
+# endregion songs
