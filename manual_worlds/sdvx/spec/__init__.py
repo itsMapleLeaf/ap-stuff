@@ -266,30 +266,33 @@ goal_level_option_name = spec.define_range_option(
     default=20,
 )[0]
 
-goal_category = "Goal"
+volforce_category = "VOLFORCE (Goal)"
 
-goal_item_def = spec.define_item(
+volforce_item_def = spec.define_item(
     "VOLFORCE",
-    category=[goal_category],
+    category=["VOLFORCE"],
     progression=True,
 )
 
-goal_unlock_def = spec.define_location(
+goal_access_def = spec.define_location(
     "GOAL ACCESS",
-    category=[goal_category],
+    category=[
+        "GOAL ACCESS (Check this location when it's in logic to unlock your goal song)"
+    ],
     requires="{goal_access()}",
     prehint=True,
 )
 
-goal_song_item_def = spec.define_item(
+victory_item_def = spec.define_item(
     "PERFECT ULTIMATE CHAIN",
-    category=[goal_category],
+    category=["PERFECT ULTIMATE CHAIN (Victory!)"],
     progression=True,
 )
 
-goal_location_def = spec.define_location(
+victory_location_def = spec.define_location(
     "PERFECT ULTIMATE CHAIN",
-    requires=Requires.item(goal_song_item_def),
+    category=["PERFECT ULTIMATE CHAIN (Victory!)"],
+    requires=Requires.item(victory_item_def),
     victory=True,
 )
 # endregion goal/volforce

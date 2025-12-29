@@ -281,7 +281,7 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
         int, get_option_value(multiworld, player, spec.goal_total_option_name)
     )
     goal_item_count = round(len(pool.charts) * (goal_item_percent / 100))
-    item_config[spec.goal_item_def["name"]] = goal_item_count
+    item_config[spec.volforce_item_def["name"]] = goal_item_count
     log.debug(f"VOLFORCE count = {goal_item_count}")
 
     helper_percent = cast(
@@ -294,7 +294,7 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
     log.debug(f"AUTO CLEAR count = {helper_item_count}")
 
     # ensure we have enough items to place at the goal chart's locations
-    item_config[spec.goal_song_item_def["name"]] = len(pool.goal_chart.location_names)
+    item_config[spec.victory_item_def["name"]] = len(pool.goal_chart.location_names)
 
     return item_config
 
@@ -315,7 +315,7 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
     next(
         loc
         for loc in multiworld.get_unfilled_locations(player)
-        if loc.name == spec.goal_unlock_def["name"]
+        if loc.name == spec.goal_access_def["name"]
     ).place_locked_item(goal_song_item)
     item_pool.remove(goal_song_item)
 
@@ -331,7 +331,7 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
             continue
 
         victory_item = next(
-            item for item in item_pool if item.name == spec.goal_song_item_def["name"]
+            item for item in item_pool if item.name == spec.victory_item_def["name"]
         )
         goal_song_location.place_locked_item(victory_item)
         item_pool.remove(victory_item)
@@ -339,7 +339,7 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 
     # should be no more final victory items left
     for remaining_item in [*item_pool]:
-        if remaining_item.name == spec.goal_song_item_def["name"]:
+        if remaining_item.name == spec.victory_item_def["name"]:
             item_pool.remove(remaining_item)
             log.debug(f"Removed extra victory item")
 
