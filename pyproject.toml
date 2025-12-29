@@ -9,6 +9,9 @@ dependencies = []
 [tool.pyright]
 extraPaths = ["archipelago"]
 
+[tool.uv.workspace]
+members = ["saika"]
+
 [dependency-groups]
 dev = [
     "bs4>=0.0.2",
