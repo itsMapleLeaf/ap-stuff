@@ -172,12 +172,6 @@ spec = WorldSpec(
 # backcompat re-export
 world_spec = spec
 
-spec.define_toggle_option(
-    "converts_only",
-    display_name="Only use charts that have converts",
-    description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
-    default=False,
-)
 
 # region chart level options
 @dataclass
@@ -252,7 +246,7 @@ goal_required_option_name = spec.define_range_option(
         "The percent of VOLFORCE items required to unlock your goal song (rounded)",
         "e.g. 30 total VOLFORCE * 70% = 21 to win",
     ],
-    range_start=50,
+    range_start=0,
     range_end=100,
     default=50,
 )[0]
@@ -437,6 +431,7 @@ define_song_list(SongSpec.base_songs)
 
 member_songs_option = spec.define_toggle_option(
     "enable_member_songs",
+    group="Songs",
     display_name="Enable Membership songs",
     description="Enable songs that require a membership subscription",
     default=False,
@@ -450,6 +445,7 @@ define_song_list(SongSpec.member_songs, member_songs_category)
 
 blaster_songs_option = spec.define_toggle_option(
     "enable_blaster_gate_songs",
+    group="Songs",
     display_name="Enable BLASTER GATE songs",
     description="Enable songs unlocked through BLASTER GATE",
     default=False,
@@ -470,4 +466,13 @@ for pack in PackSongSpec.all_song_packs:
         (song for song in SongSpec.pack_songs if song.pack == pack),
         pack_category,
     )
+
+spec.define_toggle_option(
+    "converts_only",
+    group="Songs",
+    display_name="Only use charts that have converts",
+    description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
+    default=False,
+)
+
 # endregion songs
