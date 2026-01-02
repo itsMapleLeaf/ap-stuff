@@ -30,12 +30,12 @@ def requiresMelee():
 
 
 def goal_access(world: World, player: int):
-    from ..spec import volforce_item_def, goal_required_option_name
+    from ..spec import volforce_item_def, required_volforce_option_name
     from ..Helpers import get_option_value
 
-    goal_item_percent = cast(
+    required_percent = cast(
         int,
-        get_option_value(world.multiworld, player, goal_required_option_name),
+        get_option_value(world.multiworld, player, required_volforce_option_name),
     )
 
-    return f"|{volforce_item_def['name']}:{goal_item_percent}%|"
+    return f"|{volforce_item_def['name']}:{required_percent}%|"

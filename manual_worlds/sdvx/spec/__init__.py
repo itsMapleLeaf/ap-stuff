@@ -204,6 +204,7 @@ class ChartLevelRangeSpec:
                 + "\n\n"
                 + "(And make sure you remove all other keys, or set them to 0!)"
             ),
+            group="Chart Levels",
             range_start=0,
             range_end=100,
             default=self.default,
@@ -223,44 +224,39 @@ chart_level_range_specs = [
 
 for chart_level_range_spec in chart_level_range_specs:
     chart_level_range_spec.define_range_option(spec)
-# endregion chart level options
-
-
-# region goal/volforce
-goal_total_option_name = spec.define_range_option(
-    "volforce_percent",
-    display_name="VOLFORCE Percent",
-    description=[
-        "The percent of VOLFORCE items (victory items) to add to the pool, based on the number of songs (rounded)",
-        "e.g. 50 songs * 60% = 30 VOLFORCE items",
-    ],
-    range_start=10,
-    range_end=80,
-    default=40,
-)[0]
-
-goal_required_option_name = spec.define_range_option(
-    "volforce_goal_percent",
-    display_name="VOLFORCE Goal Percent",
-    description=[
-        "The percent of VOLFORCE items required to unlock your goal song (rounded)",
-        "e.g. 30 total VOLFORCE * 70% = 21 to win",
-    ],
-    range_start=0,
-    range_end=100,
-    default=50,
-)[0]
 
 goal_level_option_name = spec.define_range_option(
     "goal_level",
     display_name="Goal Level",
     description=["The level for your goal song"],
+    group="Chart Levels",
     range_start=1,
     range_end=20,
     default=20,
 )[0]
+# endregion chart level options
 
-volforce_category = "VOLFORCE (Goal)"
+
+# region goal/volforce
+volforce_count_option_name = spec.define_range_option(
+    "volforce_count",
+    display_name="VOLFORCE Count",
+    description=["The number of VOLFORCE items to add to the pool"],
+    group="Goal / VOLFORCE",
+    range_start=0,
+    range_end=100,
+    default=30,
+)[0]
+
+required_volforce_option_name = spec.define_range_option(
+    "required_volforce_percent",
+    display_name="Required VOLFORCE for goal",
+    description=["The percentage of VOLFORCE items required to unlock your goal song"],
+    group="Goal / VOLFORCE",
+    range_start=0,
+    range_end=100,
+    default=50,
+)[0]
 
 volforce_item_def = spec.define_item(
     "VOLFORCE",
@@ -293,15 +289,14 @@ victory_location_def = spec.define_location(
 
 
 # region helpers
-helper_percent_option_name = spec.define_range_option(
-    "helper_percent",
-    display_name="Helper Item Percent",
-    description=[
-        "Percent of remaining space for AUTO CLEAR items after placing VOLFORCE"
-    ],
+helper_count_option_name = spec.define_range_option(
+    "helper_count",
+    display_name="Helper Item Count",
+    description=["Number of AUTO CLEAR items to add to the pool"],
+    group="Helpers",
     range_start=0,
-    range_end=100,
-    default=50,
+    range_end=50,
+    default=12,
 )[0]
 
 helper_item_def = spec.define_item(

@@ -277,21 +277,13 @@ def before_create_items_all(item_config: dict[str, int|dict], world: World, mult
 
     pool = ChartPool.for_player(player)
 
-    goal_item_percent = cast(
-        int, get_option_value(multiworld, player, spec.goal_total_option_name)
+    item_config[spec.volforce_item_def["name"]] = cast(
+        int, get_option_value(multiworld, player, spec.volforce_count_option_name)
     )
-    goal_item_count = round(len(pool.charts) * (goal_item_percent / 100))
-    item_config[spec.volforce_item_def["name"]] = goal_item_count
-    log.debug(f"VOLFORCE count = {goal_item_count}")
 
-    helper_percent = cast(
-        int, get_option_value(multiworld, player, spec.helper_percent_option_name)
+    item_config[spec.helper_item_def["name"]] = cast(
+        int, get_option_value(multiworld, player, spec.helper_count_option_name)
     )
-    helper_item_count = round(
-        (len(pool.charts) - goal_item_count) * (helper_percent / 100)
-    )
-    item_config[spec.helper_item_def["name"]] = helper_item_count
-    log.debug(f"AUTO CLEAR count = {helper_item_count}")
 
     # ensure we have enough items to place at the goal chart's locations
     item_config[spec.victory_item_def["name"]] = len(pool.goal_chart.location_names)
