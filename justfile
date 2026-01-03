@@ -52,5 +52,5 @@ mkconfig world:
     echo "todo"
     # uv run -m scripts.create_config {{ world }}
 
-saika-dev:
+dev-saika:
     PYTHONPATH="universal_tracker" uv run -m saika

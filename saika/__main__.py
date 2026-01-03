@@ -1,26 +1,26 @@
 import asyncio
-from asyncio.subprocess import DEVNULL, Process
-from contextlib import asynccontextmanager
+from asyncio.subprocess import DEVNULL
 from pathlib import Path
 import subprocess
-import threading
-import psutil
-import requests
 import webview
+
+from .lib.http import wait_until_reachable
+from .lib.subprocess import ensure_killed
 
 
 def __main():
-    threading.Thread(
-        target=lambda: asyncio.run(__run_tracker()),
-        daemon=True,
-    ).start()
+    # tracker_thread = threading.Thread(
+    #     target=lambda: asyncio.run(__run_tracker()),
+    #     daemon=True,
+    # )
+    # tracker_thread.start()
     asyncio.run(__run_webview())
 
 
 async def __run_webview():
     async with await __start_dev_server():
         view_url = "http://localhost:5173/"
-        await __wait_until_reachable(view_url, timeout_seconds=3)
+        await wait_until_reachable(view_url, timeout_seconds=3)
 
         class Api:
             def log(self, *values):
@@ -38,7 +38,7 @@ async def __start_dev_server():
         stdin=DEVNULL,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
     )
-    return __ensure_killed(server)
+    return ensure_killed(server)
 
 
 async def __run_tracker():
@@ -83,41 +83,6 @@ async def __run_tracker():
         )
     finally:
         await ctx.shutdown()
-
-
-async def __wait_until_reachable(url: str, timeout_seconds: float):
-    async with asyncio.timeout(timeout_seconds):
-        while True:
-            try:
-                response = await asyncio.to_thread(requests.options, url)
-                if response.ok:
-                    break
-                else:
-                    print(f"{response.status_code=}")
-            except (requests.HTTPError, requests.ConnectionError):
-                print(f"failed to connect")
-
-            print(f"retrying...")
-            await asyncio.sleep(0.1)
-
-
-@asynccontextmanager
-async def __ensure_killed(process: Process):
-    """Ensures every child processes of a given process are killed"""
-    try:
-        yield process
-    finally:
-        if process.pid is None or process.returncode is not None:
-            return
-        try:
-            parent = psutil.Process(process.pid)
-            for child in parent.children(recursive=True):
-                print(f"killing child process {child.name()=} {child.pid=}")
-                child.kill()
-            print(f"killing parent process {parent.name()=} {parent.pid=}")
-            parent.kill()
-        except psutil.NoSuchProcess:
-            pass
 
 
 __main()
