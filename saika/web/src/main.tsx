@@ -1,4 +1,4 @@
-import "@fontsource-variable/rubik"
+import "@fontsource-variable/rubik/index.css"
 import "./tailwind.css"
 
 import { StrictMode } from "react"
