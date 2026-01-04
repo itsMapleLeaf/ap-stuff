@@ -147,11 +147,7 @@ export function App() {
 						label: session.playerName,
 						sublabel: session.gameName,
 						icon: "mingcute:game-2-fill",
-						content: (
-							<p>
-								{session.playerName} playing {session.gameName}
-							</p>
-						),
+						content: <SessionView {...server} {...session} />,
 					}),
 				),
 		}
@@ -556,5 +552,18 @@ function FormButton({
 			</span>
 			<span>{children}</span>
 		</button>
+	)
+}
+
+function SessionView(props: {
+	serverAddress: string
+	serverPassword: string
+	gameName: string
+	playerName: string
+}) {
+	return (
+		<p>
+			session for {props.playerName} playing {props.gameName}
+		</p>
 	)
 }
