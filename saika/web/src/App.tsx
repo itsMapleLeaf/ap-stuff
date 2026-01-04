@@ -1,7 +1,7 @@
 import { Collapsible, Menu } from "@base-ui-components/react"
 import { Icon } from "@iconify/react"
 import * as AP from "archipelago.js"
-import { type ComponentProps, type ReactNode, useState } from "react"
+import { Activity, type ComponentProps, type ReactNode, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { twMerge } from "tailwind-merge"
 
@@ -202,7 +202,16 @@ export function App() {
 				<NavButton {...navItemProps(settingsView)} />
 			</div>
 
-			<div className="flex-1">{currentView?.content}</div>
+			<div className="flex-1">
+				{allViews.map((view) => (
+					<Activity
+						key={view.id}
+						mode={view.id === currentViewId ? "visible" : "hidden"}
+					>
+						{view.content}
+					</Activity>
+				))}
+			</div>
 		</div>
 	)
 }
