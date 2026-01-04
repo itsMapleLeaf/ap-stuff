@@ -10,6 +10,7 @@
 		"preview": "vite preview"
 	},
 	"dependencies": {
+		"@base-ui-components/react": "^1.0.0-rc.0",
 		"@fontsource-variable/rubik": "^5.2.8",
 		"@iconify/react": "^6.0.2",
 		"@tailwindcss/vite": "^4.1.18",
