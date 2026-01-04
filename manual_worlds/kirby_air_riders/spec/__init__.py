@@ -1,3 +1,4 @@
+from ..lib.helpers import range_inclusive
 from ..lib.location import LocationData
 from ..lib.world import WorldSpec
 from ..lib.requires import Requires
@@ -9,10 +10,34 @@ class TemplateWorldSpec(WorldSpec):
 
         self.riders_category = self.define_category("Riders", starting_count=1)[0]
         self.machines_category = self.define_category("Machines", starting_count=1)[0]
-        self.air_ride_category = self.define_category("Air Ride", starting_count=1)[0]
-        self.top_ride_category = self.define_category("Top Ride", starting_count=1)[0]
-        self.stadium_category = self.define_category("Stadium", starting_count=1)[0]
-        self.road_trip_category = self.define_category("Road Trip", starting_count=1)[0]
+
+        self.starting_stage_category = self.define_category(
+            "Starting Stage", hidden=True, starting_count=1
+        )[0]
+
+        self.air_ride_category = self.define_category("Air Ride")[0]
+        self.top_ride_category = self.define_category("Top Ride")[0]
+        self.stadium_category = self.define_category("Stadium")[0]
+        self.road_trip_category = self.define_category("Road Trip")[0]
+
+        self.first_place_locations_category = self.define_category(
+            "First Place Locations",
+            yaml_option=[
+                self.define_toggle_option(
+                    "first_place_locations",
+                    display_name="First Place Locations",
+                    description="Enable locations which require finishing in first place",
+                    default=False,
+                )[0]
+            ],
+            hidden=True,
+        )[0]
+
+        self.define_item(
+            "Stage Skip",
+            useful=True,
+            count=20,
+        )
 
         self.define_rider("Kirby")
         self.define_rider("King Dedede")
@@ -93,19 +118,31 @@ class TemplateWorldSpec(WorldSpec):
         self.define_stadium("Air Glider")
         self.define_stadium("Beam Gauntlet")
         self.define_stadium("Big Battle")
-        self.define_stadium("Button Rush")
-        self.define_stadium("Drag Race")
-        self.define_stadium("Dustup Derby")
+        self.define_stadium("Button Rush 1")
+        self.define_stadium("Button Rush 2")
         self.define_stadium("Gourmet Race")
         self.define_stadium("High Jump")
-        self.define_stadium("Kirby Melee")
+        self.define_stadium("Kirby Melee 1")
+        self.define_stadium("Kirby Melee 2")
         self.define_stadium("Oval Circuit")
         self.define_stadium("Rail Panic")
-        self.define_stadium("Single Race")
-        self.define_stadium("Skydive")
-        self.define_stadium("Target Flight")
-        self.define_stadium("VS. Boss")
+        # self.define_stadium("Single Race")
+        self.define_stadium("Skydive 1")
+        self.define_stadium("Skydive 2")
+        self.define_stadium("VS. Robo Dedede")
+        self.define_stadium("VS. Nightmare")
+        self.define_stadium("VS. Marx")
+        self.define_stadium("VS. Zero Two")
         self.define_stadium("VS. Gigantes")
+
+        for i in range_inclusive(3):
+            self.define_stadium(f"Target Flight {i}")
+
+        for i in range_inclusive(4):
+            self.define_stadium(f"Drag Race {i}")
+
+        for i in range_inclusive(5):
+            self.define_stadium(f"Dustup Derby {i}")
 
         self.define_road_trip_content()
 
@@ -114,11 +151,10 @@ class TemplateWorldSpec(WorldSpec):
             name,
             category=self.riders_category,
             progression=True,
-            count=2,
         )
 
         self.define_location(
-            f"Win as {name}",
+            f"Play as {name}",
             category=self.riders_category,
             requires=Requires.item(item),
         )
@@ -128,11 +164,10 @@ class TemplateWorldSpec(WorldSpec):
             name,
             category=self.machines_category,
             progression=True,
-            count=2,
         )
 
         self.define_location(
-            f"Win with {name}",
+            f"Ride on {name}",
             category=self.machines_category,
             requires=Requires.item(item),
         )
@@ -140,45 +175,57 @@ class TemplateWorldSpec(WorldSpec):
     def define_air_ride_course(self, name: str):
         course_item = self.define_item(
             f"{name} (Air Ride)",
-            category=self.air_ride_category,
+            category=[self.air_ride_category, self.starting_stage_category],
             progression=True,
         )
 
         self.define_location(
-            f"{name} (Air Ride) - Finish in 1st Place",
-            category=self.air_ride_category,
+            f"Race on {name} (Air Ride)",
+            category=[self.air_ride_category],
+            requires=Requires.item(course_item),
+        )
+
+        self.define_location(
+            f"Get 1st Place on {name} (Air Ride)",
+            category=[self.air_ride_category, self.first_place_locations_category],
             requires=Requires.item(course_item),
         )
 
     def define_top_ride_course(self, name: str):
         course_item = self.define_item(
             f"{name} (Top Ride)",
-            category=self.top_ride_category,
+            category=[self.top_ride_category, self.starting_stage_category],
             progression=True,
         )
 
         self.define_location(
-            f"{name} (Top Ride) - Finish in 1st Place",
-            category=self.top_ride_category,
+            f"Race on {name} (Top Ride)",
+            category=[self.top_ride_category],
+            requires=Requires.item(course_item),
+        )
+
+        self.define_location(
+            f"Get 1st Place on {name} (Top Ride)",
+            category=[self.top_ride_category, self.first_place_locations_category],
             requires=Requires.item(course_item),
         )
 
     def define_stadium(self, name: str):
         stadium_item = self.define_item(
             f"{name} (Stadium)",
-            category=self.stadium_category,
+            category=[self.stadium_category, self.starting_stage_category],
             progression=True,
         )
 
         self.define_location(
-            f"{name} (Stadium) - Finish",
+            f"Finish {name} (Stadium)",
             category=self.stadium_category,
             requires=Requires.item(stadium_item),
         )
 
         self.define_location(
-            f"{name} (Stadium) - Finish in 1st Place",
-            category=self.stadium_category,
+            f"Get 1st Place in {name} (Stadium)",
+            category=[self.stadium_category, self.first_place_locations_category],
             requires=Requires.item(stadium_item),
         )
 
@@ -186,39 +233,42 @@ class TemplateWorldSpec(WorldSpec):
         stage_count = 12
         self.road_trip_stage_item_value_key = "road_trip_stages"
 
-        self.define_item(
+        self.progressive_stages_item = self.define_item(
             "Progressive Stages (Road Trip)",
             category=self.road_trip_category,
             progression=True,
-            count=stage_count + 4,
-            value={self.road_trip_stage_item_value_key: 1},
+            count=stage_count,
         )
 
         self.define_range_option(
             "goal_stage",
             display_name="Road Trip Goal Stage",
-            description="The stage you need to reach in Road Trip to complete your world",
+            description="The stage you need to complete in Road Trip to meet your goal",
             range_start=1,
             range_end=12,
-            default=5,
+            default=3,
         )
 
-        for stage_number in range(1, stage_count + 1):
-            for stop_number in range(1, 3 + 1):
+        self.road_trip_completion_item = self.define_item(
+            "Road Trip Completion",
+            category=self.road_trip_category,
+            progression=True,
+            count=stage_count,
+        )
+
+        for stage_number in range_inclusive(stage_count):
+            for stop_number in range_inclusive(3):
                 self.define_location(
                     f"Road Trip - Stage {stage_number} - Rest Stop {stop_number}",
                     category=self.road_trip_category,
-                    requires=requires_item_value(
-                        self.road_trip_stage_item_value_key, stage_number
-                    ),
+                    requires=Requires.item(self.progressive_stages_item, stage_number),
                 )
 
             self.define_location(
                 f"Road Trip - Stage {stage_number} - Defeat the Boss",
                 category=self.road_trip_category,
-                requires=requires_item_value(
-                    self.road_trip_stage_item_value_key, stage_number
-                ),
+                requires=Requires.item(self.progressive_stages_item, stage_number),
+                place_item=[self.road_trip_completion_item["name"]],
             )
 
         self.define_location(

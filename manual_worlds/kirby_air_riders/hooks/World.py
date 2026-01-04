@@ -1,5 +1,6 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
 from typing import cast
+from ..lib.helpers import range_inclusive
 from worlds.AutoWorld import World
 from BaseClasses import MultiWorld, CollectionState, Item
 
@@ -31,7 +32,6 @@ import logging
 ########################################################################################
 
 
-
 # Use this function to change the valid filler items to be created to replace item links or starting items.
 # Default value is the `filler_item_name` from game.json
 def hook_get_filler_item_name(world: World, multiworld: MultiWorld, player: int) -> str | bool:
@@ -48,11 +48,16 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     locationNamesToRemove: list[str] = [] # List of location names
 
     # Add your code here to calculate which locations to remove
-    goal_stage = cast(int, get_option_value(multiworld,player,"goal_stage"))
-    for i in range(1, 12 + 1):
-        if i > goal_stage - 1:
-            locationNamesToRemove.append(f"Road Trip - Complete Stage {i}")
-
+    goal_stage = cast(int, get_option_value(multiworld, player, "goal_stage"))
+    for stage_number in range_inclusive(12):
+        if stage_number > goal_stage:
+            locationNamesToRemove.append(
+                f"Road Trip - Stage {stage_number} - Defeat the Boss"
+            )
+            for stop_number in range_inclusive(3):
+                locationNamesToRemove.append(
+                    f"Road Trip - Stage {stage_number} - Rest Stop {stop_number}"
+                )
 
     for region in multiworld.regions:
         if region.player == player:
@@ -69,6 +74,9 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
+    goal_stage = cast(int, get_option_value(world.multiworld, player, "goal_stage"))
+    item_config["Road Trip Completion"] = goal_stage
+    item_config["Progressive Stages (Road Trip)"] = max(goal_stage, 3)
     return item_config
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage

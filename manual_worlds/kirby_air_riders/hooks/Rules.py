@@ -41,4 +41,4 @@ def requiresMelee():
 
 def road_trip_goal(world: World, player: int):
     goal_stage = cast(int, get_option_value(world.multiworld, player, "goal_stage"))
-    return f"{{ItemValue(road_trip_stages:{goal_stage})}}"
+    return f"|Road Trip Completion:{goal_stage}|"

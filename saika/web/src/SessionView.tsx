@@ -7,13 +7,18 @@ export function SessionView(props: {
 	gameName: string
 	playerName: string
 }) {
-	const views: { id: string; content: ReactNode }[] = [
-		{ id: "Chat", content: <>Chat</> },
-		{ id: "Items", content: <>Items</> },
-		{ id: "Locations", content: <>Locations</> },
-		{ id: "Hints", content: <>Hints</> },
-		{ id: "Settings", content: <>Settings</> },
-	]
+	const viewMap = {
+		Chat: { content: <>Chat</> },
+		Items: { content: <>Items</> },
+		Locations: { content: <>Locations</> },
+		Hints: { content: <>Hints</> },
+		Settings: { content: <>Settings</> },
+	} satisfies Record<string, { content: ReactNode }>
+
+	const views = Object.entries(viewMap).map(([id, view]) => ({
+		...view,
+		id,
+	}))
 
 	return (
 		<Tabs.Root className="flex flex-col gap-2 p-2" defaultValue={views[0]?.id}>
