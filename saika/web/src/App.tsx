@@ -160,7 +160,7 @@ export function App() {
 	})
 
 	return (
-		<div className="flex h-dvh w-dvw items-stretch gap-1.5">
+		<div className="flex h-dvh w-dvw items-stretch">
 			<div className="flex min-h-0 w-56 shrink-0 flex-col gap-1.5 bg-gray-900 p-2">
 				<NavButton {...navItemProps(connectView)} />
 
