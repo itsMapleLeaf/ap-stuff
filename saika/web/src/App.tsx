@@ -21,8 +21,53 @@ export function App() {
 		playerName: string
 	}
 
-	const [servers, setServers] = useState<Server[]>([])
-	const [sessions, setSessions] = useState<Session[]>([])
+	const [servers, setServers] = useState<Server[]>([
+		{
+			name: "friendsync",
+			serverAddress: "archipelago.gg:40421",
+			serverPassword: "",
+			id: "908464b5-93f6-4583-b05e-b5a2c0e43ac1",
+			games: [
+				{
+					id: "ChecksFinder",
+					displayName: "ChecksFinder",
+				},
+				{
+					id: "Minecraft",
+					displayName: "Minecraft",
+				},
+				{
+					id: "Portal 2",
+					displayName: "Portal 2",
+				},
+				{
+					id: "Sonic Riders",
+					displayName: "Sonic Riders",
+				},
+				{
+					id: "Starcraft 2",
+					displayName: "Starcraft 2",
+				},
+			],
+		},
+	])
+
+	const [sessions, setSessions] = useState<Session[]>([
+		{
+			gameName: "Minecraft",
+			playerName: "MapleCraft",
+			id: "d2fb52dc-7156-400c-8c53-5b2bec61d9d8",
+			serverId: "908464b5-93f6-4583-b05e-b5a2c0e43ac1",
+		},
+		{
+			gameName: "Portal 2",
+			playerName: "MapleScience",
+			id: "08757725-94ad-45bc-b022-5a00efa6dfc8",
+			serverId: "908464b5-93f6-4583-b05e-b5a2c0e43ac1",
+		},
+	])
+
+	console.log(servers, sessions)
 
 	type View = {
 		id: string
@@ -367,7 +412,7 @@ function ConnectView({
 				action={async (formData) => {
 					const name = formData.get("name") as string
 					const serverAddress = formData.get("address") as string
-					const serverPassword = formData.get("pasword") as string
+					const serverPassword = (formData.get("password") || "") as string
 					if (!serverAddress) return
 
 					try {
