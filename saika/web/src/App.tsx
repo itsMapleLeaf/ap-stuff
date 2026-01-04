@@ -6,16 +6,20 @@ import { twMerge } from "tailwind-merge"
 export function App() {
 	type Servers = {
 		id: string
+		name: string
 		serverAddress: string
 		serverPassword: string
-		sessions: {
-			id: string
-			gameName: string
-			playerName: string
-		}[]
+	}
+
+	type Session = {
+		id: string
+		serverId: string
+		gameName: string
+		playerName: string
 	}
 
 	const [servers, setServers] = useState<Servers[]>([])
+	const [sessions, setSessions] = useState<Session[]>([])
 
 	type View = {
 		id: string
@@ -30,16 +34,18 @@ export function App() {
 		icon: "mingcute:plugin-fill",
 		content: (
 			<Connect
-				onSubmit={({ serverAddress, serverPassword }) => {
+				onSubmit={({ name, serverAddress, serverPassword }) => {
+					const id = crypto.randomUUID()
 					setServers((servers) => [
 						...servers,
 						{
-							id: crypto.randomUUID(),
+							id,
+							name,
 							serverAddress,
 							serverPassword,
-							sessions: [],
 						},
 					])
+					setCurrentViewId(id)
 				}}
 			/>
 		),
@@ -54,9 +60,13 @@ export function App() {
 	const serverViews = servers.map(
 		(server): View => ({
 			id: server.id,
-			label: server.serverAddress,
+			label: server.name,
 			icon: "mingcute:earth-3-fill",
-			content: <p>server {server.serverAddress}</p>,
+			content: (
+				<p>
+					server {server.name} ({server.serverAddress})
+				</p>
+			),
 		}),
 	)
 
@@ -71,19 +81,22 @@ export function App() {
 
 	const allViews: [View, ...View[]] = [
 		connectView,
-		// ...sessionViews,
 		...serverViews,
+		...sessionViews,
 		settingsView,
 	]
 
-	const [currentView, setCurrentView] = useState(allViews[0])
+	const [currentViewId, setCurrentViewId] = useState(allViews[0].id)
+
+	const currentView =
+		allViews.find((view) => view.id === currentViewId) ?? allViews[0]
 
 	const navItemProps = (view: View) => ({
 		icon: view.icon,
 		label: view.label || view.id,
 		sublabel: view.sublabel,
 		isCurrent: view.id === currentView.id,
-		onClick: () => setCurrentView(view),
+		onClick: () => setCurrentViewId(view.id),
 	})
 
 	return (
@@ -95,7 +108,41 @@ export function App() {
 
 				<div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-y-auto *:shrink-0">
 					{serverViews.map((view) => (
-						<NavCollapse key={view.id} {...navItemProps(view)}>
+						<NavCollapse
+							key={view.id}
+							{...navItemProps(view)}
+							menuOptions={[
+								{
+									label: "Rename",
+									icon: "mingcute:edit-2-fill",
+									onClick: () => {
+										const server = servers.find((s) => s.id === view.id)
+
+										const newName = prompt(
+											"Enter a new server name:",
+											server?.name,
+										)
+
+										if (newName === null) return
+
+										setServers((servers) =>
+											servers.map((s) =>
+												s.id === view.id ? { ...s, name: newName } : s,
+											),
+										)
+									},
+								},
+								{
+									label: "Delete",
+									icon: "mingcute:close-fill",
+									onClick: () => {
+										setServers((servers) =>
+											servers.filter((s) => s.id !== view.id),
+										)
+									},
+								},
+							]}
+						>
 							{sessionViews.map((view) => (
 								<NavButton key={view.id} {...navItemProps(view)} />
 							))}
@@ -108,7 +155,7 @@ export function App() {
 				<NavButton {...navItemProps(settingsView)} />
 			</div>
 
-			<div className="flex-1">{currentView.content}</div>
+			<div className="flex-1">{currentView?.content}</div>
 		</div>
 	)
 }
@@ -148,11 +195,17 @@ interface NavCollapseProps {
 	isCurrent: boolean
 	onClick: () => void
 	children: React.ReactNode
+	menuOptions: {
+		id?: string
+		label: string
+		icon: string
+		onClick: () => void
+	}[]
 }
 
 function NavCollapse(props: NavCollapseProps) {
 	return (
-		<Collapsible.Root className="contents">
+		<Collapsible.Root className="contents" defaultOpen>
 			<div
 				className="group flex min-h-7 w-full rounded opacity-75 transition duration-150 hover:bg-gray-800 hover:opacity-100 data-current:bg-gray-800 data-current:opacity-100"
 				data-current={props.isCurrent || undefined}
@@ -186,17 +239,15 @@ function NavCollapse(props: NavCollapseProps) {
 					</Menu.Trigger>
 					<Menu.Portal>
 						<Menu.Positioner side="right" sideOffset={12} align="start">
-							<Menu.Popup className="flex min-w-40 origin-(--transform-origin) flex-col gap-1 rounded-md bg-gray-800 p-1 transition duration-100 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0">
-								{["one", "two", "three"].map((text) => (
+							<Menu.Popup className="flex min-w-40 origin-(--transform-origin) flex-col gap-1 rounded-md bg-gray-900 p-1 transition duration-100 data-starting-style:scale-95 data-ending-style:opacity-0 data-starting-style:opacity-0">
+								{props.menuOptions.map((opt) => (
 									<Menu.Item
-										key={text}
-										className="flex h-10 items-center justify-start gap-2 rounded bg-black/40 px-3 hover:bg-black/60 active:bg-black/90 active:duration-0"
+										key={opt.id || opt.label}
+										className="flex h-10 items-center justify-start gap-2 rounded px-3 transition hover:bg-gray-800"
+										onClick={opt.onClick}
 									>
-										<Icon
-											icon="mingcute:plugin-fill"
-											className="-mx-0.5 size-5"
-										/>
-										<span className="flex-1">{text}</span>
+										<Icon icon={opt.icon} className="-mx-0.5 size-5" />
+										<span className="flex-1">{opt.label}</span>
 									</Menu.Item>
 								))}
 							</Menu.Popup>
@@ -215,6 +266,7 @@ function Connect({
 	onSubmit,
 }: {
 	onSubmit: (values: {
+		name: string
 		serverAddress: string
 		serverPassword: string
 	}) => unknown
@@ -225,16 +277,31 @@ function Connect({
 			<form
 				className="flex w-80 flex-col gap-3 rounded-md bg-gray-800 p-3"
 				action={async (formData) => {
+					const name = formData.get("name") as string
+					const serverAddress = formData.get("address") as string
+					const serverPassword = formData.get("pasword") as string
+					if (!serverAddress) return
+
 					await onSubmit({
-						serverAddress: formData.get("address") as string,
-						serverPassword: formData.get("pasword") as string,
+						name: name || serverAddress,
+						serverAddress,
+						serverPassword,
 					})
 				}}
 			>
 				<label>
+					<div className="text-gray-300 text-sm">Server Name</div>
+					<input
+						name="name"
+						className="h-10 w-full min-w-0 rounded bg-black/40 px-3 focus:bg-black/70"
+						placeholder="The Best Multi Ever"
+					/>
+				</label>
+				<label>
 					<div className="text-gray-300 text-sm">Server Address</div>
 					<input
 						name="address"
+						required
 						className="h-10 w-full min-w-0 rounded bg-black/40 px-3 focus:bg-black/70"
 						placeholder="archipelago.gg:69420"
 					/>
