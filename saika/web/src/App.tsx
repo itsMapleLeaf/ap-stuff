@@ -1,14 +1,17 @@
 import { Collapsible, Menu } from "@base-ui-components/react"
 import { Icon } from "@iconify/react"
-import { type ReactNode, useState } from "react"
+import * as AP from "archipelago.js"
+import { type ComponentProps, type ReactNode, useState } from "react"
+import { useFormStatus } from "react-dom"
 import { twMerge } from "tailwind-merge"
 
 export function App() {
-	type Servers = {
+	type Server = {
 		id: string
 		name: string
 		serverAddress: string
 		serverPassword: string
+		games: ServerGame[]
 	}
 
 	type Session = {
@@ -18,7 +21,7 @@ export function App() {
 		playerName: string
 	}
 
-	const [servers, setServers] = useState<Servers[]>([])
+	const [servers, setServers] = useState<Server[]>([])
 	const [sessions, setSessions] = useState<Session[]>([])
 
 	type View = {
@@ -33,16 +36,28 @@ export function App() {
 		id: "Connect",
 		icon: "mingcute:plugin-fill",
 		content: (
-			<Connect
-				onSubmit={({ name, serverAddress, serverPassword }) => {
+			<ConnectView
+				onSubmitServer={async (input) => {
+					const client = new AP.Client()
+					const roomInfo = await client.socket.connect(input.serverAddress)
+
 					const id = crypto.randomUUID()
+
+					const games = roomInfo.games
+						.filter((id) => id !== "Archipelago")
+						.map((id): ServerGame => ({ id, displayName: id }))
+						.sort((a, b) =>
+							a.displayName
+								.toLocaleLowerCase()
+								.localeCompare(b.displayName.toLocaleLowerCase()),
+						)
+
 					setServers((servers) => [
 						...servers,
 						{
+							...input,
 							id,
-							name,
-							serverAddress,
-							serverPassword,
+							games: games,
 						},
 					])
 					setCurrentViewId(id)
@@ -57,32 +72,51 @@ export function App() {
 		content: <p>Settings</p>,
 	}
 
-	const serverViews = servers.map(
-		(server): View => ({
+	const serverViews = servers.map((server) => {
+		const view = {
 			id: server.id,
 			label: server.name,
 			icon: "mingcute:earth-3-fill",
+			server,
 			content: (
-				<p>
-					server {server.name} ({server.serverAddress})
-				</p>
+				<ServerView
+					games={server.games}
+					onSubmitSession={(input) => {
+						const id = crypto.randomUUID()
+						setSessions((sessions) => [
+							...sessions,
+							{
+								...input,
+								id,
+								serverId: server.id,
+							},
+						])
+					}}
+				/>
 			),
-		}),
-	)
-
-	const sessionViews = ["MapleVoltex", "MapleCraft", "MapleScience"].map(
-		(name): View => ({
-			id: name,
-			sublabel: "address",
-			icon: "mingcute:game-2-fill",
-			content: <p>{name}</p>,
-		}),
-	)
+			sessionViews: sessions
+				.filter((session) => session.serverId === server.id)
+				.map(
+					(session): View => ({
+						id: session.id,
+						label: session.playerName,
+						sublabel: server.name,
+						icon: "mingcute:game-2-fill",
+						content: (
+							<p>
+								{session.playerName} playing {session.gameName}
+							</p>
+						),
+					}),
+				),
+		}
+		return view satisfies View
+	})
 
 	const allViews: [View, ...View[]] = [
 		connectView,
 		...serverViews,
-		...sessionViews,
+		...serverViews.flatMap((server) => server.sessionViews),
 		settingsView,
 	]
 
@@ -113,21 +147,26 @@ export function App() {
 							{...navItemProps(view)}
 							menuOptions={[
 								{
+									label: "Copy Address",
+									icon: "mingcute:clipboard-fill",
+									onClick: () => {
+										navigator.clipboard.writeText(view.server.serverAddress)
+									},
+								},
+								{
 									label: "Rename",
 									icon: "mingcute:edit-2-fill",
 									onClick: () => {
-										const server = servers.find((s) => s.id === view.id)
-
 										const newName = prompt(
 											"Enter a new server name:",
-											server?.name,
+											view.server.name,
 										)
 
 										if (newName === null) return
 
 										setServers((servers) =>
 											servers.map((s) =>
-												s.id === view.id ? { ...s, name: newName } : s,
+												s.id === view.server.id ? { ...s, name: newName } : s,
 											),
 										)
 									},
@@ -137,13 +176,13 @@ export function App() {
 									icon: "mingcute:close-fill",
 									onClick: () => {
 										setServers((servers) =>
-											servers.filter((s) => s.id !== view.id),
+											servers.filter((s) => s.id !== view.server.id),
 										)
 									},
 								},
 							]}
 						>
-							{sessionViews.map((view) => (
+							{view.sessionViews.map((view) => (
 								<NavButton key={view.id} {...navItemProps(view)} />
 							))}
 						</NavCollapse>
@@ -262,10 +301,10 @@ function NavCollapse(props: NavCollapseProps) {
 	)
 }
 
-function Connect({
-	onSubmit,
+function ConnectView({
+	onSubmitServer,
 }: {
-	onSubmit: (values: {
+	onSubmitServer: (values: {
 		name: string
 		serverAddress: string
 		serverPassword: string
@@ -276,17 +315,27 @@ function Connect({
 			<h2 className="text-center font-light text-2xl text-gray-400">Connect</h2>
 			<form
 				className="flex w-80 flex-col gap-3 rounded-md bg-gray-800 p-3"
+				method="post"
 				action={async (formData) => {
 					const name = formData.get("name") as string
 					const serverAddress = formData.get("address") as string
 					const serverPassword = formData.get("pasword") as string
 					if (!serverAddress) return
 
-					await onSubmit({
-						name: name || serverAddress,
-						serverAddress,
-						serverPassword,
-					})
+					try {
+						await onSubmitServer({
+							name: name || serverAddress,
+							serverAddress,
+							serverPassword,
+						})
+					} catch (error) {
+						console.error(error)
+						alert(
+							`Error: ${
+								(error as Error)?.message ?? "An unknown error occurred"
+							}`,
+						)
+					}
 				}}
 			>
 				<label>
@@ -314,14 +363,105 @@ function Connect({
 						placeholder="••••••••"
 					/>
 				</label>
-				<button
-					type="submit"
-					className="flex h-10 items-center justify-center gap-2 rounded bg-black/40 px-3 hover:bg-black/60 active:bg-black/90 active:duration-0"
-				>
-					<Icon icon="mingcute:plugin-fill" className="-mx-0.5 size-5" />
-					Connect
-				</button>
+				<FormButton icon="mingcute:plugin-fill">Connect</FormButton>
 			</form>
 		</div>
+	)
+}
+
+type ServerGame = {
+	id: string
+	displayName: string
+}
+
+function ServerView({
+	games,
+	onSubmitSession,
+}: {
+	games: ServerGame[]
+	onSubmitSession: (values: { gameName: string; playerName: string }) => unknown
+}) {
+	return (
+		<div className="grid size-full place-content-center gap-3">
+			<h2 className="text-center font-light text-2xl text-gray-400">
+				Enter Player Details
+			</h2>
+			<form
+				className="flex w-80 flex-col gap-3 rounded-md bg-gray-800 p-3"
+				action={async (formData) => {
+					const gameName = formData.get("game") as string
+					const playerName = formData.get("player") as string
+					if (!playerName) return
+
+					try {
+						await onSubmitSession({
+							gameName,
+							playerName,
+						})
+					} catch (error) {
+						console.error(error)
+						alert(
+							`Error: ${
+								(error as Error)?.message ?? "An unknown error occurred"
+							}`,
+						)
+					}
+				}}
+			>
+				<label>
+					<div className="text-gray-300 text-sm">Game</div>
+					<select
+						name="game"
+						className="h-10 w-full min-w-0 rounded bg-black/40 px-3 focus:bg-black/70"
+					>
+						{games.map((game) => (
+							<option key={game.id} value={game.id}>
+								{game.displayName}
+							</option>
+						))}
+					</select>
+				</label>
+
+				<label>
+					<div className="text-gray-300 text-sm">Player Name</div>
+					<input
+						name="player"
+						className="h-10 w-full min-w-0 rounded bg-black/40 px-3 focus:bg-black/70"
+						placeholder="HatKid"
+					/>
+				</label>
+
+				<FormButton icon="mingcute:open-door-fill">Enter</FormButton>
+			</form>
+		</div>
+	)
+}
+
+function FormButton({
+	children,
+	icon,
+	...props
+}: ComponentProps<"button"> & { icon: string }) {
+	const status = useFormStatus()
+	console.log(status)
+	return (
+		<button
+			type="submit"
+			disabled={status.pending}
+			{...props}
+			className={twMerge(
+				"flex h-10 items-center justify-center gap-2 rounded bg-black/40 px-3 hover:bg-black/60 active:bg-black/90 active:duration-0 disabled:opacity-50",
+				props.className,
+			)}
+		>
+			<span className="-mx-0.5 *:size-5">
+				{status.pending ? (
+					<Icon icon="mingcute:loading-3-fill" className="animate-spin" />
+				) : (
+					<Icon icon={icon} />
+				)}
+			</span>
+			<span>{children}</span>
+		</button>
 	)
 }
