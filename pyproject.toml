@@ -7,7 +7,7 @@ dependencies = []
 
 
 [tool.pyright]
-extraPaths = ["archipelago"]
+extraPaths = ["universal_tracker"]
 
 [tool.uv.workspace]
 members = ["saika"]
