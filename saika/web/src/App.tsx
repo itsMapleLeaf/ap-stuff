@@ -228,7 +228,7 @@ export function App() {
 				<NavButton {...navItemProps(settingsView)} />
 			</div>
 
-			<div className="flex-1">
+			<div className="min-w-0 flex-1">
 				{allViews.map((view) => (
 					<Activity
 						key={view.id}

@@ -20,7 +20,7 @@ def __main():
 async def __run_webview():
     async with await __start_dev_server():
         view_url = "http://localhost:5173/"
-        await wait_until_reachable(view_url, timeout_seconds=3)
+        await wait_until_reachable(view_url, timeout_seconds=10)
 
         class Api:
             def log(self, *values):
