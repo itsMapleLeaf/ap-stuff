@@ -34,3 +34,11 @@ class Requires:
     @staticmethod
     def any_of(*specifiers: str) -> str:
         return "(" + " or ".join(specifiers) + ")"
+
+    @staticmethod
+    def item_value(key: str, value: str | int):
+        return f"{{ItemValue({key}:{value})}}"
+
+    @staticmethod
+    def yaml_compare(option_name: str, op: str, value: str | int):
+        return f"{{YamlCompare({option_name} {op} {value})}}"
