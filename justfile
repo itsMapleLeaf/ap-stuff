@@ -19,7 +19,7 @@ build *args:
 play multi: (generate multi) serve
 
 # generate a multiworld with a given multiworld config
-generate multi: (build "--multi" multi)
+generate multi: (build "--multi" multi) (run "scripts.copy_to_ap_players" multi)
     echo "\n" | uv run -m scripts.generate {{ multi }}
 
 # serve a generated multiworld
@@ -27,7 +27,7 @@ serve:
     cd "{{ generate_dir }}"; {{ archipelago_server }} *.archipelago
 
 # create apworlds and a stitched config for a multi
-export multi:
+export multi: (run "scripts.copy_to_ap_players" multi)
     uv run -m scripts.export {{ multi }}
 
 # create a new manual world
