@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
 from tempfile import TemporaryDirectory
-from .lib.paths import project_dir
+from ..lib.paths import project_dir
 
 
 with TemporaryDirectory() as temp_dir:
