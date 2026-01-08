@@ -1,10 +1,11 @@
 from dataclasses import dataclass
+import json
 import warnings
 from dataclasses_json import DataClassJsonMixin
 import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Generator, Literal, Optional
+from typing import Any, Generator, Literal, Optional
 import shutil
 import importlib.util
 import sys
@@ -13,15 +14,6 @@ from .paths import project_worlds_dir, user_archipelago_worlds_dir
 
 
 class ManualWorldProject:
-    def __init__(self, src: Path, name: str | None = None):
-        self.path = src
-        self.name = name or src.stem
-
-    @property
-    @warnings.deprecated("Use 'path' instead of 'src")
-    def src(self) -> Path:
-        return self.path
-
     @staticmethod
     def local(name: str):
         return ManualWorldProject(
@@ -29,10 +21,34 @@ class ManualWorldProject:
             src=project_worlds_dir / name,
         )
 
+    def __init__(self, src: Path, name: str | None = None):
+        self.path = src
+
+    @property
+    def name(self) -> str:
+        return self.path.stem
+
+    @property
+    def display_name(self) -> str:
+        return self.manifest.get("display_name", self.name)
+
+    @property
+    def manifest(self) -> dict[str, Any]:
+        return json.loads((self.path / "archipelago.json").read_bytes())
+
+    @property
+    def version(self) -> str:
+        return self.manifest["world_version"]
+
     @property
     def world_id(self) -> str:
         game_info = self.inspect().game_table
         return f"Manual_{game_info.game}_{game_info.creator}"
+
+    @property
+    @warnings.deprecated("Use 'path' instead of 'src")
+    def src(self) -> Path:
+        return self.path
 
     def build(self, output_dir: Path = user_archipelago_worlds_dir):
         world_data = self.inspect()

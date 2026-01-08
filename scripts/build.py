@@ -1,20 +1,30 @@
 import argparse
 from dataclasses import dataclass, field
+import glob
+import os
 from pathlib import Path
+import shutil
+import subprocess
+from typing import Iterable
+
+from scripts.gen_yamls import generate_yaml_templates
+
+from .lib.paths import dist_dir, project_dir, user_archipelago_templates_dir
 
 from .lib.log import PrettyLog
 
 from .lib.multiworld import MultiWorldConfig
-from .lib.manual_worlds import find_local_manual_world_projects
+from .lib.manual_worlds import ManualWorldProject, find_local_manual_world_projects
 
 
-def __main():
+def __cli():
 
     @dataclass
     class Args:
         worlds: list[str] = field(default_factory=list)
         multi: str | None = None
         all: bool = False
+        release: bool = False
 
     arg_parser = argparse.ArgumentParser()
 
@@ -36,10 +46,17 @@ def __main():
     )
 
     arg_parser.add_argument(
-        '-a',
+        "-a",
         "--all",
         action="store_true",
         help="Build all local manual world projects",
+    )
+
+    arg_parser.add_argument(
+        "-r",
+        "--release",
+        action="store_true",
+        help="Create a GitHub release",
     )
 
     args = arg_parser.parse_args(namespace=Args())
@@ -73,11 +90,49 @@ def __main():
         arg_parser.print_help()
         exit(1)
 
+    if args.release and len(worlds_to_build) != 1:
+        PrettyLog.error("Can only use --release with a single world")
+        exit(1)
+
+    dist_build_dir = dist_dir / "build"
+
+    try:
+        shutil.rmtree(dist_build_dir)
+    except FileNotFoundError:
+        pass
+
+    os.makedirs(dist_build_dir)
+
     for world in worlds_to_build:
         PrettyLog.working(f"Building {world.name}...")
         final_destination_fox_only_no_items = world.build()
         PrettyLog.done(f"Built at {final_destination_fox_only_no_items}")
 
+        shutil.copy(
+            final_destination_fox_only_no_items,
+            dist_build_dir,
+        )
+        shutil.copy(
+            user_archipelago_templates_dir / (world.world_id + ".yaml"),
+            dist_build_dir,
+        )
+
+    if args.release:
+        generate_yaml_templates(
+            target_folder=user_archipelago_templates_dir,
+        )
+
+        [world] = worlds_to_build
+        subprocess.run(
+            [
+                *("gh", "release", "create"),
+                f"{world.name}_v{world.version}",
+                *glob.iglob("./dist/build/*", root_dir=project_dir),
+                *("--title", f"{world.display_name} v{world.version}"),
+                "--draft",
+            ]
+        )
+
 
 if __name__ == "__main__":
-    __main()
+    __cli()
