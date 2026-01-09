@@ -1,11 +1,133 @@
+from typing import cast
+from BaseClasses import MultiWorld
+from ..lib.item import ItemData
 from ..lib.helpers import range_inclusive
 from ..lib.location import LocationData
 from ..lib.world import WorldSpec
 from ..lib.requires import Requires
 
 
+riders = [
+    "Kirby",
+    "King Dedede",
+    "Meta Knight",
+    "Waddle Dee",
+    "Bandana Waddle Dee",
+    "Waddle Doo",
+    "Chef Kawasaki",
+    "Knuckle Joe",
+    "Rick",
+    "Gooey",
+    "Cappy",
+    "Rocky",
+    "Scarfy",
+    "Starman",
+    "Lololo & Lalala",
+    "Marx",
+    "Daroach",
+    "Magolor",
+    "Taranza",
+    "Susie",
+    "Noir Dedede",
+]
+
+machines = [
+    "Warp Star",
+    "Compact Star",
+    "Winged Star",
+    "Shadow Star",
+    "Wagon Star",
+    "Slick Star",
+    "Formula Star",
+    "Bulk Star",
+    "Rocket Star",
+    "Swerve Star",
+    "Turbo Star",
+    "Jet Star",
+    "Wheelie Bike",
+    "Rex Wheelie",
+    "Wheelie Scooter",
+    "Hop Star",
+    "Vampire Star",
+    "Paper Star",
+    "Chariot",
+    "Battle Chariot",
+    "Tank Star",
+    "Bull Tank",
+    "Transform Star",
+    "Flight Warp Star",
+]
+
+air_ride_courses = [
+    "Floria Fields",
+    "Waveflow Waters",
+    "Airtopia Ruins",
+    "Crystalline Fissure",
+    "Steamgust Forge",
+    "Cavernous Corners",
+    "Cyberion Highway",
+    "Mount Amberfalls",
+    "Galactic Nova",
+    "Fantasy Meadows",
+    "Celestial Valley",
+    "Sky Sands",
+    "Frozen Hillside",
+    "Magma Flows",
+    "Beanstalk Park",
+    "Machine Passage",
+    "Checker Knights",
+    "Nebula Belt",
+]
+
+top_ride_courses = [
+    "Flower",
+    "Flow",
+    "Air",
+    "Crystal",
+    "Steam",
+    "Cave",
+    "Cyber",
+    "Mountain",
+    "Nova",
+]
+
+stadiums = [
+    "Air Glider",
+    "Beam Gauntlet",
+    "Big Battle",
+    "Button Rush 1",
+    "Button Rush 2",
+    "Gourmet Race",
+    "High Jump",
+    "Kirby Melee 1",
+    "Kirby Melee 2",
+    "Oval Circuit",
+    "Rail Panic",
+    "Skydive 1",
+    "Skydive 2",
+    "VS. Robo Dedede",
+    "VS. Nightmare",
+    "VS. Marx",
+    "VS. Zero Two",
+    "VS. Gigantes",
+    *(f"Target Flight {i}" for i in range_inclusive(3)),
+    *(f"Drag Race {i}" for i in range_inclusive(4)),
+    *(f"Dustup Derby {i}" for i in range_inclusive(5)),
+]
+
+
 spec = WorldSpec(filler_item_name="Hot Dog")
 world_spec = spec
+
+
+riders_category = spec.define_category("Players - Riders", starting_count=1)[0]
+machines_category = spec.define_category("Players - Machines", starting_count=1)[0]
+
+air_ride_category = spec.define_category("Stages - Air Ride")[0]
+top_ride_category = spec.define_category("Stages - Top Ride")[0]
+stadium_category = spec.define_category("Stages - Stadium")[0]
+
+city_trial_category = spec.define_category("City Trial")[0]
 
 starting_stage_category = spec.define_category(
     "Starting Stage",
@@ -13,299 +135,184 @@ starting_stage_category = spec.define_category(
     starting_count=1,
 )[0]
 
-spec.define_item(
-    "Stage Skip",
-    useful=True,
-    count=5,
-)
 
-first_place_locations_category = spec.define_category(
-    "First Place Locations",
-    yaml_option=[
-        spec.define_toggle_option(
-            "first_place_locations",
-            display_name="First Place Locations",
-            description="Enable locations which require finishing in first place",
-            default=False,
-        )[0]
-    ],
-    hidden=True,
-)[0]
-
-
-# region riders
-riders_category = spec.define_category("Riders", starting_count=1)[0]
-
-spec.define_item(
-    "Rider Skip",
-    category=riders_category,
-    useful=True,
-    count=5,
-)
-
-
-def define_rider(name: str):
-    item = spec.define_item(
-        name,
+for rider in riders:
+    spec.define_location(
+        f"Finish a Stage as {rider}",
         category=riders_category,
-        progression=True,
+        requires=Requires.item(
+            spec.define_item(
+                rider,
+                category=riders_category,
+                progression=True,
+            )
+        ),
     )
 
+for machine in machines:
     spec.define_location(
-        f"Play as {name}",
-        category=riders_category,
-        requires=Requires.item(item),
-    )
-
-
-define_rider("Kirby")
-define_rider("King Dedede")
-define_rider("Meta Knight")
-define_rider("Waddle Dee")
-define_rider("Bandana Waddle Dee")
-define_rider("Waddle Doo")
-define_rider("Chef Kawasaki")
-define_rider("Knuckle Joe")
-define_rider("Rick")
-define_rider("Gooey")
-define_rider("Cappy")
-define_rider("Rocky")
-define_rider("Scarfy")
-define_rider("Starman")
-define_rider("Lololo & Lalala")
-define_rider("Marx")
-define_rider("Daroach")
-define_rider("Magolor")
-define_rider("Taranza")
-define_rider("Susie")
-define_rider("Noir Dedede")
-# endregion riders
-
-
-# region machines
-machines_category = spec.define_category("Machines", starting_count=1)[0]
-
-spec.define_item(
-    "Machine Skip",
-    category=machines_category,
-    useful=True,
-    count=5,
-)
-
-
-def define_machine(name: str):
-    item = spec.define_item(
-        name,
+        f"Finish a Stage with {machine}",
         category=machines_category,
-        progression=True,
+        requires=Requires.item(
+            spec.define_item(
+                machine,
+                category=machines_category,
+                progression=True,
+            )
+        ),
     )
 
+for air_ride_course in air_ride_courses:
     spec.define_location(
-        f"Ride on {name}",
-        category=machines_category,
-        requires=Requires.item(item),
+        f"Finish a Race on {air_ride_course}",
+        category=air_ride_category,
+        requires=Requires.item(
+            spec.define_item(
+                air_ride_course,
+                category=[air_ride_category, starting_stage_category],
+                progression=True,
+            )
+        ),
     )
 
-
-define_machine("Warp Star")
-define_machine("Compact Star")
-define_machine("Winged Star")
-define_machine("Shadow Star")
-define_machine("Wagon Star")
-define_machine("Slick Star")
-define_machine("Formula Star")
-define_machine("Bulk Star")
-define_machine("Rocket Star")
-define_machine("Swerve Star")
-define_machine("Turbo Star")
-define_machine("Jet Star")
-define_machine("Wheelie Bike")
-define_machine("Rex Wheelie")
-define_machine("Wheelie Scooter")
-define_machine("Hop Star")
-define_machine("Vampire Star")
-define_machine("Paper Star")
-define_machine("Chariot")
-define_machine("Battle Chariot")
-define_machine("Tank Star")
-define_machine("Bull Tank")
-define_machine("Transform Star")
-define_machine("Flight Warp Star")
-# endregion machines
-
-
-# region air ride
-air_ride_category = spec.define_category("Air Ride")[0]
-
-
-def define_air_ride_course(name: str):
-    course_item = spec.define_item(
-        f"{name} (Air Ride)",
-        category=[air_ride_category, starting_stage_category],
-        progression=True,
-    )
-
+for top_ride_course in top_ride_courses:
     spec.define_location(
-        f"Race on {name} (Air Ride)",
-        category=[air_ride_category],
-        requires=Requires.item(course_item),
+        f"Finish a Race on {top_ride_course}",
+        category=top_ride_category,
+        requires=Requires.item(
+            spec.define_item(
+                top_ride_course,
+                category=[top_ride_category, starting_stage_category],
+                progression=True,
+            )
+        ),
     )
 
+for stadium in stadiums:
     spec.define_location(
-        f"Get 1st Place on {name} (Air Ride)",
-        category=[air_ride_category, first_place_locations_category],
-        requires=Requires.item(course_item),
+        f"Finish {stadium}",
+        category=stadium_category,
+        requires=Requires.item(
+            spec.define_item(
+                stadium,
+                category=[stadium_category, starting_stage_category],
+                progression=True,
+            )
+        ),
     )
-
-
-define_air_ride_course("Floria Fields")
-define_air_ride_course("Waveflow Waters")
-define_air_ride_course("Airtopia Ruins")
-define_air_ride_course("Crystalline Fissure")
-define_air_ride_course("Steamgust Forge")
-define_air_ride_course("Cavernous Corners")
-define_air_ride_course("Cyberion Highway")
-define_air_ride_course("Mount Amberfalls")
-define_air_ride_course("Galactic Nova")
-define_air_ride_course("Fantasy Meadows")
-define_air_ride_course("Celestial Valley")
-define_air_ride_course("Sky Sands")
-define_air_ride_course("Frozen Hillside")
-define_air_ride_course("Magma Flows")
-define_air_ride_course("Beanstalk Park")
-define_air_ride_course("Machine Passage")
-define_air_ride_course("Checker Knights")
-define_air_ride_course("Nebula Belt")
-# endregion air ride
-
-
-# region top ride
-top_ride_category = spec.define_category("Top Ride")[0]
-
-
-def define_top_ride_course(name: str):
-    course_item = spec.define_item(
-        f"{name} (Top Ride)",
-        category=[top_ride_category, starting_stage_category],
-        progression=True,
-    )
-
-    spec.define_location(
-        f"Race on {name} (Top Ride)",
-        category=[top_ride_category],
-        requires=Requires.item(course_item),
-    )
-
-    spec.define_location(
-        f"Get 1st Place on {name} (Top Ride)",
-        category=[top_ride_category, first_place_locations_category],
-        requires=Requires.item(course_item),
-    )
-
-
-define_top_ride_course("Flower")
-define_top_ride_course("Flow")
-define_top_ride_course("Air")
-define_top_ride_course("Crystal")
-define_top_ride_course("Steam")
-define_top_ride_course("Cave")
-define_top_ride_course("Cyber")
-define_top_ride_course("Mountain")
-define_top_ride_course("Nova")
-# endregion top ride
 
 
 # region city trial
-city_trial_category = spec.define_category("City Trial")[0]
+class CityTrialSpec:
+    max_game_count = 10
 
-progressive_city_trial_count = 5
-progressive_city_trial_extras = 3
-progressive_city_trial_item = spec.define_item(
-    "Progressive City Trial",
-    category=city_trial_category,
-    progression=True,
-    count=progressive_city_trial_count + progressive_city_trial_extras,
-)
-
-progressive_city_trial_progress_item = spec.define_item(
-    "Progressive City Trial Progress",
-    category=city_trial_category,
-    progression=True,
-    count=progressive_city_trial_count,
-)
-
-for i in range_inclusive(progressive_city_trial_count):
-    spec.define_location(
-        f"Complete City Trial Game {i}",
+    progressive_game_item_extras = 3
+    progressive_game_item = spec.define_item(
+        "Progressive City Trial",
         category=city_trial_category,
-        requires=Requires.item(progressive_city_trial_item, i),
-    )
-    spec.define_location(
-        f"Complete City Trial Game {i} (Progress Tracking)",
-        category=city_trial_category,
-        requires=Requires.item(progressive_city_trial_item, i),
-        place_item=[progressive_city_trial_progress_item["name"]],
-    )
-
-spec.define_location(
-    "City Trial Completion",
-    category=city_trial_category,
-    requires=Requires.item(
-        progressive_city_trial_progress_item, progressive_city_trial_count
-    ),
-    victory=True,
-)
-
-
-def define_stadium(name: str):
-    stadium_item = spec.define_item(
-        f"{name} (Stadium)",
-        category=[city_trial_category, starting_stage_category],
         progression=True,
+        count=max_game_count + progressive_game_item_extras,
     )
 
-    spec.define_location(
-        f"Finish {name} (Stadium)",
+    progress_item = spec.define_item(
+        "City Trial Progress",
         category=city_trial_category,
-        requires=Requires.item(stadium_item),
+        progression=True,
+        count=max_game_count,
     )
 
     spec.define_location(
-        f"Get 1st Place in {name} (Stadium)",
-        category=[city_trial_category, first_place_locations_category],
-        requires=Requires.item(stadium_item),
+        "City Trial Completion",
+        category=city_trial_category,
+        requires=Requires.item(progress_item, "all"),
+        victory=True,
     )
 
+    games: list["CityTrialGameSpec"]
 
-define_stadium("Air Glider")
-define_stadium("Beam Gauntlet")
-define_stadium("Big Battle")
-define_stadium("Button Rush 1")
-define_stadium("Button Rush 2")
-define_stadium("Gourmet Race")
-define_stadium("High Jump")
-define_stadium("Kirby Melee 1")
-define_stadium("Kirby Melee 2")
-define_stadium("Oval Circuit")
-define_stadium("Rail Panic")
-define_stadium("Skydive 1")
-define_stadium("Skydive 2")
-define_stadium("VS. Robo Dedede")
-define_stadium("VS. Nightmare")
-define_stadium("VS. Marx")
-define_stadium("VS. Zero Two")
-define_stadium("VS. Gigantes")
+    game_count_option_name = spec.define_range_option(
+        "city_trial_game_count",
+        display_name="City Trial Game Count",
+        description="The number of city trial games you need to play to complete your goal",
+        default=5,
+        range_start=1,
+        range_end=max_game_count,
+    )[0]
 
-for i in range_inclusive(3):
-    define_stadium(f"Target Flight {i}")
+    @staticmethod
+    def get_game_count_option_value(multi: MultiWorld, player: int) -> int:
+        from ..Helpers import get_option_value
 
-for i in range_inclusive(4):
-    define_stadium(f"Drag Race {i}")
+        return cast(
+            int, get_option_value(multi, player, CityTrialSpec.game_count_option_name)
+        )
 
-for i in range_inclusive(5):
-    define_stadium(f"Dustup Derby {i}")
+
+class CityTrialGameSpec:
+    def __init__(self, number: int) -> None:
+        self.number = number
+
+        self.category = spec.define_category(
+            f"City Trial Game {number}",
+            hidden=True,
+        )[0]
+
+        self.locations = [
+            spec.define_location(
+                f"Complete City Trial Game {number}",
+                category=[city_trial_category, self.category],
+                requires=Requires.item(CityTrialSpec.progressive_game_item, number),
+            ),
+            spec.define_location(
+                f"Complete City Trial Game {number} (Progress Tracking)",
+                category=[city_trial_category, self.category],
+                requires=Requires.item(CityTrialSpec.progressive_game_item, number),
+                place_item=[CityTrialSpec.progress_item["name"]],
+            ),
+        ]
+
+
+CityTrialSpec.games = [
+    CityTrialGameSpec(number=i) for i in range_inclusive(CityTrialSpec.max_game_count)
+]
+
 # endregion city trial
 
+general_achievements = {
+    "Defeat 3 enemies by spitting out stars in a single race",
+    "Defeat an enemy Scarfy without making it mad",
+    "Defeat 20 enemies in a single race",
+    "Finish while doing a Quick Spin",
+    "Inhale or capture 2 enemies at once",
+    "Finish without using your Special",
+    "Finish while flying through the air",
+    "Attack a rider while they're enlarged from a Size Up",
+    "Finish without attacking a rider",
+    "Finish without riding over any dash zones",
+}
+
+city_trial_achievements = {
+    "Pass through golden rings 5 times in a single event",
+    "Soar 100 m up into the air and fly above the garden in the sky",
+    "Swap to vacant machines 5 times in one game",
+    "Power up any stat to 12 or higher in a single match",
+    "Swap to a vacant duplicate of your current machine",
+    "Destroy another rider's machine",
+    "Make Whispy Woods cry",
+}
+
+for achievement in general_achievements:
+    spec.define_location(
+        achievement,
+        category="Achievements",
+    )
+
+for achievement in city_trial_achievements:
+    spec.define_location(
+        f"City Trial: {achievement}",
+        category="Achievements - City Trial",
+        requires=Requires.item(CityTrialSpec.progressive_game_item),
+    )
 
 # class RoadTripSpec:
 #     base_category = spec.define_category(

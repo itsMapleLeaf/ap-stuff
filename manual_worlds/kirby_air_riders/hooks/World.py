@@ -48,16 +48,6 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
     locationNamesToRemove: list[str] = [] # List of location names
 
     # Add your code here to calculate which locations to remove
-    goal_stage = cast(int, get_option_value(multiworld, player, "goal_stage"))
-    for stage_number in range_inclusive(12):
-        if stage_number > goal_stage:
-            locationNamesToRemove.append(
-                f"Road Trip - Stage {stage_number} - Defeat the Boss"
-            )
-            for stop_number in range_inclusive(3):
-                locationNamesToRemove.append(
-                    f"Road Trip - Stage {stage_number} - Rest Stop {stop_number}"
-                )
 
     for region in multiworld.regions:
         if region.player == player:
@@ -74,9 +64,15 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
 def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
-    # goal_stage = cast(int, get_option_value(world.multiworld, player, "goal_stage"))
-    # item_config["Road Trip Completion"] = goal_stage
-    # item_config["Progressive Stages (Road Trip)"] = max(goal_stage, 3)
+    from .. import spec
+
+    game_count = spec.CityTrialSpec.get_game_count_option_value(multiworld, player)
+
+    item_config[spec.CityTrialSpec.progressive_game_item["name"]] = (
+        game_count + spec.CityTrialSpec.progressive_game_item_extras
+    )
+    item_config[spec.CityTrialSpec.progress_item["name"]] = game_count
+
     return item_config
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage

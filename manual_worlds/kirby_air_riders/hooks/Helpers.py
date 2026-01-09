@@ -7,8 +7,18 @@ from BaseClasses import MultiWorld
 def before_is_category_enabled(
     multiworld: MultiWorld, player: int, category_name: str
 ) -> Optional[bool]:
-    if hasattr(multiworld, "generation_is_fake"):
-        return None
+    # if hasattr(multiworld, "generation_is_fake"):
+    #     return None
+
+    from .. import spec
+
+    game_count = spec.CityTrialSpec.get_game_count_option_value(multiworld, player)
+    disabled_categories = {
+        game.category for game in spec.CityTrialSpec.games[game_count:]
+    }
+
+    if category_name in disabled_categories:
+        return False
 
     return None
 
@@ -31,15 +41,5 @@ def before_is_location_enabled(
 ) -> Optional[bool]:
     if hasattr(multiworld, "generation_is_fake"):
         return None
-
-    from ..Helpers import get_option_value
-
-    goal_stage = cast(int, get_option_value(multiworld, player, "goal_stage"))
-    disabled_stages = {
-        f"Road Trip - Complete Stage {i} (Goal)" for i in range(1, goal_stage)
-    }
-
-    if location["name"] in disabled_stages:
-        return False
 
     return None
