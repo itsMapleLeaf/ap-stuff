@@ -46,7 +46,7 @@ run script *args:
 
 # generates default YAML options - same as "Generate Template Options" in AP launcher
 gen-yamls:
-    uv run -m scripts.gen_yamls
+    echo "\n" | uv run -m scripts.gen_yamls
 
 mkconfig world:
     echo "todo"
