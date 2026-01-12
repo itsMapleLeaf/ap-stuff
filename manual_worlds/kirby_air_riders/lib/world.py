@@ -7,6 +7,7 @@ from .options import (
     CoreOptionData,
     RangeOptionArgs,
     RangeOptionData,
+    RangeOptionSpec,
     ToggleOptionArgs,
     ToggleOptionData,
     UserOptionData,
@@ -70,10 +71,10 @@ class WorldSpec:
 
     def define_range_option(
         self, name: str, **args: Unpack[RangeOptionArgs]
-    ) -> tuple[str, RangeOptionData]:
+    ) -> RangeOptionSpec:
         data = RangeOptionData(**args, type="Range")
         self.__set_unique("Range Options", self.user_options, name, data)
-        return name, data
+        return RangeOptionSpec(name, data)
 
     def define_choice_option(
         self, name: str, **args: Unpack[ChoiceOptionArgs]

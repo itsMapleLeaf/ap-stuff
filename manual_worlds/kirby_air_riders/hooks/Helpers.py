@@ -12,9 +12,9 @@ def before_is_category_enabled(
 
     from .. import spec
 
-    game_count = spec.CityTrialSpec.get_game_count_option_value(multiworld, player)
+    game_count = spec.CityTrialGameSpec.game_count_option.get_value(multiworld, player)
     disabled_categories = {
-        game.category for game in spec.CityTrialSpec.games[game_count:]
+        game.category for game in spec.CityTrialGameSpec.games[game_count:]
     }
 
     if category_name in disabled_categories:

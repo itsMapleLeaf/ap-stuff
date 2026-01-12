@@ -55,6 +55,7 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
                 if location.name in locationNamesToRemove:
                     region.locations.remove(location)
 
+
 # This hook allows you to access the item names & counts before the items are created. Use this to increase/decrease the amount of a specific item in the pool
 # Valid item_config key/values:
 # {"Item Name": 5} <- This will create qty 5 items using all the default settings
@@ -63,17 +64,14 @@ def after_create_regions(world: World, multiworld: MultiWorld, player: int):
 # {"Item Name": {0b0110: 5}} <- If you know the special flag for the item classes, you can also define non-standard options. This setup
 #       will create 5 items that are the "useful trap" class
 # {"Item Name": {ItemClassification.useful: 5}} <- You can also use the classification directly
-def before_create_items_all(item_config: dict[str, int|dict], world: World, multiworld: MultiWorld, player: int) -> dict[str, int|dict]:
-    from .. import spec
-
-    game_count = spec.CityTrialSpec.get_game_count_option_value(multiworld, player)
-
-    item_config[spec.CityTrialSpec.progressive_game_item["name"]] = (
-        game_count + spec.CityTrialSpec.progressive_game_item_extras
-    )
-    item_config[spec.CityTrialSpec.progress_item["name"]] = game_count
-
+def before_create_items_all(
+    item_config: dict[str, int | dict],
+    world: World,
+    multiworld: MultiWorld,
+    player: int,
+) -> dict[str, int | dict]:
     return item_config
+
 
 # The item pool before starting items are processed, in case you want to see the raw item pool at that stage
 def before_create_items_starting(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
@@ -82,18 +80,16 @@ def before_create_items_starting(item_pool: list, world: World, multiworld: Mult
 # The item pool after starting items are processed but before filler is added, in case you want to see the raw item pool at that stage
 def before_create_items_filler(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:
     # Use this hook to remove items from the item pool
-    itemNamesToRemove: list[str] = [] # List of item names
+    # itemNamesToRemove: list[str] = [] # List of item names
 
     # Add your code here to calculate which items to remove.
     #
     # Because multiple copies of an item can exist, you need to add an item name
     # to the list multiple times if you want to remove multiple copies of it.
 
-    for itemName in itemNamesToRemove:
-        item = next(i for i in item_pool if i.name == itemName)
-        remove_specific_item(item_pool, item)
-
-    return item_pool
+    # for itemName in itemNamesToRemove:
+    #     item = next(i for i in item_pool if i.name == itemName)
+    #     remove_specific_item(item_pool, item)
 
     # Some other useful hook options:
 
@@ -102,6 +98,32 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
     # item_to_place = next(i for i in item_pool if i.name == "Item Name")
     # location.place_locked_item(item_to_place)
     # remove_specific_item(item_pool, item_to_place)
+
+    from .. import spec
+
+    city_trial_game_count = spec.CityTrialGameSpec.game_count_option.get_value(
+        multiworld, player
+    )
+
+    completion_location_name = spec.CityTrialGameSpec.games[
+        city_trial_game_count - 1
+    ].location["name"]
+
+    completion_location = next(
+        l
+        for l in multiworld.get_unfilled_locations(player)
+        if l.name == completion_location_name
+    )
+
+    completion_item = next(
+        i for i in item_pool if i.name == spec.CityTrialGameSpec.completion_item["name"]
+    )
+
+    completion_location.place_locked_item(completion_item)
+
+    remove_specific_item(item_pool, completion_item)
+
+    return item_pool
 
 # The complete item pool prior to being set for generation is provided here, in case you want to make changes to it
 def after_create_items(item_pool: list, world: World, multiworld: MultiWorld, player: int) -> list:

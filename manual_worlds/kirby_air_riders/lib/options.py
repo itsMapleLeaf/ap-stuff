@@ -1,4 +1,6 @@
-from typing import Any, Literal, TypedDict, NotRequired
+from dataclasses import dataclass
+from typing import Any, Literal, TypedDict, NotRequired, cast
+from BaseClasses import MultiWorld
 
 
 type UserOptionData = ToggleOptionData | ChoiceOptionData | RangeOptionData
@@ -47,3 +49,14 @@ class RangeOptionArgs(BaseOptionData):
 
 class RangeOptionData(RangeOptionArgs):
     type: Literal["Range"]
+
+
+@dataclass
+class RangeOptionSpec:
+    name: str
+    data: RangeOptionData
+
+    def get_value(self, multi: MultiWorld, player: int):
+        from ..Helpers import get_option_value
+
+        return cast(int, get_option_value(multi, player, self.name))
