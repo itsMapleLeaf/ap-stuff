@@ -1,23 +1,23 @@
 from typing import Unpack
 
-from .types import (
-    CategoryData,
+from .meta import MetaData
+from .options import (
     ChoiceOptionArgs,
     ChoiceOptionData,
     CoreOptionData,
-    GameData,
-    ItemArgs,
-    ItemData,
-    LocationArgs,
-    LocationData,
-    MetaData,
     RangeOptionArgs,
     RangeOptionData,
-    RegionData,
+    RangeOptionSpec,
     ToggleOptionArgs,
     ToggleOptionData,
+    ToggleOptionSpec,
     UserOptionData,
 )
+from .region import RegionData
+from .category import CategoryData
+from .game import GameData
+from .location import LocationData, LocationArgs
+from .item import ItemData, ItemArgs
 
 
 class WorldSpec:
@@ -35,8 +35,8 @@ class WorldSpec:
         self, name: str, starting_count: int | None = None, **args: Unpack[ItemArgs]
     ) -> ItemData:
         if starting_count != None:
-            self.game['starting_items'] = self.game.get('starting_items') or []
-            self.game['starting_items'].append(
+            self.game["starting_items"] = self.game.get("starting_items") or []
+            self.game["starting_items"].append(
                 {"items": [name], "random": starting_count},
             )
 
@@ -51,8 +51,8 @@ class WorldSpec:
         self, name: str, starting_count: int | None = None, **args: Unpack[CategoryData]
     ) -> tuple[str, CategoryData]:
         if starting_count != None:
-            self.game['starting_items'] = self.game.get('starting_items') or []
-            self.game['starting_items'].append(
+            self.game["starting_items"] = self.game.get("starting_items") or []
+            self.game["starting_items"].append(
                 {"item_categories": [name], "random": starting_count},
             )
 
@@ -65,17 +65,17 @@ class WorldSpec:
 
     def define_toggle_option(
         self, name: str, **args: Unpack[ToggleOptionArgs]
-    ) -> tuple[str, ToggleOptionData]:
+    ) -> ToggleOptionSpec:
         data = ToggleOptionData(**args, type="Toggle")
         self.__set_unique("Toggle Options", self.user_options, name, data)
-        return name, data
+        return ToggleOptionSpec(name, data)
 
     def define_range_option(
         self, name: str, **args: Unpack[RangeOptionArgs]
-    ) -> tuple[str, RangeOptionData]:
+    ) -> RangeOptionSpec:
         data = RangeOptionData(**args, type="Range")
         self.__set_unique("Range Options", self.user_options, name, data)
-        return name, data
+        return RangeOptionSpec(name, data)
 
     def define_choice_option(
         self, name: str, **args: Unpack[ChoiceOptionArgs]

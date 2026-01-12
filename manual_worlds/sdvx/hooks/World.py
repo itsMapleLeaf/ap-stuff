@@ -1,4 +1,5 @@
 # Object classes from AP core, to represent an entire MultiWorld and this individual World that's part of it
+from itertools import chain
 from os import getenv
 from typing import Final, Iterable, cast
 
@@ -57,56 +58,74 @@ def format_list(items: Iterable[str]):
 # Called before regions and locations are created. Not clear why you'd want this, but it's here. Victory location is included, but Victory event is not placed yet.
 def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     from .Helpers import TinyLog
+    from ..lib.helpers import option_value_of
 
     log = TinyLog(player, world)
     errors: list[str] = []
 
-    def option_value_of[T](
-        option_class: type[Option[T]],
-        option_name: str | None = None,
-    ) -> T:
-        resolved_option_name = option_name
-        if resolved_option_name is None:
-            if not hasattr(option_class, "name"):
-                raise ValueError(
-                    "option_name must be provided if option_class has no 'name' attribute"
-                )
-            resolved_option_name = getattr(option_class, "name")
-
-        return cast(
-            T,
-            get_option_value(multiworld, player, resolved_option_name),
-        )
-
-    chart_count_per_level: dict[str, int] = option_value_of(AdditionalChartsPerLevel)
-
-    valid_charts = [chart for song in spec.SongSpec.base_songs for chart in song.charts]
-
-    if is_option_enabled(multiworld, player, "enable_member_songs"):
-        valid_charts.extend(
-            chart for song in spec.SongSpec.member_songs for chart in song.charts
-        )
-        log.debug("Including member songs")
-
-    if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
-        valid_charts.extend(
-            chart for song in spec.SongSpec.blaster_songs for chart in song.charts
-        )
-        log.debug("Including BLASTER GATE songs")
-
-    included_song_packs = set(
-        cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
+    chart_count_per_level: dict[str, int] = option_value_of(
+        multiworld, player, AdditionalChartsPerLevel
     )
 
-    if len(included_song_packs) > 0:
-        log.debug(f"Including songs from {len(included_song_packs)} song packs")
+    is_using_simulator = spec.simulator_option.get_enabled(multiworld, player)
 
-    valid_charts.extend(
-        chart
-        for song in spec.SongSpec.pack_songs
-        if song.pack in included_song_packs
+    charts_by_location_name = {
+        f"{song.title} - {chart.summary}": chart
+        for song in spec.SongSpec.all_songs
         for chart in song.charts
-    )
+    }
+
+    valid_charts = []
+
+    if is_using_simulator:
+        log.debug(
+            "Simulator mode enabled - only including charts that have converts available"
+        )
+
+        available_convert_difficulties = load_data_file("converts.json")
+        available_convert_difficulties = {
+            str(song_title): set[str](charts)
+            for song_title, charts in available_convert_difficulties.items()
+        }
+
+        for song in chain(spec.SongSpec.all_songs):
+            available_convert_difficulties_for_song = (
+                available_convert_difficulties.get(song.title, set())
+            )
+            for chart in song.charts:
+                if chart.diff.upper() in available_convert_difficulties_for_song:
+                    valid_charts.append(chart)
+
+    else:
+        valid_charts = [
+            chart for song in spec.SongSpec.base_songs for chart in song.charts
+        ]
+
+        if is_option_enabled(multiworld, player, "enable_member_songs"):
+            valid_charts.extend(
+                chart for song in spec.SongSpec.member_songs for chart in song.charts
+            )
+            log.debug("Including member songs")
+
+        if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
+            valid_charts.extend(
+                chart for song in spec.SongSpec.blaster_songs for chart in song.charts
+            )
+            log.debug("Including BLASTER GATE songs")
+
+        included_song_packs = set(
+            cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
+        )
+
+        if len(included_song_packs) > 0:
+            log.debug(f"Including songs from {len(included_song_packs)} song packs")
+
+        valid_charts.extend(
+            chart
+            for song in spec.SongSpec.pack_songs
+            if song.pack in included_song_packs
+            for chart in song.charts
+        )
 
     log.debug(f"{len(valid_charts)} total charts to pick from")
 
@@ -130,17 +149,6 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
             f"{format_list(included_and_excluded)}"
         )
 
-    charts_by_location_name = {
-        f"{song.title} - {chart.summary}": chart
-        for song in (
-            spec.SongSpec.base_songs
-            + spec.SongSpec.member_songs
-            + spec.SongSpec.blaster_songs
-            + spec.SongSpec.pack_songs
-        )
-        for chart in song.charts
-    }
-
     for entry in force_include:
         if not entry in charts_by_location_name:
             errors.append(f"Unknown entry in `force_include`: {entry}")
@@ -155,32 +163,6 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     valid_charts = [
         chart for chart in valid_charts if chart.song.item_name not in force_exclude
     ]
-
-    converts_only: bool = cast(
-        bool,
-        get_option_value(multiworld, player, "converts_only"),
-    )
-
-    if converts_only:
-        log.debug("Only including charts that have converts available")
-
-        available_convert_difficulties = load_data_file("converts.json")
-        available_convert_difficulties = {
-            str(song_title): set[str](charts)
-            for song_title, charts in available_convert_difficulties.items()
-        }
-
-        for name, chart in charts_by_location_name.items():
-            available_convert_difficulties_for_song = (
-                available_convert_difficulties.get(chart.song.title, set())
-            )
-            if chart.diff.upper() not in available_convert_difficulties_for_song:
-                if name in force_include:
-                    log.warning(
-                        f"Chart {name} is being force-included but has no convert available"
-                    )
-                else:
-                    valid_charts.remove(chart)
 
     from .State import ChartPool
     from ..spec import chart_level_range_specs
@@ -238,6 +220,23 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     goal_level = cast(
         int, get_option_value(multiworld, player, spec.goal_level_option_name)
     )
+
+    # ensure we have a goal chart if one isn't in the pool
+    if not any(chart.level == goal_level for chart in pool.charts):
+        log.debug(f"Pool does not have a goal chart, adding a new one")
+
+        valid_goal_charts = [
+            chart for chart in valid_charts if chart.level == goal_level
+        ]
+
+        if not valid_goal_charts:
+            log.exception(
+                f"There are no valid goal charts for the given goal level '{goal_level}'. "
+                f"Ensure your included charts has a level {goal_level} chart available."
+            )
+
+        ensured_goal_chart = multiworld.random.choice(valid_goal_charts)
+        pool.add_charts([ensured_goal_chart])
 
     pool.choose_goal_chart(multiworld.random, goal_level)
     log.debug(f"Goal song: {pool.goal_chart.song.item_name} (level {goal_level})")

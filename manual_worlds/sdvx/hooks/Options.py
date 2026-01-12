@@ -66,19 +66,6 @@ class AdditionalChartsPerLevel(OptionDict):
     }
 
 
-class SongPacks(OptionSet):
-    display_name = "Song Packs"
-
-
-SongPacks.__doc__ = f"""
-Include songs from these purchasable song packs.
-Comment out the ones you don't have with a '#' in front of the line.
-
-Available packs:
-{"\n".join(f"- {pack}" for pack in PackSongSpec.all_song_packs)}
-"""
-
-
 class ForceInclude(OptionSet):
     """
     Force these charts to be included in the generation.
@@ -111,14 +98,35 @@ class ForceExclude(OptionSet):
     display_name = "Force Exclude"
 
 
+class SongPacks(OptionSet):
+    display_name = "Song Packs"
+
+
+SongPacks.__doc__ = f"""
+Include songs from these purchasable song packs. Only relevant if you're playing the arcade version and not using a simulator.
+Comment out the ones you don't have with a '#' in front of the line.
+
+Available packs:
+{"\n".join(f"- {pack}" for pack in PackSongSpec.all_song_packs)}
+"""
+
+
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(
     options: dict[str, Type[Option[Any]]],
 ) -> dict[str, Type[Option[Any]]]:
-    options[AdditionalChartsPerLevel.name] = AdditionalChartsPerLevel
-    options["include_song_packs"] = SongPacks
     options["force_include"] = ForceInclude
     options["force_exclude"] = ForceExclude
+    options[AdditionalChartsPerLevel.name] = AdditionalChartsPerLevel
+    options["include_song_packs"] = SongPacks
+
+    return options
+
+
+# This is called after your manual are defined. Use this to put them at the end
+def after_manual_options_defined(
+    options: dict[str, Type[Option[Any]]],
+) -> dict[str, Type[Option[Any]]]:
 
     return options
 

@@ -1,9 +1,10 @@
 from dataclasses import dataclass
+from itertools import chain
 import re
 from typing import ClassVar, Iterable, Literal, NotRequired, TypedDict
-from .requires import Requires
+from ..lib.requires import Requires
 from ..Helpers import load_data_file
-from .world import WorldSpec
+from ..lib.world import WorldSpec
 
 
 class SongData(TypedDict):
@@ -32,6 +33,7 @@ class SongSpec:
     blaster_songs: ClassVar[list["SongSpec"]]
     pack_songs: ClassVar[list["PackSongSpec"]]
     packs: ClassVar[set[str]]
+    all_songs: ClassVar[Iterable["SongSpec"]]
 
     @staticmethod
     def from_data(data: SongData) -> "SongSpec":
@@ -157,6 +159,14 @@ SongSpec.pack_songs = [
     PackSongSpec.from_data(data) for data in SongSpec.songs_data["pack"]
 ]
 
+SongSpec.all_songs = [
+    *SongSpec.base_songs,
+    *SongSpec.member_songs,
+    *SongSpec.blaster_songs,
+    *SongSpec.pack_songs,
+]
+
+
 song_item_category_name = "Songs"
 song_location_category_name = "Song Locations"
 
@@ -173,69 +183,13 @@ spec = WorldSpec(
 world_spec = spec
 
 
-# region chart level options
-@dataclass
-class ChartLevelRangeSpec:
-    start: int
-    end: int
-    default: int
-
-    @property
-    def option_name(self) -> str:
-        if self.start != self.end:
-            return f"include_charts_level_{self.start}_to_{self.end}"
-        else:
-            return f"include_charts_level_{self.start}"
-
-    def define_range_option(self, spec: WorldSpec) -> None:
-        spec.define_range_option(
-            self.option_name,
-            description=(
-                f"Include this many charts"
-                + (
-                    f" from level {self.start} to {self.end}"
-                    if self.start != self.end
-                    else f" at level {self.start}"
-                )
-                + "\n\n"
-                + "You can specify a random number of charts with `random-range-#-#`, example:"
-                + "\n\n"
-                + "random-range-5-15: 50"
-                + "\n\n"
-                + "(And make sure you remove all other keys, or set them to 0!)"
-            ),
-            group="Chart Levels",
-            range_start=0,
-            range_end=100,
-            default=self.default,
-        )
-
-
-chart_level_range_specs = [
-    ChartLevelRangeSpec(start=1, end=7, default=0),
-    ChartLevelRangeSpec(start=8, end=12, default=0),
-    ChartLevelRangeSpec(start=13, end=16, default=0),
-    ChartLevelRangeSpec(start=17, end=17, default=15),
-    ChartLevelRangeSpec(start=18, end=18, default=20),
-    ChartLevelRangeSpec(start=19, end=19, default=10),
-    ChartLevelRangeSpec(start=20, end=20, default=5),
-]
-
-
-for chart_level_range_spec in chart_level_range_specs:
-    chart_level_range_spec.define_range_option(spec)
-
-goal_level_option_name = spec.define_range_option(
-    "goal_level",
-    display_name="Goal Level",
-    description=["The level for your goal song"],
-    group="Chart Levels",
-    range_start=1,
-    range_end=20,
-    default=20,
-)[0]
-# endregion chart level options
-
+simulator_option = spec.define_toggle_option(
+    "simulator",
+    group="Songs",
+    display_name="Using simulator",
+    description="Enable this option if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA. This will make the entire song library available, but only charts that have community converts available.",
+    default=False,
+)
 
 # region goal/volforce
 volforce_count_option_name = spec.define_range_option(
@@ -246,7 +200,7 @@ volforce_count_option_name = spec.define_range_option(
     range_start=0,
     range_end=100,
     default=30,
-)[0]
+).name
 
 required_volforce_option_name = spec.define_range_option(
     "required_volforce_percent",
@@ -256,7 +210,7 @@ required_volforce_option_name = spec.define_range_option(
     range_start=0,
     range_end=100,
     default=50,
-)[0]
+).name
 
 volforce_item_def = spec.define_item(
     "VOLFORCE",
@@ -286,46 +240,6 @@ victory_location_def = spec.define_location(
     victory=True,
 )
 # endregion goal/volforce
-
-
-# region helpers
-helper_count_option_name = spec.define_range_option(
-    "helper_count",
-    display_name="Helper Item Count",
-    description=["Number of AUTO CLEAR items to add to the pool"],
-    group="Helpers",
-    range_start=0,
-    range_end=50,
-    default=12,
-)[0]
-
-helper_item_def = spec.define_item(
-    "AUTO CLEAR",
-    category=["AUTO CLEAR (Consume after play to clear a single song location)"],
-    useful=True,
-)
-# endregion helpers
-
-
-# region traps
-# trap_percent_option_name = spec.define_range_option(
-#     "trap_percent",
-#     display_name="Helper Item Percent",
-#     description=[
-#         "Percent of remaining space for trap items (like ANOMALY) after placing VOLFORCE and helper items"
-#     ],
-#     range_start=0,
-#     range_end=100,
-#     default=15,
-# )[0]
-trap_item_def = spec.define_item(
-    "ANOMALY",
-    category=[
-        f"ANOMALY (Play and clear the first randomly-selected chart within your range)"
-    ],
-    trap=True,
-)
-# endregion traps
 
 
 # region progressive gate
@@ -389,7 +303,10 @@ def define_song_list(song_list: Iterable[SongSpec], group_category: str | None =
         if song.item_name in spec.items:
             if group_category:
                 existing = spec.items[song.item_name]
-                existing["category"] = spec.items[song.item_name].get("category", [])
+                if "category" not in existing:
+                    existing["category"] = []
+                elif isinstance(existing["category"], str):
+                    existing["category"] = [existing["category"]]
                 existing["category"].append(group_category)
             continue
 
@@ -424,16 +341,17 @@ def define_song_list(song_list: Iterable[SongSpec], group_category: str | None =
 
 define_song_list(SongSpec.base_songs)
 
+
 member_songs_option = spec.define_toggle_option(
     "enable_member_songs",
     group="Songs",
     display_name="Enable Membership songs",
-    description="Enable songs that require a membership subscription",
+    description="Enable songs that require a membership subscription. Only relevant if you're playing the arcade version and not using a simulator.",
     default=False,
-)[0]
+)
 member_songs_category = spec.define_category(
     "Membership",
-    yaml_option=[member_songs_option],
+    yaml_option=[member_songs_option.name],
     hidden=True,
 )[0]
 define_song_list(SongSpec.member_songs, member_songs_category)
@@ -442,12 +360,12 @@ blaster_songs_option = spec.define_toggle_option(
     "enable_blaster_gate_songs",
     group="Songs",
     display_name="Enable BLASTER GATE songs",
-    description="Enable songs unlocked through BLASTER GATE",
+    description="Enable songs unlocked through BLASTER GATE. Only relevant if you're playing the arcade version and not using a simulator.",
     default=False,
-)[0]
+)
 blaster_songs_category = spec.define_category(
     "BLASTER GATE",
-    yaml_option=[blaster_songs_option],
+    yaml_option=[blaster_songs_option.name],
     hidden=True,
 )[0]
 define_song_list(SongSpec.blaster_songs, blaster_songs_category)
@@ -461,13 +379,108 @@ for pack in PackSongSpec.all_song_packs:
         (song for song in SongSpec.pack_songs if song.pack == pack),
         pack_category,
     )
-
-spec.define_toggle_option(
-    "converts_only",
-    group="Songs",
-    display_name="Only use charts that have converts",
-    description="Only include charts that have community converts available. Recommended if you're using a SDVX simulator to play, such as Unnamed SDVX Clone or K-Shoot MANIA.",
-    default=False,
-)
-
 # endregion songs
+
+
+# region chart level options
+@dataclass
+class ChartLevelRangeSpec:
+    start: int
+    end: int
+    default: int
+
+    @property
+    def option_name(self) -> str:
+        if self.start != self.end:
+            return f"include_charts_level_{self.start}_to_{self.end}"
+        else:
+            return f"include_charts_level_{self.start}"
+
+    def define_range_option(self, spec: WorldSpec) -> None:
+        spec.define_range_option(
+            self.option_name,
+            description=(
+                f"Include this many charts"
+                + (
+                    f" from level {self.start} to {self.end}"
+                    if self.start != self.end
+                    else f" at level {self.start}"
+                )
+                + "\n\n"
+                + "You can specify a random number of charts with `random-range-#-#`, example:"
+                + "\n\n"
+                + "random-range-5-15: 50"
+                + "\n\n"
+                + "(And make sure you remove all other keys, or set them to 0!)"
+            ),
+            group="Chart Levels",
+            range_start=0,
+            range_end=100,
+            default=self.default,
+        )
+
+
+chart_level_range_specs = [
+    ChartLevelRangeSpec(start=1, end=7, default=0),
+    ChartLevelRangeSpec(start=8, end=12, default=0),
+    ChartLevelRangeSpec(start=13, end=16, default=0),
+    ChartLevelRangeSpec(start=17, end=17, default=15),
+    ChartLevelRangeSpec(start=18, end=18, default=20),
+    ChartLevelRangeSpec(start=19, end=19, default=10),
+    ChartLevelRangeSpec(start=20, end=20, default=5),
+]
+
+
+for chart_level_range_spec in chart_level_range_specs:
+    chart_level_range_spec.define_range_option(spec)
+
+goal_level_option_name = spec.define_range_option(
+    "goal_level",
+    display_name="Goal Level",
+    description=["The level for your goal song"],
+    group="Chart Levels",
+    range_start=1,
+    range_end=20,
+    default=20,
+).name
+# endregion chart level options
+
+
+# region helpers
+helper_count_option_name = spec.define_range_option(
+    "helper_count",
+    display_name="Helper Item Count",
+    description=["Number of AUTO CLEAR items to add to the pool"],
+    group="Helpers",
+    range_start=0,
+    range_end=50,
+    default=12,
+).name
+
+helper_item_def = spec.define_item(
+    "AUTO CLEAR",
+    category=["AUTO CLEAR (Consume after play to clear a single song location)"],
+    useful=True,
+)
+# endregion helpers
+
+
+# region traps
+# trap_percent_option_name = spec.define_range_option(
+#     "trap_percent",
+#     display_name="Helper Item Percent",
+#     description=[
+#         "Percent of remaining space for trap items (like ANOMALY) after placing VOLFORCE and helper items"
+#     ],
+#     range_start=0,
+#     range_end=100,
+#     default=15,
+# )[0]
+trap_item_def = spec.define_item(
+    "ANOMALY",
+    category=[
+        f"ANOMALY (Play and clear the first randomly-selected chart within your range)"
+    ],
+    trap=True,
+)
+# endregion traps

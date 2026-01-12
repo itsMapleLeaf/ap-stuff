@@ -7,12 +7,8 @@ import shutil
 import subprocess
 from typing import Iterable
 
-from scripts.gen_yamls import generate_yaml_templates
-
 from .lib.paths import dist_dir, project_dir, user_archipelago_templates_dir
-
 from .lib.log import PrettyLog
-
 from .lib.multiworld import MultiWorldConfig
 from .lib.manual_worlds import ManualWorldProject, find_local_manual_world_projects
 
@@ -118,6 +114,8 @@ def __cli():
         )
 
     if args.release:
+        from scripts.gen_yamls import generate_yaml_templates
+
         generate_yaml_templates(
             target_folder=user_archipelago_templates_dir,
         )

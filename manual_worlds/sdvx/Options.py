@@ -1,7 +1,13 @@
 import sys
 from Options import PerGameCommonOptions, FreeText, Toggle, DefaultOnToggle, Choice, TextChoice, Range, NamedRange, DeathLink, \
     OptionGroup, StartInventoryPool, Visibility, item_and_loc_options, Option
-from .hooks.Options import before_options_defined, after_options_defined, before_option_groups_created, after_option_groups_created
+from .hooks.Options import (
+    after_manual_options_defined,
+    before_options_defined,
+    after_options_defined,
+    before_option_groups_created,
+    after_option_groups_created,
+)
 from .Data import category_table, game_table, option_table
 from .Helpers import convert_to_long_string, format_to_valid_identifier
 from .Locations import victory_names
@@ -196,6 +202,8 @@ for option_name, option in option_table.get('user', {}).items():
 
     if option.get('group'):
         addOptionToGroup(option_name, option['group'])
+
+manual_options = after_manual_options_defined(manual_options)
 
 ######################
 # category and starting_items options

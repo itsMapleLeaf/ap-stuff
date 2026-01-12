@@ -1,0 +1,73 @@
+from dataclasses import dataclass
+from typing import Any, Literal, TypedDict, NotRequired, cast
+from BaseClasses import MultiWorld
+
+
+type UserOptionData = ToggleOptionData | ChoiceOptionData | RangeOptionData
+
+
+class BaseOptionData(TypedDict):
+    display_name: NotRequired[str]
+    description: NotRequired[str | list[str]]
+    rich_text_doc: NotRequired[bool]
+    group: NotRequired[str]
+    hidden: NotRequired[bool]
+    visibility: NotRequired[str | list[str] | int]
+
+
+class CoreOptionData(BaseOptionData):
+    default: NotRequired[int | bool]
+    aliases: NotRequired[dict[str, int | str]]
+    values: NotRequired[dict[str, int]]
+
+
+class ToggleOptionArgs(BaseOptionData):
+    default: bool
+
+
+class ToggleOptionData(ToggleOptionArgs):
+    type: Literal["Toggle"]
+
+
+@dataclass
+class ToggleOptionSpec:
+    name: str
+    data: ToggleOptionData
+
+    def get_enabled(self, multi: MultiWorld, player: int):
+        from ..Helpers import is_option_enabled
+
+        return is_option_enabled(multi, player, self.name)
+
+
+class ChoiceOptionArgs(BaseOptionData):
+    values: dict[str, int]
+    aliases: NotRequired[dict[str, int | str]]
+    default: NotRequired[int]
+    allow_custom_value: NotRequired[bool]
+
+
+class ChoiceOptionData(ChoiceOptionArgs):
+    type: Literal["Choice"]
+
+
+class RangeOptionArgs(BaseOptionData):
+    range_start: NotRequired[int]
+    range_end: NotRequired[int]
+    default: NotRequired[int]
+    values: NotRequired[dict[str, int]]
+
+
+class RangeOptionData(RangeOptionArgs):
+    type: Literal["Range"]
+
+
+@dataclass
+class RangeOptionSpec:
+    name: str
+    data: RangeOptionData
+
+    def get_value(self, multi: MultiWorld, player: int):
+        from ..Helpers import get_option_value
+
+        return cast(int, get_option_value(multi, player, self.name))
