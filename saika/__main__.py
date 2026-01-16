@@ -32,21 +32,19 @@ async def __run_webview():
 
 
 async def __start_dev_server():
+    config = {
+        "cwd": Path(__file__).parent / "web",
+        "stdin": DEVNULL,
+    }
+
     if sys.platform == "win32":
-        server = await asyncio.subprocess.create_subprocess_exec(
-            "bun",
-            "dev",
-            cwd=Path(__file__).parent / "web",
-            stdin=DEVNULL,
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-        )
-    else:
-        server = await asyncio.subprocess.create_subprocess_exec(
-            "bun",
-            "dev",
-            cwd=Path(__file__).parent / "web",
-            stdin=DEVNULL,
-        )
+        config["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+
+    server = await asyncio.subprocess.create_subprocess_exec(
+        "bun",
+        "dev",
+        **config,
+    )
 
     return ensure_killed(server)
 
