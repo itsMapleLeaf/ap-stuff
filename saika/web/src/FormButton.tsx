@@ -15,7 +15,7 @@ export function FormButton({
 			disabled={status.pending}
 			{...props}
 			className={twMerge(
-				"flex h-10 items-center justify-center gap-2 rounded bg-black/40 px-3 hover:bg-black/60 active:bg-black/90 active:duration-0 disabled:opacity-50",
+				"flex h-10 items-center justify-center gap-2 rounded border-2 border-primary-900 bg-primary-800/25 px-3 hover:bg-primary-700/40 active:bg-primary-600/40 active:duration-0 disabled:opacity-50",
 				props.className,
 			)}
 		>
