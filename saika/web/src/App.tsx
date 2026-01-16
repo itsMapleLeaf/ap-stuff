@@ -54,6 +54,8 @@ export function App() {
 		},
 	])
 
+	const [sessionViewId, setSessionViewId] = useState<string>()
+
 	type View = {
 		id: string
 		label?: ReactNode
@@ -132,7 +134,14 @@ export function App() {
 						label: session.playerName,
 						sublabel: session.gameName,
 						icon: "mingcute:game-2-fill",
-						content: <SessionView {...server} {...session} />,
+						content: (
+							<SessionView
+								{...server}
+								{...session}
+								viewId={sessionViewId}
+								onViewIdChange={setSessionViewId}
+							/>
+						),
 					}),
 				),
 		}

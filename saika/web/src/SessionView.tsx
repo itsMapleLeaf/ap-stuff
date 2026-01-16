@@ -13,6 +13,8 @@ export function SessionView(props: {
 	serverPassword: string
 	gameName: string
 	playerName: string
+	viewId: string | undefined
+	onViewIdChange: (viewId: string) => void
 }) {
 	type ViewMap = Record<
 		string,
@@ -65,11 +67,14 @@ export function SessionView(props: {
 		id,
 	}))
 
+	const currentView = views.find((v) => v.id === props.viewId) ?? views[0]
+
 	return (
 		<div ref={containerRef} className="size-full">
 			<Tabs.Root
 				className="flex h-full flex-col gap-2 p-2"
-				defaultValue={views[0]?.id}
+				value={currentView?.id}
+				onValueChange={props.onViewIdChange}
 			>
 				<Tabs.List className="flex gap-2 overflow-x-auto">
 					{views.map((view) => (
