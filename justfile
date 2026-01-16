@@ -27,7 +27,7 @@ serve:
     cd "{{ generate_dir }}"; {{ archipelago_server }} *.archipelago
 
 # create apworlds and a stitched config for a multi
-export multi: (run "scripts.copy_to_ap_players" multi)
+export multi: (build "--multi" multi) (run "scripts.copy_to_ap_players" multi)
     uv run -m scripts.export {{ multi }}
 
 # create a new manual world
