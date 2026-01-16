@@ -1,7 +1,7 @@
-import { Icon } from "@iconify/react"
 import type { ComponentProps } from "react"
 import { useFormStatus } from "react-dom"
 import { twMerge } from "tailwind-merge"
+import { Icon } from "./Icon.tsx"
 
 export function FormButton({
 	children,

@@ -1,5 +1,4 @@
 import { Tabs } from "@base-ui-components/react"
-import { Icon } from "@iconify/react"
 import {
 	type ReactNode,
 	type RefObject,
@@ -7,6 +6,7 @@ import {
 	useRef,
 	useState,
 } from "react"
+import { Icon } from "./Icon.tsx"
 
 export function SessionView(props: {
 	serverAddress: string
@@ -99,6 +99,9 @@ function useElementSize(ref: RefObject<Element | null>) {
 
 	useEffect(() => {
 		if (!ref.current) return
+
+		setWidth(ref.current.clientWidth)
+		setHeight(ref.current.clientHeight)
 
 		const observer = new ResizeObserver((entries) => {
 			const entry = entries.at(-1)

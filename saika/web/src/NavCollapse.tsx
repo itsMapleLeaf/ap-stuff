@@ -1,7 +1,7 @@
 import { Collapsible, Menu } from "@base-ui-components/react"
-import { Icon } from "@iconify/react"
 import type { ReactNode } from "react"
 import { twMerge } from "tailwind-merge"
+import { Icon } from "./Icon.tsx"
 
 export interface NavCollapseProps {
 	label: ReactNode
