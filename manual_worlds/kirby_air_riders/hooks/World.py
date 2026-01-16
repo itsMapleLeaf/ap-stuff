@@ -70,6 +70,16 @@ def before_create_items_all(
     multiworld: MultiWorld,
     player: int,
 ) -> dict[str, int | dict]:
+    from .. import spec
+
+    city_trial_game_count = spec.CityTrialGameSpec.game_count_option.get_value(
+        multiworld, player
+    )
+
+    item_config[spec.CityTrialGameSpec.progressive_game_item["name"]] = (
+        city_trial_game_count + 3
+    )
+
     return item_config
 
 
@@ -105,7 +115,7 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
         multiworld, player
     )
 
-    completion_location_name = spec.CityTrialGameSpec.games[
+    completion_location_name = spec.city_trial_games[
         city_trial_game_count - 1
     ].location["name"]
 

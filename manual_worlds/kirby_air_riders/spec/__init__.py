@@ -1,5 +1,6 @@
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass
 import dataclasses
+from itertools import pairwise
 from typing import ClassVar
 from ..lib.helpers import range_inclusive
 from ..lib.world import WorldSpec
@@ -8,6 +9,29 @@ from ..lib.requires import Requires
 
 spec = WorldSpec(filler_item_name="Hot Dog")
 world_spec = spec
+
+
+@dataclass
+class UnlockableSpec:
+    name: str
+    categories: list[str]
+    location_names: InitVar[list[str]]
+
+    def __post_init__(self, location_names: list[str]):
+        self.item = spec.define_item(
+            self.name,
+            category=self.categories,
+            progression=True,
+        )
+        self.locations = [
+            spec.define_location(
+                location_name,
+                category=self.categories,
+                requires=Requires.item(self.item),
+            )
+            for location_name in location_names
+        ]
+
 
 riders_category = spec.define_category("Players - Riders", starting_count=1)[0]
 machines_category = spec.define_category("Players - Machines", starting_count=1)[0]
@@ -25,293 +49,241 @@ starting_stage_category = spec.define_category(
 )[0]
 
 
-@dataclass
-class RiderSpec:
-    name: str
-    achievements: list[str] = field(default_factory=list)
+def define_rider(name: str, achievements: list[str] | None = None) -> UnlockableSpec:
+    achievement_list = achievements or []
+    return UnlockableSpec(
+        name,
+        categories=[riders_category],
+        location_names=[
+            f"Finish a stage as {name}",
+            *(f"As {name}: {achievement}" for achievement in achievement_list),
+        ],
+    )
 
-    riders: ClassVar[list["RiderSpec"]]
+
+def define_machine(name: str) -> UnlockableSpec:
+    return UnlockableSpec(
+        name,
+        categories=[machines_category],
+        location_names=[f"Finish a stage with {name}"],
+    )
 
 
-RiderSpec.riders = [
-    RiderSpec(
-        "Kirby",
-        ["Defeat a total of 10 enemies with the Ultra Sword Special"],
+def define_air_ride_course(
+    name: str, achievements: list[str] | None = None
+) -> UnlockableSpec:
+    achievement_list = achievements or []
+    return UnlockableSpec(
+        name,
+        categories=[air_ride_category, starting_stage_category],
+        location_names=[
+            f"Finish a race on {name}",
+            *[f"On {name}: {achievement}" for achievement in achievement_list],
+        ],
+    )
+
+
+def define_top_ride_course(
+    name: str, achievements: list[str] | None = None
+) -> UnlockableSpec:
+    achievement_list = achievements or []
+    return UnlockableSpec(
+        name,
+        categories=[top_ride_category, starting_stage_category],
+        location_names=[
+            f"Finish a race on {name}",
+            *(f"On {name}: {achievement}" for achievement in achievement_list),
+        ],
+    )
+
+
+def define_stadium_event(
+    name: str, achievements: list[str] | None = None
+) -> UnlockableSpec:
+    stadium_event_category = spec.define_category(f"Stadium - {name}", hidden=True)[0]
+
+    return UnlockableSpec(
+        name,
+        categories=[
+            stadium_category,
+            stadium_event_category,
+            starting_stage_category,
+        ],
+        location_names=[
+            f"Finish {name}",
+            *(f"In {name}: {achievement}" for achievement in achievements or []),
+        ],
+    )
+
+
+riders = [
+    define_rider(
+        "Kirby", ["Defeat a total of 10 enemies with the Ultra Sword Special"]
     ),
-    RiderSpec(
+    define_rider(
         "King Dedede",
-        ["Defeat 10 enemies up close with Hammer attacks in a single race"],
+        ["Defeat 10 enemies up close with Hammer attacks in a single stage"],
     ),
-    RiderSpec("Meta Knight", ["Win against a Lv. 8 or higher CPU"]),
-    RiderSpec("Waddle Dee", []),
-    RiderSpec(
-        "Bandana Waddle Dee",
-        ["Destroy 2 boxes within 30 sec. of the start of the match"],
-    ),
-    RiderSpec("Waddle Doo", ["Hit 2 riders with a single optic-blast attack"]),
-    RiderSpec("Chef Kawasaki", []),
-    RiderSpec("Knuckle Joe", []),
-    RiderSpec("Rick", []),
-    RiderSpec("Gooey", []),
-    RiderSpec("Cappy", []),
-    RiderSpec("Rocky", []),
-    RiderSpec("Scarfy", []),
-    RiderSpec("Starman", []),
-    RiderSpec("Lololo & Lalala", []),
-    RiderSpec("Marx", []),
-    RiderSpec("Daroach", []),
-    RiderSpec("Magolor", []),
-    RiderSpec("Taranza", []),
-    RiderSpec("Susie", []),
-    RiderSpec("Noir Dedede", []),
+    define_rider("Meta Knight", ["Win against a Lv. 8 or higher CPU"]),
+    define_rider("Waddle Dee"),
+    define_rider("Bandana Waddle Dee", ["Defeat another rider with your special"]),
+    define_rider("Waddle Doo", ["Hit 2 riders with a single optic-blast attack"]),
+    define_rider("Chef Kawasaki"),
+    define_rider("Knuckle Joe", ["Defeat another rider with your special"]),
+    define_rider("Rick"),
+    define_rider("Gooey"),
+    define_rider("Cappy"),
+    define_rider("Rocky"),
+    define_rider("Scarfy"),
+    define_rider("Starman"),
+    define_rider("Lololo & Lalala"),
+    define_rider("Marx"),
+    define_rider("Daroach"),
+    define_rider("Magolor"),
+    define_rider("Taranza"),
+    define_rider("Susie"),
+    define_rider("Noir Dedede"),
 ]
 
-for rider in RiderSpec.riders:
-    rider_item = spec.define_item(
-        rider.name,
-        category=riders_category,
-        progression=True,
-    )
 
-    spec.define_location(
-        f"Finish a stage as {rider.name}",
-        category=riders_category,
-        requires=Requires.item(rider_item),
-    )
-
-    for achievement in rider.achievements:
-        spec.define_location(
-            f"As {rider.name}: {achievement}",
-            category=riders_category,
-            requires=Requires.item(rider_item),
-        )
-
-
-@dataclass
-class MachineSpec:
-    name: str
-    achievements: list[str] = field(default_factory=list)
-
-    machines: ClassVar[list["MachineSpec"]]
-
-
-MachineSpec.machines = [
-    MachineSpec("Warp Star"),
-    MachineSpec("Winged Star"),
-    MachineSpec("Shadow Star"),
-    MachineSpec("Wagon Star"),
-    MachineSpec("Slick Star"),
-    MachineSpec("Formula Star"),
-    MachineSpec("Bulk Star"),
-    MachineSpec("Rocket Star"),
-    MachineSpec("Swerve Star"),
-    MachineSpec("Turbo Star"),
-    MachineSpec("Jet Star"),
-    MachineSpec("Wheelie Bike"),
-    MachineSpec("Rex Wheelie"),
-    MachineSpec("Wheelie Scooter"),
-    MachineSpec("Hop Star"),
-    MachineSpec("Vampire Star"),
-    MachineSpec("Paper Star"),
-    MachineSpec("Chariot"),
-    MachineSpec("Battle Chariot"),
-    MachineSpec("Tank Star"),
-    MachineSpec("Bull Tank"),
-    MachineSpec("Transform Star"),
-    # MachineSpec("Compact Star"),
-    # MachineSpec("Flight Warp Star"),
+machines = [
+    define_machine("Warp Star"),
+    define_machine("Winged Star"),
+    define_machine("Shadow Star"),
+    define_machine("Wagon Star"),
+    define_machine("Slick Star"),
+    define_machine("Formula Star"),
+    define_machine("Bulk Star"),
+    define_machine("Rocket Star"),
+    define_machine("Swerve Star"),
+    define_machine("Turbo Star"),
+    define_machine("Jet Star"),
+    define_machine("Wheelie Bike"),
+    define_machine("Rex Wheelie"),
+    define_machine("Wheelie Scooter"),
+    define_machine("Hop Star"),
+    define_machine("Vampire Star"),
+    define_machine("Paper Star"),
+    define_machine("Chariot"),
+    define_machine("Battle Chariot"),
+    define_machine("Tank Star"),
+    define_machine("Bull Tank"),
+    define_machine("Transform Star"),
 ]
 
-for machine in MachineSpec.machines:
-    machine_item = spec.define_item(
-        machine.name,
-        category=machines_category,
-        progression=True,
-    )
 
-    spec.define_location(
-        f"Finish a stage with {machine.name}",
-        category=machines_category,
-        requires=Requires.item(machine_item),
-    )
-
-    for achievement in machine.achievements:
-        spec.define_location(
-            f"With {machine.name}: {achievement}",
-            category=machines_category,
-            requires=Requires.item(machine_item),
-        )
-
-
-@dataclass
-class AirRideCourseSpec:
-    name: str
-    achievements: list[str] = field(default_factory=list)
-
-    courses: ClassVar[list["AirRideCourseSpec"]]
-
-
-AirRideCourseSpec.courses = [
-    AirRideCourseSpec(
-        "Floria Fields",
-        ["Defeat 2 cart-riding Waddle Dee enemies at the same time"],
+air_ride_courses = [
+    define_air_ride_course(
+        "Floria Fields", ["Defeat 2 cart-riding Waddle Dee enemies at the same time"]
     ),
-    AirRideCourseSpec(
-        "Waveflow Waters",
-        ["Defeat an enemy Scarfy without making it mad"],
+    define_air_ride_course(
+        "Waveflow Waters", ["Defeat an enemy Scarfy without making it mad"]
     ),
-    AirRideCourseSpec("Airtopia Ruins"),
-    AirRideCourseSpec("Crystalline Fissure"),
-    AirRideCourseSpec("Steamgust Forge"),
-    AirRideCourseSpec("Cavernous Corners"),
-    AirRideCourseSpec("Cyberion Highway"),
-    AirRideCourseSpec("Mount Amberfalls"),
-    AirRideCourseSpec("Galactic Nova"),
-    AirRideCourseSpec("Fantasy Meadows"),
-    AirRideCourseSpec("Celestial Valley"),
-    AirRideCourseSpec("Sky Sands"),
-    AirRideCourseSpec("Frozen Hillside"),
-    AirRideCourseSpec("Magma Flows"),
-    AirRideCourseSpec("Beanstalk Park"),
-    AirRideCourseSpec("Machine Passage"),
-    AirRideCourseSpec("Checker Knights"),
-    AirRideCourseSpec("Nebula Belt"),
+    define_air_ride_course("Airtopia Ruins"),
+    define_air_ride_course("Crystalline Fissure"),
+    define_air_ride_course("Steamgust Forge"),
+    define_air_ride_course("Cavernous Corners"),
+    define_air_ride_course("Cyberion Highway"),
+    define_air_ride_course("Mount Amberfalls"),
+    define_air_ride_course(
+        "Galactic Nova", ["Finish after passing through 3 shooting star spots"]
+    ),
+    define_air_ride_course("Fantasy Meadows"),
+    define_air_ride_course("Celestial Valley"),
+    define_air_ride_course("Sky Sands"),
+    define_air_ride_course("Frozen Hillside"),
+    define_air_ride_course("Magma Flows"),
+    define_air_ride_course("Beanstalk Park"),
+    define_air_ride_course("Machine Passage"),
+    define_air_ride_course("Checker Knights"),
+    define_air_ride_course("Nebula Belt"),
 ]
 
-for air_ride_course in AirRideCourseSpec.courses:
-    air_ride_course_item = spec.define_item(
-        air_ride_course.name,
-        category=[air_ride_category, starting_stage_category],
-        progression=True,
-    )
 
-    spec.define_location(
-        f"Finish a race on {air_ride_course.name}",
-        category=air_ride_category,
-        requires=Requires.item(air_ride_course_item),
-    )
-
-    for achievement in air_ride_course.achievements:
-        spec.define_location(
-            f"On {air_ride_course.name}: {achievement}",
-            category=air_ride_category,
-            requires=Requires.item(air_ride_course_item),
-        )
-
-
-@dataclass
-class TopRideCourseSpec:
-    name: str
-    achievements: list[str] = field(default_factory=list)
-
-    courses: ClassVar[list["TopRideCourseSpec"]]
-
-
-TopRideCourseSpec.courses = [
-    TopRideCourseSpec("Flower"),
-    TopRideCourseSpec("Flow"),
-    TopRideCourseSpec("Air"),
-    TopRideCourseSpec("Crystal"),
-    TopRideCourseSpec("Steam"),
-    TopRideCourseSpec("Cave"),
-    TopRideCourseSpec("Cyber"),
-    TopRideCourseSpec("Mountain"),
-    TopRideCourseSpec("Nova"),
+top_ride_courses = [
+    define_top_ride_course("Flower"),
+    define_top_ride_course("Flow"),
+    define_top_ride_course("Air"),
+    define_top_ride_course("Crystal"),
+    define_top_ride_course(
+        "Steam", ["Accelerate using the flipper 5 times in a single race"]
+    ),
+    define_top_ride_course("Cave"),
+    define_top_ride_course("Cyber"),
+    define_top_ride_course("Mountain"),
+    define_top_ride_course("Nova"),
 ]
 
-for top_ride_course in TopRideCourseSpec.courses:
-    top_ride_course_item = spec.define_item(
-        top_ride_course.name,
-        category=[top_ride_category, starting_stage_category],
-        progression=True,
-    )
 
-    spec.define_location(
-        f"Finish a race on {top_ride_course.name}",
-        category=top_ride_category,
-        requires=Requires.item(top_ride_course_item),
-    )
-
-    for achievement in top_ride_course.achievements:
-        spec.define_location(
-            f"On {top_ride_course.name}: {achievement}",
-            category=top_ride_category,
-            requires=Requires.item(top_ride_course_item),
-        )
-
-
-@dataclass
-class StadiumSpec:
-    name: str
-    count: int = 1
-    achievements: list[str] = dataclasses.field(default_factory=list)
-
-
-stadiums: list[StadiumSpec] = [
-    StadiumSpec("Air Glider"),
-    StadiumSpec("Beam Gauntlet"),
-    StadiumSpec(
-        "Big Battle",
-        count=2,
+stadiums = [
+    define_stadium_event("Air Glider"),
+    define_stadium_event(
+        "Beam Gauntlet 1", achievements=["Finish without getting hit by a beam"]
+    ),
+    define_stadium_event(
+        "Beam Gauntlet 2", achievements=["Finish without getting hit by a beam"]
+    ),
+    define_stadium_event(
+        "Big Battle 1",
         achievements=["Attack a rider while they're enlarged from a Size Up"],
     ),
-    StadiumSpec("Button Rush", count=2),
-    StadiumSpec("Drag Race", count=4),
-    StadiumSpec("Dustup Derby", count=5),
-    StadiumSpec("Gourmet Race"),
-    StadiumSpec("High Jump"),
-    StadiumSpec("Kirby Melee", count=2),
-    StadiumSpec("Oval Circuit"),
-    StadiumSpec("Rail Panic"),
-    StadiumSpec("Skydive", count=2),
-    StadiumSpec("Target Flight", count=3),
-    StadiumSpec("VS. Robo Dedede"),
-    StadiumSpec("VS. Nightmare"),
-    StadiumSpec("VS. Marx"),
-    StadiumSpec("VS. Zero Two"),
-    StadiumSpec("VS. Gigantes"),
+    define_stadium_event(
+        "Big Battle 2",
+        achievements=["Attack a rider while they're enlarged from a Size Up"],
+    ),
+    define_stadium_event("Button Rush 1"),
+    define_stadium_event(
+        "Button Rush 2",
+        achievements=["Activate 3 buttons at once with a single Lv. 5 Plasma attack"],
+    ),
+    define_stadium_event("Drag Race 1"),
+    define_stadium_event("Drag Race 2"),
+    define_stadium_event(
+        "Drag Race 3",
+        achievements=["Finish within 0:40.00 without ever leaving the ground"],
+    ),
+    define_stadium_event(
+        "Drag Race 4",
+        achievements=["Ride over 6 dash zones in a single match without reversing"],
+    ),
+    define_stadium_event("Dustup Derby 1"),
+    define_stadium_event("Dustup Derby 2"),
+    define_stadium_event("Dustup Derby 3"),
+    define_stadium_event("Dustup Derby 4"),
+    define_stadium_event("Dustup Derby 5"),
+    define_stadium_event("Gourmet Race"),
+    define_stadium_event("High Jump"),
+    define_stadium_event("Kirby Melee 1"),
+    define_stadium_event("Kirby Melee 2"),
+    define_stadium_event("Oval Circuit"),
+    define_stadium_event("Rail Panic"),
+    define_stadium_event("Skydive 1"),
+    define_stadium_event("Skydive 2"),
+    define_stadium_event(
+        "Target Flight 1",
+        achievements=["Get a perfect score of 200 points"],
+    ),
+    define_stadium_event(
+        "Target Flight 2",
+        achievements=["Score exactly 70 points in a single match"],
+    ),
+    define_stadium_event(
+        "Target Flight 3",
+        achievements=["Get a perfect score of 200 points"],
+    ),
+    define_stadium_event("VS. Robo Dedede"),
+    define_stadium_event("VS. Nightmare"),
+    define_stadium_event("VS. Marx"),
+    define_stadium_event("VS. Zero Two"),
+    define_stadium_event("VS. Gigantes"),
 ]
-
-
-for stadium_event in stadiums:
-    stadium_event_category = spec.define_category(
-        f"Stadium - {stadium_event.name}", hidden=True
-    )[0]
-
-    for stadium_number in range_inclusive(stadium_event.count):
-        stadium_name = stadium_event.name
-        if stadium_event.count > 1:
-            stadium_name += f" {stadium_number}"
-
-        stadium_event_item = spec.define_item(
-            stadium_name,
-            category=[
-                stadium_category,
-                stadium_event_category,
-                starting_stage_category,
-            ],
-            progression=True,
-        )
-
-        spec.define_location(
-            f"Finish {stadium_name}",
-            category=[stadium_category, stadium_event_category],
-            requires=Requires.item(stadium_event_item),
-        )
-
-    for achievement in stadium_event.achievements:
-        spec.define_location(
-            f"In {stadium_event.name}: {achievement}",
-            category=[stadium_category, stadium_event_category],
-            requires=Requires.category(stadium_event_category),
-        )
 
 
 # region city trial
 @dataclass
 class CityTrialGameSpec:
     max_game_count: ClassVar = 10
-    games: ClassVar[list["CityTrialGameSpec"]]
+    city_trial_games: ClassVar[list["CityTrialGameSpec"]]
 
     progressive_game_item: ClassVar = spec.define_item(
         "Progressive City Trial",
@@ -357,48 +329,50 @@ class CityTrialGameSpec:
         )
 
 
-CityTrialGameSpec.games = [
+city_trial_games = [
     CityTrialGameSpec(number=i)
     for i in range_inclusive(CityTrialGameSpec.max_game_count)
 ]
 # endregion city trial
 
 # region achievements
-general_achievements = {
-    "Finish while doing a Quick Spin",
-    "Finish without using your Special",
+air_ride_achievements = {
     "Finish while flying through the air",
+    "Defeat 3 enemies by spitting out stars in a single race",
+    "Defeat 20 enemies in a single race",
+    "Finish without using your Special",
+    "Inhale or capture 2 enemies at once",
+}
+
+top_ride_achievements = {
+    "Finish while doing a Quick Spin",
     "Finish without attacking another rider",
     "Finish without riding over any dash zones",
 }
 
-air_ride_achievements = {
-    "Defeat 3 enemies by spitting out stars in a single race",
-    "Defeat 20 enemies in a single race",
-    "Inhale or capture 2 enemies at once",
-}
-
 city_trial_achievements = {
-    "Pass through golden rings 5 times in a single event",
-    "Soar 100 m up into the air and fly above the garden in the sky",
+    "Pass through rings 5 times in a single event",
+    "Soar up to the garden in the sky",
     "Swap to vacant machines 5 times in one game",
     "Power up any stat to 12 or higher in a single match",
     "Swap to a vacant duplicate of your current machine",
     "Destroy another rider's machine",
     "Make Whispy Woods cry",
+    "Fly far from Skyah and get struck by lightning",
 }
-
-for achievement in general_achievements:
-    spec.define_location(
-        achievement,
-        category="Achievements",
-    )
 
 for achievement in air_ride_achievements:
     spec.define_location(
         f"Air Ride: {achievement}",
         category="Achievements - Air Ride",
         requires=Requires.category(air_ride_category),
+    )
+
+for achievement in top_ride_achievements:
+    spec.define_location(
+        f"Top Ride: {achievement}",
+        category="Achievements - Top Ride",
+        requires=Requires.category(top_ride_category),
     )
 
 for achievement in city_trial_achievements:
@@ -425,9 +399,9 @@ for track_name, track_values in tracks.items():
         count=len(track_values) + 3,
     )
 
-    for track_index, track_value in enumerate(track_values):
+    for track_index, (current, next) in enumerate(pairwise(track_values)):
         spec.define_location(
-            f"Progressive {track_name} - {track_value}",
+            f"Progressive {track_name}: {current} -> {next}",
             category=f"Progressive {track_name}",
             requires=Requires.item(track_item, track_index + 1),
         )
