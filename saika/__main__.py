@@ -2,6 +2,7 @@ import asyncio
 from asyncio.subprocess import DEVNULL
 from pathlib import Path
 import subprocess
+import sys
 import webview
 
 from .lib.http import wait_until_reachable
@@ -31,13 +32,22 @@ async def __run_webview():
 
 
 async def __start_dev_server():
-    server = await asyncio.subprocess.create_subprocess_exec(
-        "bun",
-        "dev",
-        cwd=Path(__file__).parent / "web",
-        stdin=DEVNULL,
-        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
-    )
+    if sys.platform == "win32":
+        server = await asyncio.subprocess.create_subprocess_exec(
+            "bun",
+            "dev",
+            cwd=Path(__file__).parent / "web",
+            stdin=DEVNULL,
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP,
+        )
+    else:
+        server = await asyncio.subprocess.create_subprocess_exec(
+            "bun",
+            "dev",
+            cwd=Path(__file__).parent / "web",
+            stdin=DEVNULL,
+        )
+
     return ensure_killed(server)
 
 
