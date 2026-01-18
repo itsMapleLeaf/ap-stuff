@@ -5,5 +5,5 @@
 	path = archipelago
 	url = https://github.com/ArchipelagoMW/Archipelago
 [submodule "universal_tracker"]
-	path = saika/universal_tracker
+	path = universal_tracker
 	url = https://github.com/FarisTheAncient/Archipelago

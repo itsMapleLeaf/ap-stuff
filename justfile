@@ -53,4 +53,4 @@ mkconfig world:
     # uv run -m scripts.create_config {{ world }}
 
 dev-saika:
-    PYTHONPATH="universal_tracker" uv run -m saika
+    echo "\n" | DEV=true uv run archipelago/Launcher.py "Saika Client"
