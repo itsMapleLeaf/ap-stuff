@@ -351,7 +351,7 @@ top_ride_achievements = {
 }
 
 city_trial_achievements = {
-    "Pass through rings 5 times in a single event",
+    "Pass through 7 dash rings in the air in a single game",
     "Soar up to the garden in the sky",
     "Swap to vacant machines 5 times in one game",
     "Power up any stat to 12 or higher in a single match",
@@ -406,6 +406,15 @@ for track_name, track_values in tracks.items():
             requires=Requires.item(track_item, track_index + 1),
         )
 # endregion progression tracks
+
+
+spec.define_item(
+    "Stage Skip",
+    category="Stage Skip",
+    count=10,
+    useful=True,
+)
+
 
 # class RoadTripSpec:
 #     base_category = spec.define_category(
