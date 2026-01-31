@@ -117,7 +117,7 @@ def before_create_items_filler(item_pool: list, world: World, multiworld: MultiW
 
     completion_location_name = spec.city_trial_games[
         city_trial_game_count - 1
-    ].location["name"]
+    ].stadium_location["name"]
 
     completion_location = next(
         l

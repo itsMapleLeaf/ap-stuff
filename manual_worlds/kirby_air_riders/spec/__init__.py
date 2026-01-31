@@ -218,10 +218,12 @@ top_ride_courses = [
 stadiums = [
     define_stadium_event("Air Glider"),
     define_stadium_event(
-        "Beam Gauntlet 1", achievements=["Finish without getting hit by a beam"]
+        "Beam Gauntlet 1",
+        # achievements=["Finish without getting hit by a beam"],
     ),
     define_stadium_event(
-        "Beam Gauntlet 2", achievements=["Finish without getting hit by a beam"]
+        "Beam Gauntlet 2",
+        # achievements=["Finish without getting hit by a beam"],
     ),
     define_stadium_event(
         "Big Battle 1",
@@ -322,8 +324,14 @@ class CityTrialGameSpec:
             hidden=True,
         )[0]
 
-        self.location = spec.define_location(
+        self.game_location = spec.define_location(
             f"Complete City Trial Game {self.number}",
+            category=[city_trial_category, self.category],
+            requires=Requires.item(self.progressive_game_item, self.number),
+        )
+
+        self.stadium_location = spec.define_location(
+            f"Complete City Trial Stadium {self.number}",
             category=[city_trial_category, self.category],
             requires=Requires.item(self.progressive_game_item, self.number),
         )
@@ -359,6 +367,8 @@ city_trial_achievements = {
     "Destroy another rider's machine",
     "Make Whispy Woods cry",
     "Fly far from Skyah and get struck by lightning",
+    "Finish while in the air",
+    "Finish while on rails",
 }
 
 for achievement in air_ride_achievements:
@@ -410,7 +420,14 @@ for track_name, track_values in tracks.items():
 
 spec.define_item(
     "Stage Skip",
-    category="Stage Skip",
+    category="Helpers",
+    count=10,
+    useful=True,
+)
+
+spec.define_item(
+    "Achievement Check",
+    category="Helpers",
     count=10,
     useful=True,
 )
