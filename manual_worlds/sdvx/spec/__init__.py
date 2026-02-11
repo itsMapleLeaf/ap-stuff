@@ -60,7 +60,7 @@ class SongSpec:
 
         @property
         def summary(self):
-            return f"{self.diff.upper()} {self.level}"
+            return f"{self.diff.upper()} {self.level:g}"
 
         @property
         def locations(self):
