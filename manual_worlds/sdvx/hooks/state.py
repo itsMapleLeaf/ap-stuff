@@ -25,7 +25,7 @@ class ChartPool:
             [
                 chart
                 for chart in self.charts
-                if  chart.level == goal_level
+                if goal_level <= chart.level <= goal_level+1
             ]
         )
 
