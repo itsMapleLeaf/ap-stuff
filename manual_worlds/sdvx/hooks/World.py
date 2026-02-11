@@ -98,34 +98,8 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     else:
         valid_charts = [
-            chart for song in spec.SongSpec.base_songs for chart in song.charts
+            chart for song in spec.SongSpec.all_songs for chart in song.charts
         ]
-
-        if is_option_enabled(multiworld, player, "enable_member_songs"):
-            valid_charts.extend(
-                chart for song in spec.SongSpec.member_songs for chart in song.charts
-            )
-            log.debug("Including member songs")
-
-        if is_option_enabled(multiworld, player, "enable_blaster_gate_songs"):
-            valid_charts.extend(
-                chart for song in spec.SongSpec.blaster_songs for chart in song.charts
-            )
-            log.debug("Including BLASTER GATE songs")
-
-        included_song_packs = set(
-            cast(list[str], get_option_value(multiworld, player, "include_song_packs"))
-        )
-
-        if len(included_song_packs) > 0:
-            log.debug(f"Including songs from {len(included_song_packs)} song packs")
-
-        valid_charts.extend(
-            chart
-            for song in spec.SongSpec.pack_songs
-            if song.pack in included_song_packs
-            for chart in song.charts
-        )
 
     log.debug(f"{len(valid_charts)} total charts to pick from")
 
@@ -188,13 +162,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
         end = chart_level_range_spec.end
         add_charts(
             charts=[
-                chart
-                for chart in valid_charts
-                if (
-                    chart_level_range_spec.start
-                    <= chart.level
-                    <= chart_level_range_spec.end
-                )
+                chart for chart in valid_charts if start <= int(chart.level) <= end
             ],
             count=cast(
                 int,
@@ -207,7 +175,7 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
 
     for level, count in chart_count_per_level.items():
         add_charts(
-            charts=[chart for chart in valid_charts if chart.level == int(level)],
+            charts=[chart for chart in valid_charts if int(chart.level) == int(level)],
             count=count,
             level_text=level,
         )
@@ -222,11 +190,11 @@ def before_create_regions(world: World, multiworld: MultiWorld, player: int):
     )
 
     # ensure we have a goal chart if one isn't in the pool
-    if not any(chart.level == goal_level for chart in pool.charts):
+    if not any(int(chart.level) == goal_level for chart in pool.charts):
         log.debug(f"Pool does not have a goal chart, adding a new one")
 
         valid_goal_charts = [
-            chart for chart in valid_charts if chart.level == goal_level
+            chart for chart in valid_charts if int(chart.level) == goal_level
         ]
 
         if not valid_goal_charts:

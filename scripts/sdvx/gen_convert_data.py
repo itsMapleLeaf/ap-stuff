@@ -8,6 +8,7 @@ import json
 import logging
 import os
 from pathlib import Path
+import re
 import sys
 from typing import Any, Literal, TypedDict
 import difflib
@@ -81,18 +82,58 @@ for index, chart_entry in enumerate(chart_entries):
     if (index + 1) % 100 == 0:
         logging.info(f"Processed {index+1}/{chart_entry_count} charts")
 
-official_song_groups: dict[str, list[dict[str, Any]]] = json.loads(
+
+official_songs: list[dict[str, Any]] = json.loads(
     Path("manual_worlds/sdvx/data/songs.json").read_text(
         encoding="utf-8", errors="ignore"
     )
 )
-official_song_titles = set[str](
-    song["title"] for group in official_song_groups.values() for song in group
-)
+official_song_titles = set[str](song["title"] for song in official_songs)
+print(f"Found {len(official_song_titles)} official songs")
+
+
+# { official_title: local_title }
+manual_inclusions = {
+    # oopsie
+    "永遠に幸せになる方法、見つけました。": "永遠に幸せになる方法、見つけました",
+    # i don't know about this one? close enough tbh
+    "fancy cake!!": "fancy cake",
+    # just moved the title credit into the artist field, lol
+    # "ARROW RAIN feat. ayame": "ARROW RAIN",
+    # "Alice Maestera feat. nomico": "Alice Maestera",
+    # genuinely how do you fuck this up
+    "プレインエイジア(MRM REMIX)": "プレインエイジア-MRM REMIX-",
+    # "POSSESSION(Gowrock Remix)": "POSSESSION -Gowrock Remix-",
+    "鏡面の波 (ramble mix)": "鏡面の波 -ramble mix-",
+    # "トーホータノシ (feat. 抹)": "トーホータノシ feat. 抹",
+    "十面相 (フリーダム Ver.)": "十面相（フリーダムver.）",
+    # haha ha unicode
+    "Help me, ERINNNNNN!! #幻想郷ホロイズムver.": "Help me, ERINNNNNN!! #幻想郷ホロイズムver​.",
+    # "おにいちゃんグリッチホップ ～eternal love remix～": "おにいちゃんグリッチホップ 〜eternal love remix〜",
+    "君にエールを･･･！(DJ UTO REMIX)": "君にエールを・・・！ （DJ UTO REMIX）",
+    "天狗の落とし文 feat.ytr": "天狗の落とし文 feat. ｙｔｒ",
+    "チルノのパーフェクトさんすう教室 ⑨周年バージョン": "チルノのパーフェクトさんすう教室　⑨周年バージョン",
+    # "I’m Your Treasure Box\n＊あなたは マリンせんちょうを たからばこからみつけた。": "I'm Your Treasure Box ＊あなたは マリンせんちょうを たからばこからみつけた。",
+    # accidental hyphen?? in the official sources???
+    # "50th Memorial Songs -二人の時 ～under the cherry blossoms～-": "50th Memorial Songs -二人の時 ～under the cherry blossoms～",
+    # what the fuck happened here??
+    "劇場版ムーニャポヨポヨスッポコニャーゴ~侵略だいず帝国！ドラマティック宇宙大戦争~": "劇場版ムーニャポヨポヨスッポコニャーゴ‾侵略だいず帝国！ドラマティック宇宙大戦争‾",
+    # ????????????????????
+    "MΔX FLAVØR": "MΔX FLAV驩R",
+    "Help me, ERINNNNNN!! #幻想郷ホロイズムver.": "Help me, ERINNNNNN!! #幻想郷ホロイズムver​.",
+}
+
+for official_title, local_title in manual_inclusions.items():
+    if official_title not in official_song_titles:
+        print(f"Manual inclusion for '{official_title}' not found in official songs")
+        continue
+
+    local_difficulties[official_title] = local_difficulties[local_title]
 
 missing_official_songs_by_exact_title = official_song_titles - set(
     local_difficulties.keys()
 )
+
 
 # these are potential matches for missing official songs
 local_matches = {}
@@ -111,24 +152,33 @@ for missing_official_title in missing_official_songs_by_exact_title:
 
     def normalize_title(title: str) -> str:
         return (
-            title.replace("！", "!")
+            re.sub(r"\s+", " ", title)
+            .replace("！", "!")
             .replace("《", "<<")
             .replace("＜＜", "<<")
             .replace("》", ">>")
             .replace("＞＞", ">>")
+            .replace("（", "(")
+            .replace("）", ")")
             .replace("：", ":")
             .replace("’", "'")
             .replace("”", '"')
-            .replace("''", '"')  # this one is dumb lol
+            .replace("''", '"')  # lol
             .replace("…", "...")
+            .replace("・", "･")
+            .replace(".", ".")  # what
             .replace("｜｜", "||")
             .replace("＝", "=")
-            .replace("～", "~")  # i'm upset that both of these are different
+            # i'm upset that both of these are different
+            .replace("～", "~")
             .replace("〜", "~")
             # for PROVOES*PROPOSE <<êl fine>> - i'm no bothering with every accent lol
             .replace("ê", "e")
             .replace(" ", "")
+            .replace("\n", " ")
+            .replace("​", "")  # ah yes, the Hell Space™️
             .lower()
+            .strip()
         )
 
     # add the official titles of songs which match by some trivial criteria
@@ -144,39 +194,12 @@ for missing_official_title in missing_official_songs_by_exact_title:
     # if it's not a trivial match, log it for manual review
     local_matches[missing_official_title] = matches[0]
 
-print("local matches:", json.dumps(local_matches, ensure_ascii=False, indent=2))
+
+print("local matches:", json.dumps(local_matches, ensure_ascii=False, indent=4))
 print(
     "not found locally:",
-    json.dumps(list(unmatched_official_songs), ensure_ascii=False, indent=2),
+    json.dumps(list(unmatched_official_songs), ensure_ascii=False, indent=4),
 )
-
-# { official_title: local_title }
-manual_inclusions = {
-    # i don't know what these *N things are, but we'll count them
-    "月光乱舞*3": "月光乱舞",
-    "ごりらがいるんだ*2": "ごりらがいるんだ",
-    # i don't know about this one? close enough tbh
-    "fancy cake!!": "fancy cake",
-    # just moved the title credit into the artist field, lol
-    "ARROW RAIN feat. ayame": "ARROW RAIN",
-    "Alice Maestera feat. nomico": "Alice Maestera",
-    # genuinely how do you fuck this up
-    "プレインエイジア(MRM REMIX)": "プレインエイジア-MRM REMIX-",
-    "POSSESSION(Gowrock Remix)": "POSSESSION -Gowrock Remix-",
-    "トーホータノシ (feat. 抹)": "トーホータノシ feat. 抹",
-    # haha ha unicode
-    "Help me, ERINNNNNN!! #幻想郷ホロイズムver.": "Help me, ERINNNNNN!! #幻想郷ホロイズムver​.",
-    "おにいちゃんグリッチホップ ～eternal love remix～": "おにいちゃんグリッチホップ 〜eternal love remix〜",
-    # accidental hyphen?? in the official sources???
-    "50th Memorial Songs -二人の時 ～under the cherry blossoms～-": "50th Memorial Songs -二人の時 ～under the cherry blossoms～",
-    # what the fuck happened here??
-    "劇場版ムーニャポヨポヨスッポコニャーゴ~侵略だいず帝国！ドラマティック宇宙大戦争~": "劇場版ムーニャポヨポヨスッポコニャーゴ‾侵略だいず帝国！ドラマティック宇宙大戦争‾",
-    # ????????????????????
-    "MΔX FLAVØR": "MΔX FLAV驩R",
-}
-
-for official_title, local_title in manual_inclusions.items():
-    local_difficulties[official_title] = local_difficulties[local_title]
 
 
 args.output_file.write_text(
@@ -187,6 +210,7 @@ args.output_file.write_text(
             if title in official_song_titles
         },
         ensure_ascii=False,
+        separators=(",", ":"),
     ),
     encoding="utf-8",
     errors="ignore",

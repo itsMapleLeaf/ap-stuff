@@ -15,7 +15,6 @@ from Options import (
     OptionGroup,
     PerGameCommonOptions,
 )
-from ..spec import PackSongSpec
 
 # These helper methods allow you to determine if an option has been set, or what its value is, for any player in the multiworld
 from ..Helpers import is_option_enabled, get_option_value
@@ -98,19 +97,6 @@ class ForceExclude(OptionSet):
     display_name = "Force Exclude"
 
 
-class SongPacks(OptionSet):
-    display_name = "Song Packs"
-
-
-SongPacks.__doc__ = f"""
-Include songs from these purchasable song packs. Only relevant if you're playing the arcade version and not using a simulator.
-Comment out the ones you don't have with a '#' in front of the line.
-
-Available packs:
-{"\n".join(f"- {pack}" for pack in PackSongSpec.all_song_packs)}
-"""
-
-
 # This is called before any manual options are defined, in case you want to define your own with a clean slate or let Manual define over them
 def before_options_defined(
     options: dict[str, Type[Option[Any]]],
@@ -118,7 +104,6 @@ def before_options_defined(
     options["force_include"] = ForceInclude
     options["force_exclude"] = ForceExclude
     options[AdditionalChartsPerLevel.name] = AdditionalChartsPerLevel
-    options["include_song_packs"] = SongPacks
 
     return options
 

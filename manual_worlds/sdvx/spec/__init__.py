@@ -9,44 +9,37 @@ from ..lib.world import WorldSpec
 
 class SongData(TypedDict):
     title: str
-    artist: str
-    bpm: str
-    nov: str
-    adv: str
-    exh: str
-    mxm: str
-    pack: NotRequired[str]
+    # artist: str
+    # bpm: str
+    nov: float
+    adv: float
+    exh: float
+    mxm: float
 
 
 @dataclass
 class SongSpec:
     title: str
-    artist: str
+    # artist: str
     charts: list["Chart"]
 
     type Difficulty = Literal["nov", "adv", "exh", "mxm"]
     diffs: ClassVar[list[Difficulty]] = ["nov", "adv", "exh", "mxm"]
 
-    songs_data: ClassVar[dict]
-    base_songs: ClassVar[list["SongSpec"]]
-    member_songs: ClassVar[list["SongSpec"]]
-    blaster_songs: ClassVar[list["SongSpec"]]
-    pack_songs: ClassVar[list["PackSongSpec"]]
-    packs: ClassVar[set[str]]
-    all_songs: ClassVar[Iterable["SongSpec"]]
+    all_songs: ClassVar[list["SongSpec"]]
 
     @staticmethod
     def from_data(data: SongData) -> "SongSpec":
         spec = SongSpec(
             title=data["title"],
-            artist=data["artist"],
+            # artist=data["artist"],
             charts=[],
         )
 
         for diff in SongSpec.diffs:
-            if data.get(diff, "").isdigit():
+            if diff in data and isinstance(data[diff], float):
                 spec.charts.append(
-                    SongSpec.Chart(diff=diff, level=int(data[diff]), song=spec)
+                    SongSpec.Chart(diff=diff, level=data[diff], song=spec)
                 )
 
         return spec
@@ -62,7 +55,7 @@ class SongSpec:
     @dataclass
     class Chart:
         diff: str
-        level: int
+        level: float
         song: "SongSpec"
 
         @property
@@ -91,86 +84,13 @@ class SongSpec:
             return f"{self.chart.song.title} - {self.chart.summary} - {type_text}"
 
 
-@dataclass
-class PackSongSpec(SongSpec):
-    pack: str
-
-    all_song_packs: ClassVar = [
-        "楽曲パック vol.1",
-        "楽曲パック vol.2",
-        "楽曲パック vol.3",
-        "楽曲パック vol.4",
-        "楽曲パック vol.5",
-        "楽曲パック vol.6",
-        "楽曲パック vol.7",
-        "楽曲パック vol.8",
-        "楽曲パック vol.9",
-        "楽曲パック vol.10",
-        "楽曲パック vol.11",
-        "楽曲パック vol.12",
-        "楽曲パック vol.13",
-        "楽曲パック vol.14",
-        "楽曲パック vol.15",
-        "楽曲パック vol.16",
-        "楽曲パック vol.17",
-        "楽曲パック vol.18",
-        "楽曲パック vol.19",
-        "楽曲パック vol.20",
-        "楽曲パック vol.21",
-        "楽曲パック vol.22",
-        "楽曲パック vol.23",
-        "楽曲パック vol.24",
-        "楽曲パック vol.25",
-        "10周年記念 楽曲パック",
-        "BEMANI セレクション 楽曲パック vol.1",
-        "BEMANI セレクション 楽曲パック vol.2",
-        "BEMANI セレクション 楽曲パック vol.3",
-        "MÚSECAセレクション 楽曲パック vol.1",
-        "MÚSECAセレクション 楽曲パック vol.2",
-        "REFLEC BEAT セレクション 楽曲パック vol.1",
-        "beatmania IIDX セレクション 楽曲パック vol.1",
-        "jubeat セレクション 楽曲パック vol.1",
-        "ここなつセレクション 楽曲パック",
-        "スタートアップセレクション 楽曲パック vol.1",
-        "東方Projectセレクション 楽曲パック",
-    ]
-
-    @staticmethod
-    def from_data(data: SongData) -> "PackSongSpec":
-        base_spec = SongSpec.from_data(data)
-        return PackSongSpec(
-            title=base_spec.title,
-            artist=base_spec.artist,
-            charts=base_spec.charts,
-            pack=data.get("pack", ""),
-        )
-
-
-SongSpec.songs_data = load_data_file("songs.json")
-
-SongSpec.base_songs = [SongSpec.from_data(data) for data in SongSpec.songs_data["base"]]
-SongSpec.member_songs = [
-    SongSpec.from_data(data) for data in SongSpec.songs_data["member"]
-]
-SongSpec.blaster_songs = [
-    SongSpec.from_data(data) for data in SongSpec.songs_data["blaster"]
-]
-SongSpec.pack_songs = [
-    PackSongSpec.from_data(data) for data in SongSpec.songs_data["pack"]
-]
-
-SongSpec.all_songs = [
-    *SongSpec.base_songs,
-    *SongSpec.member_songs,
-    *SongSpec.blaster_songs,
-    *SongSpec.pack_songs,
-]
+SongSpec.all_songs = [SongSpec.from_data(song) for song in load_data_file("songs.json")]
 
 
 song_item_category_name = "Songs"
 song_location_category_name = "Song Locations"
 
-filler_item_name = "sound voltex song effects to sleep and relax to"
+filler_item_name = "sound voltex effects to sleep and relax to"
 filler_item_weight = 7
 
 spec = WorldSpec(
@@ -298,87 +218,35 @@ song_location_category = spec.define_category(
 )[0]
 
 
-def define_song_list(song_list: Iterable[SongSpec], group_category: str | None = None):
-    for song in song_list:
-        if song.item_name in spec.items:
-            if group_category:
-                existing = spec.items[song.item_name]
-                if "category" not in existing:
-                    existing["category"] = []
-                elif isinstance(existing["category"], str):
-                    existing["category"] = [existing["category"]]
-                existing["category"].append(group_category)
-            continue
+for song in SongSpec.all_songs:
+    if song.item_name in spec.items:
+        continue
 
-        song_item = spec.define_item(
-            song.item_name,
-            category=[
-                song_item_category,
-                *([group_category] if group_category != None else []),
-            ],
-            progression=True,
-        )
-
-        for chart in song.charts:
-            for chart_location in chart.locations:
-                chart_location = spec.define_location(
-                    chart_location.name,
-                    category=[
-                        song_location_category,
-                        *([group_category] if group_category != None else []),
-                        f"Songs - {song.title} ({group_category or "Base Songs"})",
-                    ],
-                    requires=Requires.item(song_item),
-                    dont_place_item=(
-                        chart_location.type == "score_pass"
-                        and [progressive_gate_item["name"]]
-                        # or chart_location.type == "hp_pass"
-                        # and [progressive_gate_hp_item["name"]]
-                        or []
-                    ),
-                )
-
-
-define_song_list(SongSpec.base_songs)
-
-
-member_songs_option = spec.define_toggle_option(
-    "enable_member_songs",
-    group="Songs",
-    display_name="Enable Membership songs",
-    description="Enable songs that require a membership subscription. Only relevant if you're playing the arcade version and not using a simulator.",
-    default=False,
-)
-member_songs_category = spec.define_category(
-    "Membership",
-    yaml_option=[member_songs_option.name],
-    hidden=True,
-)[0]
-define_song_list(SongSpec.member_songs, member_songs_category)
-
-blaster_songs_option = spec.define_toggle_option(
-    "enable_blaster_gate_songs",
-    group="Songs",
-    display_name="Enable BLASTER GATE songs",
-    description="Enable songs unlocked through BLASTER GATE. Only relevant if you're playing the arcade version and not using a simulator.",
-    default=False,
-)
-blaster_songs_category = spec.define_category(
-    "BLASTER GATE",
-    yaml_option=[blaster_songs_option.name],
-    hidden=True,
-)[0]
-define_song_list(SongSpec.blaster_songs, blaster_songs_category)
-
-for pack in PackSongSpec.all_song_packs:
-    (pack_category, _) = spec.define_category(
-        pack,
-        hidden=True,
+    song_item = spec.define_item(
+        song.item_name,
+        category=[
+            song_item_category,
+        ],
+        progression=True,
     )
-    define_song_list(
-        (song for song in SongSpec.pack_songs if song.pack == pack),
-        pack_category,
-    )
+
+    for chart in song.charts:
+        for chart_location in chart.locations:
+            chart_location = spec.define_location(
+                chart_location.name,
+                category=[
+                    song_location_category,
+                    f"Songs - {song.title}",
+                ],
+                requires=Requires.item(song_item),
+                dont_place_item=(
+                    chart_location.type == "score_pass"
+                    and [progressive_gate_item["name"]]
+                    # or chart_location.type == "hp_pass"
+                    # and [progressive_gate_hp_item["name"]]
+                    or []
+                ),
+            )
 # endregion songs
 
 
